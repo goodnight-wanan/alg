@@ -1,0 +1,137 @@
+* {
+    user-select: none;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-image: url(../imgs/back/back.png);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    height: 100vh;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.main{
+    width: 1200px;
+    height: 550px;
+    border: 1px solid black;
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+}
+.content{
+    width: 710px;
+    height: 470px;
+    background-color: rgba(255,192,203,0.6);
+    color: white;
+    font-size: 40px;
+    letter-spacing: 2px;
+    font-weight: 1000;
+    text-shadow: 4px 4px rgba(0, 0, 0, 0.2);
+    line-height: 70px;
+    border-radius: 15px;
+    padding: 40px 40px;
+    transition: 1s;
+    opacity: 0;
+}
+p{
+    opacity: 0;
+    transition: 1s;
+    transition-delay: 0.5s;
+}
+body:hover p{
+    opacity: 1;
+}
+.login-container {
+    background: rgba(255,255,255,0.5);
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 15px 25px rgba(0, 0, 0, 0.2);
+    text-align: center;
+}
+body:hover .content{
+     opacity: 1;
+}
+.login-container h2 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.login-container input[type="text"],
+.login-container input[type="password"] {
+    width: 373px;
+    margin: auto;
+    display: block;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    outline: none;
+    background-color: rgba(255,255,255,0.5);
+}
+
+.login-container button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 20px;
+    background-color: #ff7eb3;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.login-container button:hover {
+    background-color: #6dd5ed;
+}
+
+.social-login {
+    margin-top: 20px;
+}
+
+.social-button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.3s ease;
+}
+
+.social-button.QQ {
+    background-color: #0099FF;
+    color: white;
+}
+
+.social-button.wechat {
+    background-color: #95EC69;
+    color: white;
+}
+
+.terms {
+    text-align: left;
+    margin-top: 20px;
+}
+
+.terms input {
+    margin-right: 10px;
+}
+
+.login-container a {
+    color: #666;
+    text-decoration: none;
+    display: block;
+    margin-top: 20px;
+}
+
+.login-container a:hover {
+    text-decoration: underline;
+}

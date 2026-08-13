@@ -1,0 +1,72 @@
+*{user-select: none;}
+body {
+    font-family: 'Arial', sans-serif;
+    background-image: url(../imgs/back/back.png);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    height: 100vh;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.register-container {
+    background-color: rgba(255,255,255,0.5);
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 15px 25px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    width: 350px; /* 与登录页面宽度一致 */
+}
+
+.register-container h2 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.register-container input[type="text"],
+.register-container input[type="password"],
+.register-container input[type="email"] {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    outline: none;
+    background-color: rgba(255,255,255,0.4);
+}
+
+.register-container button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 20px;
+    background-color: #ff7eb3;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.register-container button:hover {
+    background-color: #ff758c;
+}
+
+.register-container a {
+    color: #666;
+    text-decoration: none;
+    display: block;
+    margin-top: 20px;
+}
+
+.register-container a:hover {
+    text-decoration: underline;
+}
+
+
+
+
+
+

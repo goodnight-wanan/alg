@@ -1,0 +1,74 @@
+*{
+    margin: 0;
+    padding: 0;
+    outline: none;
+}
+body{
+    background-image: url(../imgs/54a4a22596a48d24576bfe912d73640.jpg);
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+}
+.mybody{
+    width:1680px;
+    height:900px;
+    /* background-color: rgb(252, 252, 252); */
+    margin: 0 auto;
+}
+.title{
+    width: 1200px;
+    height:30px;
+    margin: 0 auto;
+}
+.header{
+    width: 1200px;
+    height: 200px;
+    /* background-color: rgb(255, 255, 255); */
+    margin: auto;
+}
+.header1{
+    width: 1680px;
+    height: 5px;
+    background-color: brown;
+}
+.content{
+    width:1200px;
+    height:800px;
+    /* background-color: white; */
+    margin: auto;
+   
+}
+.song-sheet{
+    width:180px;
+    height:180px;
+    display: inline-block;
+    margin-left: 50px;
+    margin-top: 60px;
+}
+.song-sheet_picture{
+    width: 180px;
+    height: 180px;
+    border: 1px solid black;
+}
+.song-sheet_name{
+    width:180px;
+    height: 20px;
+}
+.name{
+    color: black;
+    font-size: 15px;
+    margin-left: 20px;
+    margin-top: 0px;
+    text-decoration: none;
+}
+input {
+    width: 800px;
+    height: 30px;
+    font-size: 16px;
+    margin-left: 100px;
+    }
+.name1{ 
+    color: black;
+    text-decoration: none;
+} 
+
