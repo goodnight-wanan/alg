@@ -165,7 +165,7 @@ a{
 .cont1{
     width: 1680px;
     height: 700px;
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 0;
 }
 .cont1-shell{
     width: 1200px;
@@ -272,7 +272,7 @@ a{
     width: 1680px;
     height: 700px;
     margin: 0 auto;
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 0;
 }
 .cont-title{
     width: 350px;
@@ -432,7 +432,7 @@ a{
 .cont3{
     width: 1680px;
     height: 800px;
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 0;
 }
 .cont3-L{
     line-height: 50px;
@@ -563,7 +563,7 @@ a{
 .cont4{
     width: 1680px;
     height: 800px;
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 0;
 }
 .cont4-L{
     line-height: 50px;
@@ -722,18 +722,18 @@ a{
 .footer{
     width: 100%;
     height: auto;
-    padding: 48px 24px calc(var(--player-height) + 40px);
-    border: 1px solid rgba(255,255,255,0.1);
+    padding: 22px 24px calc(var(--player-height) + 18px);
+    border: 0;
     background-color: rgba(25,25,25,0.85);
 }
 .footer-moreMeg{
     width: min(1200px, 100%);
     height: auto;
     margin: 0 auto;
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 1000;
-    line-height: 2;
-    letter-spacing: 2px;
+    line-height: 1.7;
+    letter-spacing: 1px;
     color: white;
 }
 .footer-download{
@@ -741,7 +741,7 @@ a{
     max-width: 100%;
     height: auto;
     margin: 0 auto;
-    margin-bottom: 30px;
+    margin-bottom: 14px;
     text-align: center;
     cursor: pointer;
     transition: 0.2s;
