@@ -1,8 +1,20 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import PlaylistCard from '../components/PlaylistCard.vue'
-import SongRow from '../components/SongRow.vue'
+import { useRouter } from 'vue-router'
 import { playlists, songs } from '../data/musicData'
+import { usePlayerStore } from '../stores/player'
+import { useUserStore } from '../stores/user'
+import { usePageCss } from '../utils/pageCss'
+
+usePageCss(['/assets/css/style.css'])
+
+const router = useRouter()
+const playerStore = usePlayerStore()
+const userStore = useUserStore()
+
+const keyword = ref('')
+const activeSlide = ref(0)
+let slideTimer = null
 
 const slides = [
   '/assets/imgs/homepage/carousel/carousel1.png',
@@ -11,22 +23,19 @@ const slides = [
   '/assets/imgs/homepage/carousel/carousel4.png'
 ]
 
-const activeSlide = ref(0)
-let slideTimer = null
+const recommendedPlaylists = playlists.slice(0, 5)
+const newSongs = songs.filter((song) => song.isNew)
+const chartGroups = [
+  { name: '飙升榜', songs: songs.filter((song) => song.chart === '飙升榜').slice(0, 3) },
+  { name: '热歌榜', songs: songs.filter((song) => song.chart === '热歌榜').slice(0, 3) },
+  { name: '新歌榜', songs: songs.filter((song) => song.chart === '新歌榜').slice(0, 3) }
+]
 
-const recommendedPlaylists = computed(() => playlists.slice(0, 10))
-const newSongs = computed(() => songs.filter((song) => song.isNew))
-const chartGroups = computed(() =>
-  ['飙升榜', '热歌榜', '新歌榜'].map((chart) => ({
-    name: chart,
-    cover: {
-      飙升榜: '/assets/imgs/homepage/chart_back/chart_b1.png',
-      热歌榜: '/assets/imgs/homepage/chart_back/chart_b2.png',
-      新歌榜: '/assets/imgs/homepage/chart_back/chart_b3.png'
-    }[chart],
-    songs: songs.filter((song) => song.chart === chart).slice(0, 5)
-  }))
-)
+const currentPlaying = computed(() => playerStore.currentSong)
+
+function pad(index) {
+  return String(index + 1).padStart(2, '0')
+}
 
 function goTo(index) {
   activeSlide.value = (index + slides.length) % slides.length
@@ -42,7 +51,7 @@ function previousSlide() {
 
 function startTimer() {
   stopTimer()
-  slideTimer = window.setInterval(nextSlide, 4500)
+  slideTimer = window.setInterval(nextSlide, 5000)
 }
 
 function stopTimer() {
@@ -52,355 +61,216 @@ function stopTimer() {
   }
 }
 
+function submitSearch() {
+  const value = keyword.value.trim()
+  if (!value) return
+  router.push({ name: 'search', query: { q: value } })
+  keyword.value = ''
+}
+
+function goPlaylist(id) {
+  router.push({ name: 'playlist', params: { id } })
+}
+
+function playPlaylist(playlist) {
+  const list = songs.filter((song) => playlist.songIds.includes(song.id))
+  if (list.length) {
+    playerStore.playSong(list[0], list)
+  }
+}
+
+function playSong(song, list = [song]) {
+  userStore.recordPlay(song.id)
+  playerStore.playSong(song, list)
+}
+
 onMounted(startTimer)
 onUnmounted(stopTimer)
 </script>
 
 <template>
-  <div class="home-view">
-    <section class="hero-section" @mouseenter="stopTimer" @mouseleave="startTimer">
-      <div class="carousel">
-        <img :src="slides[activeSlide]" alt="精彩推荐" />
-        <button class="carousel-button left" type="button" title="上一张" @click="previousSlide">&lt;</button>
-        <button class="carousel-button right" type="button" title="下一张" @click="nextSlide">&gt;</button>
-        <div class="carousel-points">
-          <button
-            v-for="(slide, index) in slides"
-            :key="slide"
-            type="button"
-            :class="{ active: activeSlide === index }"
-            :aria-label="`切换到第 ${index + 1} 张`"
-            @click="goTo(index)"
-          />
+  <div class="main">
+    <div class="header">
+      <div class="header-top">
+        <img src="" class="header-logo" alt="悦音音乐" />
+        <div class="header-column">
+          <div class="header-col music-hall" @click="router.push('/')">音乐馆</div>
+          <div class="header-col my_music" @click="router.push('/mine')">我的音乐</div>
+          <div class="header-col download" @click.prevent>客户端</div>
+          <div class="header-col vip" @click.prevent>VIP</div>
+        </div>
+        <form class="header-seek" @submit.prevent="submitSearch">
+          <input v-model="keyword" class="header-search" type="text" placeholder="搜索音乐，歌单，用户" />
+          <button class="header-button" type="submit" title="搜索">⌕</button>
+        </form>
+        <div class="login" title="账号登录">
+          <RouterLink v-if="userStore.isLoggedIn" class="a_login" to="/mine">
+            {{ userStore.currentUser.username }}
+          </RouterLink>
+          <RouterLink v-else class="a_login" to="/login">登录</RouterLink>
         </div>
       </div>
-    </section>
+      <div class="header-line"></div>
+      <div class="header-menu">
+        <a href="javascript:;" @click.prevent="router.push('/')">
+          <div class="header-mn homepage">主页</div>
+        </a>
+        <a href="#" @click.prevent><div class="header-mn singer">歌手</div></a>
+        <a href="#" @click.prevent><div class="header-mn newCD">新碟</div></a>
+        <a href="javascript:;" @click.prevent="router.push('/search?tab=song')">
+          <div class="header-mn chart">排行榜</div>
+        </a>
+        <a href="javascript:;" @click.prevent="router.push('/category')">
+          <div class="header-mn sort_list">分类歌单</div>
+        </a>
+      </div>
+    </div>
 
-    <section class="section">
-      <div class="section-head">
-        <h2 class="section-title">歌单推荐</h2>
-        <RouterLink class="section-more" to="/category">更多 &gt;&gt;</RouterLink>
+    <div class="cont1">
+      <div class="cont-title">精彩推荐</div>
+      <div class="cont1-shell" @mouseenter="stopTimer" @mouseleave="startTimer">
+        <div class="carousel">
+          <img class="carousel-img" :src="slides[activeSlide]" alt="精彩推荐" />
+        </div>
+        <ul class="cont1-point">
+          <li
+            v-for="(slide, index) in slides"
+            :key="slide"
+            :class="{ active: activeSlide === index }"
+            @click="goTo(index)"
+          ></li>
+        </ul>
+        <div class="cont1-button">
+          <button class="cont1-button-left" type="button" @click="previousSlide">&lt;</button>
+          <button class="cont1-button-right" type="button" @click="nextSlide">&gt;</button>
+        </div>
       </div>
-      <div class="grid playlist-grid">
-        <PlaylistCard
-          v-for="playlist in recommendedPlaylists"
-          :key="playlist.id"
-          :playlist="playlist"
-        />
-      </div>
-    </section>
+    </div>
 
-    <section class="section">
-      <div class="section-head">
-        <h2 class="section-title">新歌首发</h2>
-        <RouterLink class="section-more" to="/search?tab=song">更多 &gt;&gt;</RouterLink>
+    <div class="cont2">
+      <div class="cont-title">歌单推荐</div>
+      <div class="cont-list c2-list">
+        <div class="cont2-L c2-L">为你推荐</div>
+        <div class="cont2-L">网络歌曲</div>
+        <div class="cont2-L">情歌</div>
+        <div class="cont2-L">节奏歌曲</div>
+        <div class="cont2-L">经典歌曲</div>
       </div>
-      <div class="new-song-grid">
-        <SongRow
-          v-for="(song, index) in newSongs"
-          :key="song.id"
-          :song="song"
-          :index="index"
-          :queue="newSongs"
-          :show-album="false"
-        />
+      <RouterLink to="/category">
+        <div class="cont-more cont2-more">更多 &gt;&gt;</div>
+      </RouterLink>
+      <div class="cont2-areas">
+        <div v-for="playlist in recommendedPlaylists" :key="playlist.id" class="cont2-area">
+          <div class="cont2-shell" @click="goPlaylist(playlist.id)">
+            <img class="cont2-img" :src="playlist.cover" :alt="playlist.title" />
+            <div class="cont2-shadow"></div>
+            <a class="cont2-play_list" href="javascript:;" @click.stop.prevent="playPlaylist(playlist)">
+              <div class="cont2-play" title="播放"></div>
+            </a>
+          </div>
+          <div class="cont2-word" @click="goPlaylist(playlist.id)">
+            <p>{{ playlist.title }}</p>
+            <p>{{ playlist.description }}</p>
+          </div>
+        </div>
       </div>
-    </section>
+      <div class="cont-point c2-point">
+        <div class="cont-pt c-pt"></div>
+        <div class="cont-pt"></div>
+        <div class="cont-pt"></div>
+        <div class="cont-pt"></div>
+      </div>
+    </div>
 
-    <section class="section">
-      <div class="section-head">
-        <h2 class="section-title">排行榜</h2>
+    <div class="cont3">
+      <div class="cont-title">新歌首发</div>
+      <div class="cont-list c3-list">
+        <div class="cont3-L c3-L">最新</div>
+        <div class="cont3-L">内地</div>
+        <div class="cont3-L">港台</div>
+        <div class="cont3-L">欧美</div>
+        <div class="cont3-L">韩国</div>
+        <div class="cont3-L">日本</div>
       </div>
+      <RouterLink to="/search?tab=song">
+        <div class="cont-more cont3-more">更多 &gt;&gt;</div>
+      </RouterLink>
+      <div class="cont3-songs">
+        <div v-for="song in newSongs" :key="song.id" class="cont3-song">
+          <div class="cont3-shell" @click="playSong(song, newSongs)">
+            <img class="cont3-img" :src="song.cover" :alt="song.title" />
+            <div class="cont3-shadow"></div>
+            <div class="cont3-back">
+              <img
+                class="cont3-play"
+                :src="currentPlaying?.id === song.id && playerStore.isPlaying ? '/assets/imgs/media/pause.png' : '/assets/imgs/media/play.png'"
+                alt="播放"
+              />
+            </div>
+          </div>
+          <div class="cont3-word">
+            <div class="cont3-song_name">{{ song.title }}</div>
+            <div class="cont3-song_singer">{{ song.artist }}</div>
+          </div>
+          <div class="cont3-song_time">{{ song.duration }}</div>
+        </div>
+      </div>
+    </div>
 
-      <div class="chart-grid">
-        <article
-          v-for="group in chartGroups"
+    <div class="cont4">
+      <div class="cont-title">排行榜</div>
+      <div class="cont-list c4-list">
+        <div class="cont4-L c4-L">最新</div>
+        <div class="cont4-L">内地</div>
+        <div class="cont4-L">港台</div>
+        <div class="cont4-L">欧美</div>
+        <div class="cont4-L">韩国</div>
+        <div class="cont4-L">日本</div>
+      </div>
+      <div class="cont4-charts">
+        <div
+          v-for="(group, index) in chartGroups"
           :key="group.name"
-          class="chart-card"
-          :style="{ backgroundImage: `url(${group.cover})` }"
+          class="cont4-chart"
+          :class="`chart${index + 1}`"
         >
-          <div class="chart-overlay"></div>
-          <div class="chart-head">
-            <h3>{{ group.name }}</h3>
-            <span>{{ group.songs.length }} 首</span>
+          <div class="cont4-chart_title">{{ group.name }}</div>
+          <div class="cont4-chart_line"></div>
+          <div class="cont4-chart_play_back" @click="playSong(group.songs[0], group.songs)">
+            <img src="/assets/imgs/media/play.png" class="cont4-chart_play" alt="播放" />
           </div>
-          <div class="chart-list">
-            <SongRow
-              v-for="(song, index) in group.songs"
+          <div class="cont4-chart_list">
+            <div
+              v-for="(song, songIndex) in group.songs"
               :key="song.id"
-              :song="song"
-              :index="index"
-              :queue="group.songs"
-              :show-album="false"
-            />
+              class="cont4-chart_song"
+              @click="playSong(song, group.songs)"
+            >
+              <div class="cont4-chart_song_num">{{ pad(songIndex) }}</div>
+              <div class="cont4-chart_song_meg">
+                <div class="cont4-chart_song_name">{{ song.title }}</div>
+                <div class="cont4-chart_song_singer">{{ song.artist }}</div>
+              </div>
+            </div>
           </div>
-        </article>
+        </div>
       </div>
-    </section>
+    </div>
+
+    <div class="footer">
+      <div class="footer-moreMeg">
+        <a class="ft-download" href="#" @click.prevent>
+          <div class="footer-download">
+            <p title="下载客户端">下载客户端</p>
+          </div>
+        </a>
+        <p>相关信息：</p>
+        <p>北华大学计算机科学技术学院 @1977-2099</p>
+        <p>软件工程北华前端开发小组 · Vue 3 重构版</p>
+        <p>违法和不良信息举报电话：6666-88888</p>
+        <p>举报邮箱：xxx@qg.com</p>
+        <p>音乐网站 | 服务条款 | 隐私政策 | 版权投诉指引 | 意见反馈</p>
+      </div>
+    </div>
   </div>
 </template>
-
-<style scoped>
-.hero-section {
-  margin-top: 35px;
-}
-
-.carousel {
-  position: relative;
-  width: min(1200px, 100%);
-  aspect-ratio: 1200 / 520;
-  margin: 0 auto;
-  overflow: hidden;
-  border-radius: 15px;
-  box-shadow: var(--shadow);
-}
-
-.carousel img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.carousel-button {
-  position: absolute;
-  top: 50%;
-  z-index: 2;
-  display: grid;
-  place-items: center;
-  width: 70px;
-  height: 100px;
-  transform: translateY(-50%);
-  border: 1px solid #191516;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.2);
-  color: #191516;
-  font-size: 100px;
-  line-height: 100px;
-  transition: 0.5s;
-}
-
-.carousel-button.left {
-  left: -90px;
-}
-
-.carousel-button.right {
-  right: -90px;
-}
-
-.carousel:hover .carousel-button.left {
-  left: 0;
-}
-
-.carousel:hover .carousel-button.right {
-  right: 0;
-}
-
-.carousel-button:hover {
-  background: rgba(25, 25, 25, 0.1);
-}
-
-.carousel-points {
-  position: absolute;
-  right: 0;
-  bottom: 18px;
-  left: 0;
-  display: flex;
-  justify-content: center;
-  gap: 22px;
-}
-
-.carousel-points button {
-  width: 30px;
-  height: 30px;
-  border: 5px solid rgba(25, 25, 25, 0.5);
-  border-radius: 50%;
-  background-position: center;
-  background-size: cover;
-  cursor: pointer;
-}
-
-.carousel-points button:nth-child(1) {
-  background-image: url('/assets/imgs/homepage/carousel/carousel1.png');
-}
-
-.carousel-points button:nth-child(2) {
-  background-image: url('/assets/imgs/homepage/carousel/carousel2.png');
-}
-
-.carousel-points button:nth-child(3) {
-  background-image: url('/assets/imgs/homepage/carousel/carousel3.png');
-}
-
-.carousel-points button:nth-child(4) {
-  background-image: url('/assets/imgs/homepage/carousel/carousel4.png');
-}
-
-.carousel-points button.active {
-  border-color: pink;
-}
-
-.section-head {
-  position: relative;
-}
-
-.section-more {
-  position: absolute;
-  right: 70px;
-  bottom: 0;
-}
-
-.new-song-grid {
-  width: min(1400px, 100%);
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
-}
-
-.new-song-grid :deep(.song-row) {
-  min-height: 150px;
-  grid-template-columns: 46px 140px minmax(0, 1fr) 90px 38px;
-  gap: 18px;
-  border: 3px solid rgba(255, 255, 255, 0.2);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.35);
-}
-
-.new-song-grid :deep(.song-row:hover) {
-  top: -10px;
-  left: 15px;
-  box-shadow: 0 5px 10px 5px rgba(25, 25, 25, 0.2);
-  background: rgba(255, 255, 255, 0.5);
-}
-
-.new-song-grid :deep(.song-cover) {
-  width: 140px;
-  height: 150px;
-  border-radius: 10px;
-}
-
-.new-song-grid :deep(.play-toggle) {
-  width: 46px;
-  height: 46px;
-}
-
-.chart-grid {
-  width: min(1200px, 100%);
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 22px;
-}
-
-.chart-card {
-  position: relative;
-  min-height: 500px;
-  overflow: hidden;
-  border: 3px solid rgba(255, 255, 255, 0.5);
-  border-radius: 10px;
-  background-position: center;
-  background-size: cover;
-  transition: 0.4s;
-}
-
-.chart-card:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 10px 10px 5px rgba(25, 25, 25, 0.2);
-}
-
-.chart-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(255, 255, 255, 0.08);
-  pointer-events: none;
-}
-
-.chart-head {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: min(300px, 82%);
-  margin: 30px auto 18px;
-  padding: 0 10px;
-  color: #fff;
-  text-shadow: 2px 2px rgba(0, 0, 0, 0.22);
-}
-
-.chart-head h3 {
-  margin: 0;
-  font-size: clamp(28px, 4vw, 45px);
-  letter-spacing: 4px;
-}
-
-.chart-head span {
-  font-size: 13px;
-}
-
-.chart-list {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  width: min(300px, 82%);
-  margin: 0 auto;
-}
-
-.chart-list :deep(.song-row) {
-  min-height: 68px;
-  grid-template-columns: 36px 48px minmax(0, 1fr) 34px;
-  background: rgba(255, 255, 255, 0.78);
-}
-
-.chart-list :deep(.song-cover) {
-  width: 48px;
-  height: 48px;
-}
-
-@media (max-width: 1080px) {
-  .new-song-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .chart-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 640px) {
-  .carousel {
-    border-radius: 10px;
-  }
-
-  .carousel-button {
-    width: 36px;
-    height: 54px;
-    font-size: 46px;
-    line-height: 54px;
-  }
-
-  .carousel-button.left {
-    left: 6px;
-  }
-
-  .carousel-button.right {
-    right: 6px;
-  }
-
-  .carousel-points {
-    gap: 10px;
-  }
-
-  .carousel-points button {
-    width: 20px;
-    height: 20px;
-    border-width: 3px;
-  }
-
-  .section-more {
-    right: 4px;
-  }
-}
-</style>

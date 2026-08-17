@@ -1,10 +1,12 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import SongRow from '../components/SongRow.vue'
 import { getPlaylistById, getPlaylistSongs } from '../data/musicData'
 import { usePlayerStore } from '../stores/player'
 import { useUserStore } from '../stores/user'
+import { usePageCss } from '../utils/pageCss'
+
+usePageCss(['/assets/css/歌单页面.css'])
 
 const route = useRoute()
 const playerStore = usePlayerStore()
@@ -12,168 +14,105 @@ const userStore = useUserStore()
 
 const playlist = computed(() => getPlaylistById(route.params.id))
 const songs = computed(() => getPlaylistSongs(playlist.value))
-const isFavorite = computed(() => userStore.isFavoritePlaylist(playlist.value?.id))
+const localSongs = ref(songs.value.map((song) => ({ ...song, fileName: `${song.title}.mp3` })))
+const newSong = reactive({ name: '', artist: '', album: '' })
+const selectedFile = ref(null)
 
-function playAll() {
-  if (songs.value.length) {
-    playerStore.playSong(songs.value[0], songs.value)
-  }
+function onFileChange(event) {
+  selectedFile.value = event.target.files?.[0] || null
 }
 
-function toggleFavoritePlaylist() {
-  if (playlist.value) {
-    userStore.toggleFavoritePlaylist(playlist.value.id)
+function addSong() {
+  if (!newSong.name || !newSong.artist || !newSong.album) {
+    alert('请输入完整歌曲的信息！')
+    return
   }
+
+  const audioUrl = selectedFile.value
+    ? URL.createObjectURL(selectedFile.value)
+    : '/assets/music/SWIN-S - 只因你太美.mp3'
+
+  localSongs.value.push({
+    id: `local-${Date.now()}`,
+    title: newSong.name,
+    artist: newSong.artist,
+    album: newSong.album,
+    cover: playlist.value?.cover || '',
+    audio: audioUrl,
+    duration: '--:--',
+    fileName: selectedFile.value?.name || `${newSong.name}.mp3`
+  })
+
+  newSong.name = ''
+  newSong.artist = ''
+  newSong.album = ''
+  selectedFile.value = null
+}
+
+function removeSong(index) {
+  localSongs.value.splice(index, 1)
+}
+
+function playSong(song) {
+  userStore.recordPlay(song.id)
+  playerStore.playSong(song, localSongs.value)
 }
 </script>
 
 <template>
-  <div class="playlist-view">
-    <RouterLink v-if="playlist" to="/category" class="back-link">← 返回分类歌单</RouterLink>
+  <div v-if="playlist" class="mybody">
+    <div class="head">
+      <table border="1px" style="height: 200px; width: 1200px">
+        <tr>
+          <td rowspan="3" colspan="1">
+            <img :src="playlist.cover" width="180px" height="180px" :alt="playlist.title" />
+          </td>
+          <td>名称：{{ playlist.title }}</td>
+        </tr>
+        <tr>
+          <td>分类：{{ playlist.genre }} / {{ playlist.mood }} / {{ playlist.era }}</td>
+        </tr>
+        <tr>
+          <td>介绍：{{ playlist.description }}</td>
+        </tr>
+      </table>
+    </div>
 
-    <template v-if="playlist">
-      <section class="playlist-hero">
-        <img class="playlist-cover" :src="playlist.cover" :alt="playlist.title" />
-        <div class="playlist-info">
-          <p class="eyebrow">PLAYLIST</p>
-          <h1>{{ playlist.title }}</h1>
-          <p>{{ playlist.description }}</p>
-          <div class="tags">
-            <span class="badge">{{ playlist.genre }}</span>
-            <span class="badge">{{ playlist.mood }}</span>
-            <span class="badge">{{ playlist.era }}</span>
-          </div>
-          <div class="actions">
-            <button class="btn btn-primary" type="button" @click="playAll">▶ 播放全部</button>
-            <button class="btn btn-ghost" type="button" @click="toggleFavoritePlaylist">
-              {{ isFavorite ? '♥ 已收藏' : '♡ 收藏歌单' }}
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <section class="playlist-songs">
-        <div class="list-head">
-          <h2>歌曲列表</h2>
-          <span>共 {{ songs.length }} 首</span>
-        </div>
-        <div class="song-list">
-          <SongRow
-            v-for="(song, index) in songs"
-            :key="song.id"
-            :song="song"
-            :index="index"
-            :queue="songs"
-          />
-        </div>
-      </section>
-    </template>
-
-    <div v-else class="empty-state">
+    <div class="content">
       <div>
-        <strong>歌单不存在或已被删除</strong>
-        <p>返回分类页看看其他歌单吧。</p>
-        <RouterLink class="btn btn-primary" to="/category">浏览歌单</RouterLink>
+        请输入歌曲名：<input v-model.trim="newSong.name" type="text" id="uname" /><br />
+        请输入演唱者：<input v-model.trim="newSong.artist" type="text" id="singer" /><br />
+        请输入专辑名：<input v-model.trim="newSong.album" type="text" id="time" /><br />
+        请选择MP3文件：<input type="file" id="file" @change="onFileChange" />
       </div>
+
+      <input type="button" value="添加" id="btn" @click="addSong" />
+
+      <table border="1" cellspacing="1" cellpadding="0" id="tbd">
+        <thead>
+          <tr>
+            <th>歌曲名</th>
+            <th>演唱者</th>
+            <th>专辑名</th>
+            <th>MP3文件</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(song, index) in localSongs" :key="song.id">
+            <td>{{ song.title }}</td>
+            <td>{{ song.artist }}</td>
+            <td>{{ song.album }}</td>
+            <td>
+              <a href="javascript:;" @click.prevent="playSong(song)">{{ song.fileName }}</a>
+              <a href="javascript:;" @click.prevent="removeSong(index)">删除</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
+
+  <div v-else class="functional-page">
+    <div class="functional-empty">歌单不存在或已被删除</div>
+  </div>
 </template>
-
-<style scoped>
-.back-link {
-  display: inline-flex;
-  margin-bottom: 22px;
-  color: var(--muted);
-  font-size: 14px;
-}
-
-.back-link:hover {
-  color: var(--primary);
-}
-
-.playlist-hero {
-  display: grid;
-  grid-template-columns: 240px minmax(0, 1fr);
-  gap: 30px;
-  align-items: end;
-  padding: 28px;
-  border: 1px solid var(--border);
-  border-radius: 26px;
-  background: rgba(255, 255, 255, 0.74);
-  box-shadow: var(--shadow-soft);
-}
-
-.playlist-cover {
-  width: 100%;
-  aspect-ratio: 1;
-  border-radius: 22px;
-  object-fit: cover;
-  box-shadow: var(--shadow);
-}
-
-.eyebrow {
-  margin: 0 0 8px;
-  color: var(--primary);
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.18em;
-}
-
-.playlist-info h1 {
-  margin: 0;
-  font-size: clamp(28px, 5vw, 48px);
-  letter-spacing: -0.04em;
-}
-
-.playlist-info > p:not(.eyebrow) {
-  margin: 14px 0 0;
-  color: var(--muted);
-  line-height: 1.7;
-}
-
-.tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 18px;
-}
-
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 24px;
-}
-
-.playlist-songs {
-  margin-top: 32px;
-}
-
-.list-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
-
-.list-head h2 {
-  margin: 0;
-  font-size: 24px;
-}
-
-.list-head span {
-  color: var(--muted);
-  font-size: 13px;
-}
-
-@media (max-width: 700px) {
-  .playlist-hero {
-    grid-template-columns: 1fr;
-    align-items: start;
-  }
-
-  .playlist-cover {
-    max-width: 220px;
-  }
-}
-</style>

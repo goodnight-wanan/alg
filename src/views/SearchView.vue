@@ -1,11 +1,15 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
-import PlaylistCard from '../components/PlaylistCard.vue'
-import SongRow from '../components/SongRow.vue'
+import { useRoute, useRouter } from 'vue-router'
 import { playlists, songs } from '../data/musicData'
+import { usePlayerStore } from '../stores/player'
+import { useUserStore } from '../stores/user'
 
 const route = useRoute()
+const router = useRouter()
+const playerStore = usePlayerStore()
+const userStore = useUserStore()
+
 const keyword = ref(String(route.query.q || ''))
 const activeTab = ref(route.query.tab === 'playlist' ? 'playlist' : 'song')
 
@@ -37,136 +41,64 @@ const playlistResults = computed(() => {
       .includes(normalizedKeyword.value)
   )
 })
+
+function playSong(song, list) {
+  userStore.recordPlay(song.id)
+  playerStore.playSong(song, list)
+}
+
+function openPlaylist(id) {
+  router.push({ name: 'playlist', params: { id } })
+}
 </script>
 
 <template>
-  <div class="search-view">
-    <div class="page-heading">
-      <p class="eyebrow">SEARCH</p>
-      <h1>搜索</h1>
-      <p v-if="normalizedKeyword">“{{ keyword }}” 的搜索结果</p>
-      <p v-else>输入歌曲名、歌手、专辑或歌单名开始搜索。</p>
-    </div>
+  <div class="functional-page">
+    <h1 class="functional-title">搜索</h1>
+    <input
+      v-model="keyword"
+      class="search-input"
+      type="search"
+      placeholder="搜索歌曲、歌单、歌手"
+    />
 
-    <div class="search-box">
-      <input v-model="keyword" type="search" placeholder="搜索歌曲、歌单、歌手" />
-    </div>
-
-    <div class="tabs">
-      <button
-        type="button"
-        :class="{ active: activeTab === 'song' }"
-        @click="activeTab = 'song'"
-      >
+    <div class="functional-tabs">
+      <button type="button" :class="{ active: activeTab === 'song' }" @click="activeTab = 'song'">
         歌曲 {{ songResults.length }}
       </button>
-      <button
-        type="button"
-        :class="{ active: activeTab === 'playlist' }"
-        @click="activeTab = 'playlist'"
-      >
+      <button type="button" :class="{ active: activeTab === 'playlist' }" @click="activeTab = 'playlist'">
         歌单 {{ playlistResults.length }}
       </button>
     </div>
 
     <template v-if="activeTab === 'song'">
-      <div v-if="songResults.length" class="song-list">
-        <SongRow
-          v-for="(song, index) in songResults"
-          :key="song.id"
-          :song="song"
-          :index="index"
-          :queue="songResults"
-        />
-      </div>
-      <div v-else class="empty-state">
-        <div>
-          <strong>没有找到相关歌曲</strong>
-          <p>换一个关键词试试。</p>
+      <div v-if="songResults.length" class="functional-list">
+        <div v-for="(song, index) in songResults" :key="song.id" class="functional-row">
+          <button type="button" class="row-play" @click="playSong(song, songResults)">▶</button>
+          <img :src="song.cover" :alt="song.title" />
+          <strong>{{ song.title }} - {{ song.artist }}</strong>
+          <span>{{ song.album }}</span>
+          <span>{{ song.duration }}</span>
         </div>
       </div>
+      <div v-else class="functional-empty">没有找到相关歌曲</div>
     </template>
 
     <template v-else>
-      <div v-if="playlistResults.length" class="grid playlist-grid">
-        <PlaylistCard
+      <div v-if="playlistResults.length" class="functional-grid">
+        <div
           v-for="playlist in playlistResults"
           :key="playlist.id"
-          :playlist="playlist"
-        />
-      </div>
-      <div v-else class="empty-state">
-        <div>
-          <strong>没有找到相关歌单</strong>
-          <p>换一个关键词试试。</p>
+          class="functional-card"
+          @click="openPlaylist(playlist.id)"
+        >
+          <div class="functional-cover">
+            <img :src="playlist.cover" :alt="playlist.title" />
+          </div>
+          <p class="functional-card-title">{{ playlist.title }}</p>
         </div>
       </div>
+      <div v-else class="functional-empty">没有找到相关歌单</div>
     </template>
   </div>
 </template>
-
-<style scoped>
-.page-heading {
-  margin-bottom: 22px;
-}
-
-.eyebrow {
-  margin: 0 0 8px;
-  color: var(--primary);
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.18em;
-}
-
-.page-heading h1 {
-  margin: 0;
-  font-size: clamp(32px, 5vw, 52px);
-  letter-spacing: -0.04em;
-}
-
-.page-heading p:last-child {
-  margin: 10px 0 0;
-  color: var(--muted);
-}
-
-.search-box input {
-  width: 100%;
-  height: 52px;
-  padding: 0 20px;
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.82);
-  box-shadow: var(--shadow-soft);
-  font-size: 16px;
-}
-
-.search-box input:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 4px rgba(255, 94, 148, 0.12);
-}
-
-.tabs {
-  display: flex;
-  gap: 8px;
-  margin: 22px 0;
-  border-bottom: 1px solid var(--border);
-}
-
-.tabs button {
-  padding: 10px 14px;
-  border-bottom: 2px solid transparent;
-  background: transparent;
-  color: var(--muted);
-  font-weight: 700;
-}
-
-.tabs button.active {
-  border-bottom-color: var(--primary);
-  color: var(--primary);
-}
-
-.song-list,
-.playlist-grid {
-  margin-top: 20px;
-}
-</style>
