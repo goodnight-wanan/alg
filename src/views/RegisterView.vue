@@ -43,7 +43,7 @@ function submit() {
         <p v-if="error" class="form-error">{{ error }}</p>
 
         <button type="submit">注册</button>
-        <RouterLink to="/login">已有账号？登录</RouterLink>
+        <a href="#/login" target="_blank" rel="noopener">已有账号？登录</a>
       </form>
     </div>
   </div>

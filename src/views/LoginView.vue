@@ -67,7 +67,7 @@ function socialLogin(name) {
 
         <button type="submit">登录</button>
         <a href="#" @click.prevent>忘记密码？</a>
-        <RouterLink to="/register">注册账号</RouterLink>
+        <a href="#/register" target="_blank" rel="noopener">注册账号</a>
       </form>
     </div>
   </div>

@@ -107,7 +107,7 @@ onUnmounted(stopTimer)
           <RouterLink v-if="userStore.isLoggedIn" class="a_login" to="/mine">
             {{ userStore.currentUser.username }}
           </RouterLink>
-          <RouterLink v-else class="a_login" to="/login">登录</RouterLink>
+          <a v-else class="a_login" href="#/login" target="_blank" rel="noopener">登录</a>
         </div>
       </div>
       <div class="header-line"></div>
