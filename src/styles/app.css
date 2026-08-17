@@ -221,7 +221,7 @@ body {
 .auth-page {
   display: grid;
   place-items: center;
-  min-height: calc(100vh - var(--player-height));
+  min-height: 100vh;
   padding: 32px 0;
 }
 
