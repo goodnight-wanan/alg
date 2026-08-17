@@ -130,6 +130,10 @@ export const useUserStore = defineStore('user', () => {
     playHistory.value = nextHistory.slice(0, 50)
   }
 
+  function syncSession() {
+    currentUser.value = sanitizeUser(loadJSON('session', null))
+  }
+
   return {
     users,
     currentUser,
@@ -145,6 +149,7 @@ export const useUserStore = defineStore('user', () => {
     toggleFavoriteSong,
     isFavoritePlaylist,
     toggleFavoritePlaylist,
-    recordPlay
+    recordPlay,
+    syncSession
   }
 })

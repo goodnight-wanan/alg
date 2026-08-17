@@ -36,7 +36,18 @@ function submit() {
     return
   }
 
-  router.replace(String(route.query.redirect || '/mine'))
+  const redirect = String(route.query.redirect || '/mine')
+
+  if (window.opener) {
+    window.opener.postMessage(
+      { type: 'auth-success', redirect },
+      window.location.origin
+    )
+    window.close()
+    return
+  }
+
+  router.replace(redirect)
 }
 
 function socialLogin(name) {

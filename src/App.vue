@@ -1,10 +1,13 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import PlayerBar from './components/PlayerBar.vue'
 import SiteNav from './components/SiteNav.vue'
+import { useUserStore } from './stores/user'
 
 const route = useRoute()
+const router = useRouter()
+const userStore = useUserStore()
 const showPlayer = computed(() => !['login', 'register'].includes(route.name))
 const showSiteNav = computed(() => !['login', 'register', 'home'].includes(route.name))
 const showBackTop = ref(false)
@@ -17,13 +20,22 @@ function scrollToTop() {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
+function handleAuthMessage(event) {
+  if (event.data?.type !== 'auth-success') return
+
+  userStore.syncSession()
+  router.push(String(event.data.redirect || '/mine'))
+}
+
 onMounted(() => {
   window.addEventListener('scroll', handleScroll, { passive: true })
+  window.addEventListener('message', handleAuthMessage)
   handleScroll()
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', handleScroll)
+  window.removeEventListener('message', handleAuthMessage)
 })
 </script>
 
