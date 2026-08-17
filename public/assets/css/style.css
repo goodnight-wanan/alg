@@ -17,12 +17,18 @@ a{
     width: 1680px;
     height: 4005px;
     margin: 0 auto;
-    overflow: hidden;
+    overflow: visible;
 }
 .header{
     width: 1680px;
     height: 200px;
     margin: 0 auto;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(0,0,0,0.04);
 }
 .header-top{
     width: 1500px;
@@ -31,6 +37,8 @@ a{
     display: flex;
     flex-direction: row;
     align-items: center;
+    justify-content: space-between;
+    gap: 24px;
 }
 .header-logo{
     width: 220px;
@@ -48,8 +56,7 @@ a{
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 8px;
-    margin-left: 24px;
+    gap: 12px;
 }
 .header-col{
     width: auto;
@@ -80,7 +87,6 @@ a{
     position: relative;
     width: 300px;
     height: 40px;
-    margin-left: 24px;
 }
 .header-search{
     width: 100%;
@@ -115,7 +121,6 @@ a{
 .login{
     width: auto;
     height: 40px;
-    margin-left: 24px;
     text-align: center;
     font-size: 18px;
     font-weight: 800;
