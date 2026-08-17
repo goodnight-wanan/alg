@@ -201,36 +201,37 @@ a{
     display: flex;
     flex-direction: row;
     justify-content: space-evenly;
-    gap: 16px;
+    gap: 10px;
     transform: translateX(-50%);
     z-index: 2;
 }
 .cont1-point li{
-    width: 30px;
-    height: 30px;
-    border-radius: 100%;
-    overflow: hidden;
+    width: 22px;
+    height: 6px;
+    border-radius: 999px;
+    background-color: rgba(255,255,255,0.58);
+    background-image: none;
+    border: 0;
     cursor: pointer;
-    border: 5px solid rgba(25,25,25,0.5);
+    transition:
+        width 0.25s ease,
+        background-color 0.25s ease;
 }
-.active{
-    border: 5px solid pink;
+.cont1-point li.active{
+    width: 42px;
+    background-color: pink;
 }
 .cont1-point li:nth-child(1){
-    background-image: url(../imgs/homepage/carousel/carousel1.png);
-    background-size: cover;
+    background-image: none;
 }
 .cont1-point li:nth-child(2){
-    background-image: url(../imgs/homepage/carousel/carousel2.png);
-    background-size: cover;
+    background-image: none;
 }
 .cont1-point li:nth-child(3){
-    background-image: url(../imgs/homepage/carousel/carousel3.png);
-    background-size: cover;
+    background-image: none;
 }
 .cont1-point li:nth-child(4){
-    background-image: url(../imgs/homepage/carousel/carousel4.png);
-    background-size: cover;
+    background-image: none;
 }
 .cont1-button{
     position: absolute;
