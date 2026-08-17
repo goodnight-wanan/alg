@@ -12,7 +12,14 @@ const userStore = useUserStore()
       <RouterLink to="/" class="site-link" active-class="active">首页</RouterLink>
       <RouterLink to="/category" class="site-link" active-class="active">分类歌单</RouterLink>
       <RouterLink to="/search" class="site-link" active-class="active">搜索</RouterLink>
-      <RouterLink to="/mine" class="site-link" active-class="active">我的音乐</RouterLink>
+      <a
+        v-if="!userStore.isLoggedIn"
+        href="#/login?redirect=%2Fmine"
+        target="_blank"
+        rel="noopener"
+        class="site-link"
+      >我的音乐</a>
+      <RouterLink v-else to="/mine" class="site-link" active-class="active">我的音乐</RouterLink>
     </nav>
 
     <div class="site-action">

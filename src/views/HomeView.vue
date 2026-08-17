@@ -95,7 +95,14 @@ onUnmounted(stopTimer)
         <div class="header-logo">悦音音乐</div>
         <div class="header-column">
           <div class="header-col music-hall" @click="router.push('/')">音乐馆</div>
-          <div class="header-col my_music" @click="router.push('/mine')">我的音乐</div>
+          <a
+            v-if="!userStore.isLoggedIn"
+            class="header-col my_music"
+            href="#/login?redirect=%2Fmine"
+            target="_blank"
+            rel="noopener"
+          >我的音乐</a>
+          <div v-else class="header-col my_music" @click="router.push('/mine')">我的音乐</div>
           <div class="header-col download" @click.prevent>客户端</div>
           <div class="header-col vip" @click.prevent>VIP</div>
         </div>
