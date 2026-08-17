@@ -2,9 +2,11 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import PlayerBar from './components/PlayerBar.vue'
+import SiteNav from './components/SiteNav.vue'
 
 const route = useRoute()
 const showPlayer = computed(() => !['login', 'register'].includes(route.name))
+const showSiteNav = computed(() => !['login', 'register', 'home'].includes(route.name))
 const showBackTop = ref(false)
 
 function handleScroll() {
@@ -27,6 +29,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="app-shell" :class="{ 'has-player': showPlayer }">
+    <SiteNav v-if="showSiteNav" />
     <RouterView />
     <PlayerBar v-if="showPlayer" />
 

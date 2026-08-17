@@ -27,6 +27,81 @@ body {
   box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.12);
 }
 
+.site-nav {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 26px;
+  width: 100%;
+  min-height: 62px;
+  padding: 0 max(24px, calc((100% - 1240px) / 2));
+  background: rgb(255 214 214 / 92%);
+  border-bottom: 1px solid rgba(25, 25, 25, 0.06);
+  backdrop-filter: blur(10px);
+}
+
+.site-logo {
+  flex: 0 0 auto;
+  font-size: 20px;
+  font-weight: 1000;
+  letter-spacing: 2px;
+}
+
+.site-links {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-left: auto;
+}
+
+.site-link,
+.site-user,
+.site-login {
+  padding: 8px 12px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: #191516;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.site-link:hover,
+.site-link.active,
+.site-user:hover,
+.site-login:hover {
+  border-color: rgba(25, 25, 25, 0.16);
+  color: #e94e77;
+}
+
+.site-action {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 700px) {
+  .site-nav {
+    gap: 8px;
+    min-height: 56px;
+    padding: 0 12px;
+  }
+
+  .site-logo {
+    font-size: 17px;
+  }
+
+  .site-links {
+    gap: 4px;
+  }
+
+  .site-link,
+  .site-user,
+  .site-login {
+    padding: 7px 8px;
+    font-size: 12px;
+  }
+}
+
 .vue-player-inner {
   width: min(1500px, calc(100% - 48px));
   height: 100%;
