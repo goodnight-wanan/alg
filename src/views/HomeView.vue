@@ -5,26 +5,10 @@ import SongRow from '../components/SongRow.vue'
 import { playlists, songs } from '../data/musicData'
 
 const slides = [
-  {
-    image: '/assets/imgs/homepage/carousel/carousel1.png',
-    title: '听见此刻的心动',
-    subtitle: '精选歌单，让每一次播放都恰到好处'
-  },
-  {
-    image: '/assets/imgs/homepage/carousel/carousel2.png',
-    title: '新歌首发，先听为快',
-    subtitle: '第一时间接收新鲜好音乐'
-  },
-  {
-    image: '/assets/imgs/homepage/carousel/carousel3.png',
-    title: '排行榜单，热度全知道',
-    subtitle: '飙升、热歌与新歌，一站掌握'
-  },
-  {
-    image: '/assets/imgs/homepage/carousel/carousel4.png',
-    title: '风格由你，自由切换',
-    subtitle: '流行、民谣、电音、古典，总有一种适合你'
-  }
+  '/assets/imgs/homepage/carousel/carousel1.png',
+  '/assets/imgs/homepage/carousel/carousel2.png',
+  '/assets/imgs/homepage/carousel/carousel3.png',
+  '/assets/imgs/homepage/carousel/carousel4.png'
 ]
 
 const activeSlide = ref(0)
@@ -35,6 +19,11 @@ const newSongs = computed(() => songs.filter((song) => song.isNew))
 const chartGroups = computed(() =>
   ['飙升榜', '热歌榜', '新歌榜'].map((chart) => ({
     name: chart,
+    cover: {
+      飙升榜: '/assets/imgs/homepage/chart_back/chart_b1.png',
+      热歌榜: '/assets/imgs/homepage/chart_back/chart_b2.png',
+      新歌榜: '/assets/imgs/homepage/chart_back/chart_b3.png'
+    }[chart],
     songs: songs.filter((song) => song.chart === chart).slice(0, 5)
   }))
 )
@@ -70,25 +59,14 @@ onUnmounted(stopTimer)
 <template>
   <div class="home-view">
     <section class="hero-section" @mouseenter="stopTimer" @mouseleave="startTimer">
-      <div class="hero-slides">
-        <Transition name="fade" mode="out-in">
-          <div class="hero-slide" :key="activeSlide">
-            <img :src="slides[activeSlide].image" :alt="slides[activeSlide].title" />
-            <div class="hero-copy">
-              <p class="hero-eyebrow">YUE YIN MUSIC</p>
-              <h1>{{ slides[activeSlide].title }}</h1>
-              <p>{{ slides[activeSlide].subtitle }}</p>
-            </div>
-          </div>
-        </Transition>
-
-        <button class="hero-arrow left" type="button" title="上一张" @click="previousSlide">‹</button>
-        <button class="hero-arrow right" type="button" title="下一张" @click="nextSlide">›</button>
-
-        <div class="hero-dots">
+      <div class="carousel">
+        <img :src="slides[activeSlide]" alt="精彩推荐" />
+        <button class="carousel-button left" type="button" title="上一张" @click="previousSlide">&lt;</button>
+        <button class="carousel-button right" type="button" title="下一张" @click="nextSlide">&gt;</button>
+        <div class="carousel-points">
           <button
             v-for="(slide, index) in slides"
-            :key="slide.image"
+            :key="slide"
             type="button"
             :class="{ active: activeSlide === index }"
             :aria-label="`切换到第 ${index + 1} 张`"
@@ -100,11 +78,8 @@ onUnmounted(stopTimer)
 
     <section class="section">
       <div class="section-head">
-        <div>
-          <h2 class="section-title">推荐歌单</h2>
-          <p class="section-subtitle">按心情和风格，挑一张陪你度过今天</p>
-        </div>
-        <RouterLink class="section-more" to="/category">查看全部 →</RouterLink>
+        <h2 class="section-title">歌单推荐</h2>
+        <RouterLink class="section-more" to="/category">更多 &gt;&gt;</RouterLink>
       </div>
       <div class="grid playlist-grid">
         <PlaylistCard
@@ -117,39 +92,37 @@ onUnmounted(stopTimer)
 
     <section class="section">
       <div class="section-head">
-        <div>
-          <h2 class="section-title">新歌首发</h2>
-          <p class="section-subtitle">第一时间听点新鲜的</p>
-        </div>
-        <RouterLink class="section-more" to="/search?tab=song">更多歌曲 →</RouterLink>
+        <h2 class="section-title">新歌首发</h2>
+        <RouterLink class="section-more" to="/search?tab=song">更多 &gt;&gt;</RouterLink>
       </div>
-      <div class="song-list">
+      <div class="new-song-grid">
         <SongRow
           v-for="(song, index) in newSongs"
           :key="song.id"
           :song="song"
           :index="index"
           :queue="newSongs"
+          :show-album="false"
         />
       </div>
     </section>
 
     <section class="section">
       <div class="section-head">
-        <div>
-          <h2 class="section-title">排行榜</h2>
-          <p class="section-subtitle">飙升、热歌与新歌，热度一目了然</p>
-        </div>
+        <h2 class="section-title">排行榜</h2>
       </div>
 
       <div class="chart-grid">
-        <article v-for="group in chartGroups" :key="group.name" class="chart-card">
+        <article
+          v-for="group in chartGroups"
+          :key="group.name"
+          class="chart-card"
+          :style="{ backgroundImage: `url(${group.cover})` }"
+        >
+          <div class="chart-overlay"></div>
           <div class="chart-head">
-            <div>
-              <span class="badge">{{ group.name }}</span>
-              <h3>{{ group.name }}</h3>
-            </div>
-            <span class="chart-count">{{ group.songs.length }} 首</span>
+            <h3>{{ group.name }}</h3>
+            <span>{{ group.songs.length }} 首</span>
           </div>
           <div class="chart-list">
             <SongRow
@@ -169,185 +142,265 @@ onUnmounted(stopTimer)
 
 <style scoped>
 .hero-section {
-  margin-bottom: 8px;
+  margin-top: 35px;
 }
 
-.hero-slides {
+.carousel {
   position: relative;
-  aspect-ratio: 21 / 8;
-  min-height: 320px;
+  width: min(1200px, 100%);
+  aspect-ratio: 1200 / 520;
+  margin: 0 auto;
   overflow: hidden;
-  border-radius: 28px;
+  border-radius: 15px;
   box-shadow: var(--shadow);
 }
 
-.hero-slide {
-  position: absolute;
-  inset: 0;
-}
-
-.hero-slide img {
+.carousel img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.hero-copy {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 7%;
-  background: linear-gradient(90deg, rgba(19, 13, 24, 0.74), rgba(19, 13, 24, 0.08));
-  color: #fff;
-}
-
-.hero-eyebrow {
-  margin: 0 0 10px;
-  color: #ff9dba;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.22em;
-}
-
-.hero-copy h1 {
-  margin: 0;
-  max-width: 720px;
-  font-size: clamp(32px, 5vw, 64px);
-  line-height: 1.05;
-  letter-spacing: -0.04em;
-}
-
-.hero-copy p:last-child {
-  margin: 18px 0 0;
-  max-width: 560px;
-  color: rgba(255, 255, 255, 0.76);
-  font-size: clamp(14px, 2vw, 19px);
-}
-
-.hero-arrow {
+.carousel-button {
   position: absolute;
   top: 50%;
   z-index: 2;
   display: grid;
   place-items: center;
-  width: 46px;
-  height: 62px;
+  width: 70px;
+  height: 100px;
   transform: translateY(-50%);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.18);
-  color: #fff;
-  font-size: 40px;
-  line-height: 1;
-  opacity: 0;
-  transition:
-    opacity 0.25s ease,
-    background 0.25s ease;
+  border: 1px solid #191516;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  color: #191516;
+  font-size: 100px;
+  line-height: 100px;
+  transition: 0.5s;
 }
 
-.hero-slides:hover .hero-arrow {
-  opacity: 1;
+.carousel-button.left {
+  left: -90px;
 }
 
-.hero-arrow:hover {
-  background: rgba(255, 255, 255, 0.32);
+.carousel-button.right {
+  right: -90px;
 }
 
-.hero-arrow.left {
-  left: 18px;
+.carousel:hover .carousel-button.left {
+  left: 0;
 }
 
-.hero-arrow.right {
-  right: 18px;
+.carousel:hover .carousel-button.right {
+  right: 0;
 }
 
-.hero-dots {
+.carousel-button:hover {
+  background: rgba(25, 25, 25, 0.1);
+}
+
+.carousel-points {
   position: absolute;
-  right: 24px;
-  bottom: 20px;
-  z-index: 2;
+  right: 0;
+  bottom: 18px;
+  left: 0;
   display: flex;
-  gap: 8px;
+  justify-content: center;
+  gap: 22px;
 }
 
-.hero-dots button {
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.42);
-  transition:
-    width 0.25s ease,
-    background 0.25s ease;
+.carousel-points button {
+  width: 30px;
+  height: 30px;
+  border: 5px solid rgba(25, 25, 25, 0.5);
+  border-radius: 50%;
+  background-position: center;
+  background-size: cover;
+  cursor: pointer;
 }
 
-.hero-dots button.active {
-  width: 28px;
-  background: #fff;
+.carousel-points button:nth-child(1) {
+  background-image: url('/assets/imgs/homepage/carousel/carousel1.png');
+}
+
+.carousel-points button:nth-child(2) {
+  background-image: url('/assets/imgs/homepage/carousel/carousel2.png');
+}
+
+.carousel-points button:nth-child(3) {
+  background-image: url('/assets/imgs/homepage/carousel/carousel3.png');
+}
+
+.carousel-points button:nth-child(4) {
+  background-image: url('/assets/imgs/homepage/carousel/carousel4.png');
+}
+
+.carousel-points button.active {
+  border-color: pink;
+}
+
+.section-head {
+  position: relative;
+}
+
+.section-more {
+  position: absolute;
+  right: 70px;
+  bottom: 0;
+}
+
+.new-song-grid {
+  width: min(1400px, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.new-song-grid :deep(.song-row) {
+  min-height: 150px;
+  grid-template-columns: 46px 140px minmax(0, 1fr) 90px 38px;
+  gap: 18px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.new-song-grid :deep(.song-row:hover) {
+  top: -10px;
+  left: 15px;
+  box-shadow: 0 5px 10px 5px rgba(25, 25, 25, 0.2);
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.new-song-grid :deep(.song-cover) {
+  width: 140px;
+  height: 150px;
+  border-radius: 10px;
+}
+
+.new-song-grid :deep(.play-toggle) {
+  width: 46px;
+  height: 46px;
 }
 
 .chart-grid {
+  width: min(1200px, 100%);
+  margin: 0 auto;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 22px;
 }
 
 .chart-card {
-  padding: 18px;
-  border: 1px solid var(--border);
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.72);
+  position: relative;
+  min-height: 500px;
+  overflow: hidden;
+  border: 3px solid rgba(255, 255, 255, 0.5);
+  border-radius: 10px;
+  background-position: center;
+  background-size: cover;
+  transition: 0.4s;
+}
+
+.chart-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 10px 10px 5px rgba(25, 25, 25, 0.2);
+}
+
+.chart-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.08);
+  pointer-events: none;
 }
 
 .chart-head {
+  position: relative;
+  z-index: 1;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 14px;
-  margin-bottom: 12px;
+  width: min(300px, 82%);
+  margin: 30px auto 18px;
+  padding: 0 10px;
+  color: #fff;
+  text-shadow: 2px 2px rgba(0, 0, 0, 0.22);
 }
 
 .chart-head h3 {
-  margin: 10px 0 0;
-  font-size: 22px;
+  margin: 0;
+  font-size: clamp(28px, 4vw, 45px);
+  letter-spacing: 4px;
 }
 
-.chart-count {
-  color: var(--muted);
-  font-size: 12px;
+.chart-head span {
+  font-size: 13px;
 }
 
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.35s ease;
+.chart-list {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(300px, 82%);
+  margin: 0 auto;
 }
 
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
+.chart-list :deep(.song-row) {
+  min-height: 68px;
+  grid-template-columns: 36px 48px minmax(0, 1fr) 34px;
+  background: rgba(255, 255, 255, 0.78);
 }
 
-@media (max-width: 960px) {
+.chart-list :deep(.song-cover) {
+  width: 48px;
+  height: 48px;
+}
+
+@media (max-width: 1080px) {
+  .new-song-grid {
+    grid-template-columns: 1fr;
+  }
+
   .chart-grid {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 640px) {
-  .hero-slides {
-    aspect-ratio: 4 / 3;
-    min-height: 260px;
-    border-radius: 20px;
+  .carousel {
+    border-radius: 10px;
   }
 
-  .hero-copy {
-    padding: 10%;
-    background: linear-gradient(180deg, rgba(19, 13, 24, 0.14), rgba(19, 13, 24, 0.72));
-    justify-content: flex-end;
+  .carousel-button {
+    width: 36px;
+    height: 54px;
+    font-size: 46px;
+    line-height: 54px;
   }
 
-  .hero-arrow {
-    opacity: 1;
+  .carousel-button.left {
+    left: 6px;
+  }
+
+  .carousel-button.right {
+    right: 6px;
+  }
+
+  .carousel-points {
+    gap: 10px;
+  }
+
+  .carousel-points button {
+    width: 20px;
+    height: 20px;
+    border-width: 3px;
+  }
+
+  .section-more {
+    right: 4px;
   }
 }
 </style>

@@ -73,6 +73,9 @@ function toggleFavorite() {
 
 <style scoped>
 .song-row {
+  position: relative;
+  top: 0;
+  left: 0;
   display: grid;
   grid-template-columns: 42px 54px minmax(180px, 1fr) minmax(120px, 0.7fr) 70px 42px;
   align-items: center;
@@ -83,6 +86,9 @@ function toggleFavorite() {
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.72);
   transition:
+    top 0.3s ease,
+    left 0.3s ease,
+    box-shadow 0.3s ease,
     background 0.2s ease,
     border-color 0.2s ease,
     transform 0.2s ease;

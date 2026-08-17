@@ -1,77 +1,59 @@
 <template>
   <footer class="app-footer">
     <div class="footer-inner">
-      <div class="footer-brand">
-        <span class="footer-mark">♪</span>
-        <div>
-          <strong>悦音音乐</strong>
-          <p>跟随音乐的律动，一起遨游在自由的海洋。</p>
-        </div>
-      </div>
-      <p class="footer-copy">© 2026 悦音音乐 · 前端课程作业 Vue 3 重构版</p>
+      <a class="download" href="#" @click.prevent>
+        <p>下载客户端</p>
+      </a>
+
+      <p>相关信息：</p>
+      <p>北华大学计算机科学技术学院 @1977-2099</p>
+      <p>软件工程北华前端开发小组 · Vue 3 重构版</p>
+      <p>违法和不良信息举报电话：6666-88888</p>
+      <p>举报邮箱：xxx@qg.com</p>
+      <p>音乐网站 | 服务条款 | 隐私政策 | 版权投诉指引 | 意见反馈</p>
     </div>
   </footer>
 </template>
 
 <style scoped>
 .app-footer {
-  padding: 34px 24px 40px;
-  background: #241f31;
-  color: #f7f6fb;
+  min-height: 360px;
+  padding: 72px 24px 60px;
+  background-color: rgba(25, 25, 25, 0.85);
+  color: #fff;
 }
 
 .footer-inner {
-  width: min(1240px, 100%);
+  width: min(1200px, 100%);
   margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
+  font-size: 20px;
+  font-weight: 1000;
+  line-height: 2.1;
+  letter-spacing: 2px;
+  text-align: center;
 }
 
-.footer-brand {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.footer-mark {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, var(--primary), #ff8eab);
-  color: #fff;
-  font-size: 26px;
-}
-
-.footer-brand strong {
+.download {
   display: block;
-  font-size: 18px;
+  width: 500px;
+  max-width: 80vw;
+  margin: 0 auto 30px;
+  color: #fff;
+  transition: color 0.2s ease;
 }
 
-.footer-brand p {
-  margin: 4px 0 0;
-  color: rgba(247, 246, 251, 0.62);
-  font-size: 13px;
-}
-
-.footer-copy {
+.download p {
   margin: 0;
-  color: rgba(247, 246, 251, 0.48);
-  font-size: 12px;
-  text-align: right;
+}
+
+.download:hover {
+  color: pink;
 }
 
 @media (max-width: 700px) {
   .footer-inner {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .footer-copy {
-    text-align: left;
+    font-size: 15px;
+    line-height: 2.2;
   }
 }
 </style>

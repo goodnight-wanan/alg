@@ -19,5 +19,6 @@ import PlayerBar from './components/PlayerBar.vue'
 .app-shell {
   min-height: 100vh;
   padding-bottom: var(--player-height);
+  background-color: rgba(255, 255, 255, 0.08);
 }
 </style>

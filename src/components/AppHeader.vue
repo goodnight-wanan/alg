@@ -17,42 +17,46 @@ function submitSearch() {
 
 <template>
   <header class="app-header">
-    <div class="header-inner">
-      <RouterLink to="/" class="logo" aria-label="悦音音乐首页">
-        <span class="logo-mark">♪</span>
-        <span>悦音音乐</span>
-      </RouterLink>
+    <div class="header-top">
+      <RouterLink to="/" class="header-logo" aria-label="悦音音乐首页">悦音音乐</RouterLink>
 
-      <nav class="nav">
-        <RouterLink to="/" exact-active-class="active">首页</RouterLink>
-        <RouterLink to="/category" active-class="active">分类歌单</RouterLink>
-        <RouterLink to="/mine" active-class="active">我的音乐</RouterLink>
-      </nav>
+      <div class="header-column">
+        <RouterLink to="/" class="header-col music-hall">音乐馆</RouterLink>
+        <RouterLink to="/mine" class="header-col">我的音乐</RouterLink>
+        <a class="header-col" href="#" @click.prevent>客户端</a>
+        <a class="header-col" href="#" @click.prevent>VIP</a>
+      </div>
 
-      <form class="header-search" @submit.prevent="submitSearch">
+      <form class="header-seek" @submit.prevent="submitSearch">
         <input
           v-model="keyword"
           type="search"
-          placeholder="搜索歌曲、歌单、歌手"
-          aria-label="搜索歌曲、歌单、歌手"
+          placeholder="搜索音乐，歌单，用户"
+          aria-label="搜索音乐，歌单，用户"
         />
-        <button type="submit" aria-label="搜索">⌕</button>
+        <button class="header-button" type="submit" aria-label="搜索">⌕</button>
       </form>
 
-      <div class="header-actions">
+      <div class="login">
         <template v-if="userStore.isLoggedIn">
-          <RouterLink to="/mine" class="user-chip">
-            <span class="avatar">{{ userStore.currentUser.username.slice(0, 1) }}</span>
+          <RouterLink class="user-link" to="/mine">
             <span>{{ userStore.currentUser.username }}</span>
           </RouterLink>
-          <button class="logout" type="button" @click="userStore.logout">退出</button>
+          <button class="logout-link" type="button" @click="userStore.logout">退出</button>
         </template>
-        <template v-else>
-          <RouterLink to="/login" class="header-login">登录</RouterLink>
-          <RouterLink to="/register" class="header-register">注册</RouterLink>
-        </template>
+        <RouterLink v-else class="a_login" to="/login">登录</RouterLink>
       </div>
     </div>
+
+    <div class="header-line"></div>
+
+    <nav class="header-menu">
+      <RouterLink to="/" class="header-mn homepage">主页</RouterLink>
+      <a class="header-mn" href="#" @click.prevent>歌手</a>
+      <a class="header-mn" href="#" @click.prevent>新碟</a>
+      <RouterLink to="/search?tab=song" class="header-mn">排行榜</RouterLink>
+      <RouterLink to="/category" class="header-mn">分类歌单</RouterLink>
+    </nav>
   </header>
 </template>
 
@@ -62,207 +66,259 @@ function submitSearch() {
   top: 0;
   z-index: 30;
   height: var(--header-height);
-  border-bottom: 1px solid rgba(230, 226, 238, 0.78);
-  background: rgba(255, 255, 255, 0.82);
-  backdrop-filter: blur(18px);
+  background: rgba(255, 255, 255, 0.88);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(12px);
 }
 
-.header-inner {
-  width: min(1240px, calc(100% - 48px));
-  height: 100%;
+.header-top {
+  width: min(1500px, calc(100% - 48px));
+  height: 120px;
   margin: 0 auto;
   display: flex;
-  align-items: center;
-  gap: 30px;
+  align-items: flex-start;
 }
 
-.logo {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  flex: 0 0 auto;
-  font-size: 22px;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-}
-
-.logo-mark {
+.header-logo {
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, var(--primary), #ff8eab);
-  color: #fff;
-  font-size: 22px;
-  line-height: 1;
-}
-
-.nav {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-}
-
-.nav a {
-  position: relative;
-  padding: 10px 0;
-  color: var(--muted);
-  font-size: 15px;
-  font-weight: 600;
-  transition: color 0.2s ease;
-}
-
-.nav a:hover,
-.nav a.active {
-  color: var(--primary);
-}
-
-.header-search {
-  position: relative;
-  width: min(320px, 30vw);
-  margin-left: auto;
-}
-
-.header-search input {
-  width: 100%;
-  height: 42px;
-  padding: 0 42px 0 16px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface-soft);
-  color: var(--text);
+  width: 300px;
+  height: 120px;
+  flex: 0 0 auto;
+  border: 1px solid #191516;
+  color: #191516;
+  font-size: 32px;
+  font-weight: 1000;
+  letter-spacing: 4px;
   transition:
-    border-color 0.2s ease,
-    background 0.2s ease;
+    background 0.2s ease,
+    color 0.2s ease;
 }
 
-.header-search input:focus {
-  border-color: var(--primary);
-  background: #fff;
+.header-logo:hover {
+  background: pink;
+  color: #fff;
 }
 
-.header-search button {
-  position: absolute;
-  top: 50%;
-  right: 7px;
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  transform: translateY(-50%);
-  border-radius: 50%;
-  background: transparent;
-  color: var(--muted);
-  font-size: 22px;
-}
-
-.header-search button:hover {
-  color: var(--primary);
-}
-
-.header-actions {
+.header-column {
+  width: min(600px, 50vw);
+  height: 120px;
   display: flex;
-  align-items: center;
-  gap: 10px;
-  flex: 0 0 auto;
+  justify-content: space-around;
 }
 
-.header-login,
-.header-register,
-.logout {
-  display: inline-flex;
+.header-col {
+  display: flex;
   align-items: center;
   justify-content: center;
-  height: 38px;
-  padding: 0 14px;
-  border-radius: 999px;
-  font-size: 14px;
-  font-weight: 700;
+  width: 25%;
+  height: 120px;
+  color: #191516;
+  font-size: clamp(16px, 2.2vw, 35px);
+  font-weight: 1000;
+  line-height: 110px;
+  cursor: pointer;
+  transition: 0.15s;
 }
 
-.header-login {
-  color: var(--text);
-}
-
-.header-register {
-  background: var(--primary);
+.music-hall {
+  background-color: pink;
   color: #fff;
 }
 
-.user-chip {
-  display: inline-flex;
+.header-col:hover {
+  background-color: pink;
+  color: #fff;
+}
+
+.header-seek {
+  position: relative;
+  width: min(350px, 27vw);
+  height: 50px;
+  margin-top: 35px;
+  margin-left: 50px;
+}
+
+.header-seek input {
+  width: 100%;
+  height: 50px;
+  padding: 0 48px 0 20px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.5);
+  color: #191516;
+  font-size: 15px;
+}
+
+.header-seek input:focus {
+  background: #fff;
+}
+
+.header-button {
+  position: absolute;
+  top: 5px;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  color: #665d63;
+  font-size: 26px;
+}
+
+.header-button:hover {
+  color: var(--primary);
+}
+
+.login {
+  display: flex;
   align-items: center;
   gap: 8px;
-  max-width: 150px;
-  color: var(--text);
-  font-size: 14px;
+  height: 40px;
+  margin-top: 42px;
+  margin-left: 40px;
+  font-size: clamp(18px, 2vw, 30px);
+  font-weight: 1000;
+  line-height: 43px;
+}
+
+.a_login,
+.user-link {
+  transition: 0.2s;
+  cursor: pointer;
+}
+
+.a_login:hover,
+.user-link:hover {
+  color: pink;
+}
+
+.logout-link {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(25, 25, 25, 0.06);
+  color: #665d63;
+  font-size: 13px;
   font-weight: 700;
 }
 
-.user-chip span:last-child {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.header-line {
+  width: min(1500px, calc(100% - 48px));
+  height: 2px;
+  margin: 0 auto;
+  background-color: #f3f3f3;
 }
 
-.avatar {
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  flex: 0 0 auto;
-  border-radius: 50%;
-  background: var(--primary-soft);
-  color: var(--primary-strong);
+.header-menu {
+  width: min(800px, 80vw);
+  height: 50px;
+  margin: 25px auto 0;
+  display: flex;
+  justify-content: space-around;
+  text-align: center;
 }
 
-.logout {
-  border: 1px solid var(--border);
-  background: #fff;
-  color: var(--muted);
+.header-mn {
+  font-size: clamp(15px, 2vw, 20px);
+  font-weight: 1000;
+  line-height: 50px;
+  transition: 0.1s;
+  cursor: pointer;
 }
 
-@media (max-width: 900px) {
-  .header-inner {
-    gap: 14px;
+.header-mn:hover,
+.header-mn.homepage {
+  color: pink;
+}
+
+@media (max-width: 1280px) {
+  :root {
+    --header-height: 172px;
   }
 
-  .nav {
-    gap: 12px;
+  .header-logo {
+    width: 210px;
   }
 
-  .header-search {
-    width: 180px;
-    margin-left: auto;
-  }
-
-  .header-actions {
-    gap: 6px;
+  .header-seek {
+    margin-left: 20px;
   }
 }
 
-@media (max-width: 640px) {
-  .header-inner {
+@media (max-width: 760px) {
+  :root {
+    --header-height: 126px;
+  }
+
+  .header-top {
+    width: calc(100% - 28px);
+    height: 74px;
+  }
+
+  .header-logo {
+    width: 110px;
+    height: 74px;
+    font-size: 17px;
+    letter-spacing: 1px;
+  }
+
+  .header-column {
+    width: auto;
+    height: 74px;
+    gap: 4px;
+  }
+
+  .header-col {
+    height: 74px;
+    padding: 0 6px;
+    font-size: 13px;
+    line-height: 1;
+  }
+
+  .header-seek {
+    width: 28vw;
+    height: 38px;
+    margin-top: 18px;
+    margin-left: 6px;
+  }
+
+  .header-seek input {
+    height: 38px;
+    padding: 0 34px 0 10px;
+    font-size: 12px;
+  }
+
+  .header-button {
+    top: 0;
+    right: 2px;
+    width: 32px;
+    height: 38px;
+    font-size: 20px;
+  }
+
+  .login {
+    height: 74px;
+    margin: 18px 0 0 4px;
+    font-size: 14px;
+    line-height: 1;
+  }
+
+  .logout-link {
+    display: none;
+  }
+
+  .header-line {
     width: calc(100% - 28px);
   }
 
-  .logo span:last-child,
-  .nav,
-  .logout {
-    display: none;
+  .header-menu {
+    width: calc(100% - 28px);
+    margin-top: 10px;
+    height: 44px;
   }
 
-  .header-search {
-    width: min(52vw, 260px);
-  }
-
-  .header-login {
-    padding: 0 8px;
-  }
-
-  .user-chip span:last-child {
-    display: none;
+  .header-mn {
+    line-height: 44px;
   }
 }
 </style>

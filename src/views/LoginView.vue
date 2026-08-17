@@ -106,25 +106,29 @@ function socialLogin(name) {
 }
 
 .auth-panel {
-  width: min(880px, 100%);
+  width: min(1100px, 100%);
   display: grid;
-  grid-template-columns: 0.9fr 1.1fr;
+  grid-template-columns: 710px minmax(360px, 1fr);
   overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: 28px;
-  background: rgba(255, 255, 255, 0.82);
-  box-shadow: var(--shadow);
+  border: 1px solid #191516;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 15px 25px rgba(0, 0, 0, 0.2);
 }
 
 .auth-intro {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 48px;
-  background:
-    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.24), transparent 28%),
-    linear-gradient(150deg, #ff5e94, #a56cff);
+  padding: 40px;
+  border-radius: 15px;
+  background: rgba(255, 192, 203, 0.6);
   color: #fff;
+  font-size: 30px;
+  font-weight: 1000;
+  letter-spacing: 2px;
+  line-height: 1.5;
+  text-shadow: 4px 4px rgba(0, 0, 0, 0.2);
 }
 
 .eyebrow {
@@ -136,13 +140,13 @@ function socialLogin(name) {
 
 .auth-intro h1 {
   margin: 0;
-  font-size: 38px;
-  line-height: 1.1;
+  font-size: 40px;
+  line-height: 1.25;
 }
 
 .auth-intro p:last-child {
   margin: 18px 0 0;
-  color: rgba(255, 255, 255, 0.78);
+  color: #fff;
   line-height: 1.7;
 }
 
@@ -152,6 +156,7 @@ function socialLogin(name) {
   justify-content: center;
   gap: 16px;
   padding: 42px;
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .agree-line {
@@ -226,7 +231,8 @@ function socialLogin(name) {
   }
 
   .auth-intro {
-    padding: 30px;
+    padding: 28px;
+    font-size: 24px;
   }
 
   .auth-form {
