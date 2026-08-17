@@ -43,6 +43,7 @@ function submit() {
       { type: 'auth-success', redirect },
       window.location.origin
     )
+    window.opener.focus()
     window.close()
     return
   }

@@ -5,6 +5,7 @@ import { playlists, songs } from '../data/musicData'
 import { usePlayerStore } from '../stores/player'
 import { useUserStore } from '../stores/user'
 import { usePageCss } from '../utils/pageCss'
+import { openAuthWindow } from '../utils/openAuthWindow'
 
 usePageCss(['/assets/css/style.css'])
 
@@ -99,8 +100,7 @@ onUnmounted(stopTimer)
             v-if="!userStore.isLoggedIn"
             class="header-col my_music"
             href="#/login?redirect=%2Fmine"
-            target="_blank"
-            rel="noopener"
+            @click.prevent="openAuthWindow('/mine')"
           >我的音乐</a>
           <div v-else class="header-col my_music" @click="router.push('/mine')">我的音乐</div>
           <div class="header-col download" @click.prevent>客户端</div>
@@ -114,7 +114,7 @@ onUnmounted(stopTimer)
           <RouterLink v-if="userStore.isLoggedIn" class="a_login" to="/mine">
             {{ userStore.currentUser.username }}
           </RouterLink>
-          <a v-else class="a_login" href="#/login" target="_blank" rel="noopener">登录</a>
+          <a v-else class="a_login" href="#/login" @click.prevent="openAuthWindow()">登录</a>
         </div>
       </div>
       <div class="header-line"></div>

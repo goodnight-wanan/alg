@@ -27,15 +27,23 @@ function handleAuthMessage(event) {
   router.push(String(event.data.redirect || '/mine'))
 }
 
+function handleStorage(event) {
+  if (event.key === 'music-site:session') {
+    userStore.syncSession()
+  }
+}
+
 onMounted(() => {
   window.addEventListener('scroll', handleScroll, { passive: true })
   window.addEventListener('message', handleAuthMessage)
+  window.addEventListener('storage', handleStorage)
   handleScroll()
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', handleScroll)
   window.removeEventListener('message', handleAuthMessage)
+  window.removeEventListener('storage', handleStorage)
 })
 </script>
 

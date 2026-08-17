@@ -1,5 +1,6 @@
 <script setup>
 import { useUserStore } from '../stores/user'
+import { openAuthWindow } from '../utils/openAuthWindow'
 
 const userStore = useUserStore()
 </script>
@@ -15,9 +16,8 @@ const userStore = useUserStore()
       <a
         v-if="!userStore.isLoggedIn"
         href="#/login?redirect=%2Fmine"
-        target="_blank"
-        rel="noopener"
         class="site-link"
+        @click.prevent="openAuthWindow('/mine')"
       >我的音乐</a>
       <RouterLink v-else to="/mine" class="site-link" active-class="active">我的音乐</RouterLink>
     </nav>
@@ -26,7 +26,7 @@ const userStore = useUserStore()
       <RouterLink v-if="userStore.isLoggedIn" to="/mine" class="site-user">
         {{ userStore.currentUser.username }}
       </RouterLink>
-      <a v-else href="#/login" target="_blank" rel="noopener" class="site-login">登录</a>
+      <a v-else href="#/login" class="site-login" @click.prevent="openAuthWindow()">登录</a>
     </div>
   </header>
 </template>
