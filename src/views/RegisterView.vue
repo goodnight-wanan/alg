@@ -31,18 +31,20 @@ function submit() {
 </script>
 
 <template>
-  <div class="register-container">
-    <h2>注册</h2>
-    <form @submit.prevent="submit">
-      <input v-model.trim="form.username" type="text" placeholder="用户名" name="username" required />
-      <input v-model.trim="form.email" type="email" placeholder="邮箱地址" name="email" required />
-      <input v-model="form.password" type="password" placeholder="密码" name="password" required />
-      <input v-model="form.confirmPassword" type="password" placeholder="确认密码" name="confirm_password" required />
+  <div class="auth-page">
+    <div class="register-container">
+      <h2>注册</h2>
+      <form @submit.prevent="submit">
+        <input v-model.trim="form.username" type="text" placeholder="用户名" name="username" required />
+        <input v-model.trim="form.email" type="email" placeholder="邮箱地址" name="email" required />
+        <input v-model="form.password" type="password" placeholder="密码" name="password" required />
+        <input v-model="form.confirmPassword" type="password" placeholder="确认密码" name="confirm_password" required />
 
-      <p v-if="error" class="form-error">{{ error }}</p>
+        <p v-if="error" class="form-error">{{ error }}</p>
 
-      <button type="submit">注册</button>
-      <RouterLink to="/login">已有账号？登录</RouterLink>
-    </form>
+        <button type="submit">注册</button>
+        <RouterLink to="/login">已有账号？登录</RouterLink>
+      </form>
+    </div>
   </div>
 </template>

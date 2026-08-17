@@ -55,6 +55,7 @@ function toggleFavorite() {
         <button
           v-if="playerStore.currentSong"
           class="vue-player-favorite"
+          :class="{ active: userStore.isFavoriteSong(playerStore.currentSong.id) }"
           type="button"
           :title="userStore.isFavoriteSong(playerStore.currentSong.id) ? '取消收藏' : '收藏'"
           @click="toggleFavorite"

@@ -45,13 +45,7 @@ function socialLogin(name) {
 </script>
 
 <template>
-  <div class="main">
-    <div class="content">
-      <p>登录悦音音乐</p>
-      <p>让我们跟随音乐的律动</p>
-      <p>一起遨游在自由的海洋吧</p>
-    </div>
-
+  <div class="auth-page">
     <div class="login-container">
       <h2>登录</h2>
       <form @submit.prevent="submit">
