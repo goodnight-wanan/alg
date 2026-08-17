@@ -1,16 +1,46 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import PlayerBar from './components/PlayerBar.vue'
 
 const route = useRoute()
 const showPlayer = computed(() => !['login', 'register'].includes(route.name))
+const showBackTop = ref(false)
+
+function handleScroll() {
+  showBackTop.value = window.scrollY > 420
+}
+
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll, { passive: true })
+  handleScroll()
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', handleScroll)
+})
 </script>
 
 <template>
   <div class="app-shell" :class="{ 'has-player': showPlayer }">
     <RouterView />
     <PlayerBar v-if="showPlayer" />
+
+    <button
+      v-show="showBackTop"
+      class="back-top-button"
+      :class="{ 'is-auth': !showPlayer }"
+      type="button"
+      title="返回顶部"
+      aria-label="返回顶部"
+      @click="scrollToTop"
+    >
+      ↑
+    </button>
   </div>
 </template>
 
@@ -22,5 +52,35 @@ const showPlayer = computed(() => !['login', 'register'].includes(route.name))
 
 .app-shell.has-player {
   padding-bottom: var(--player-height);
+}
+
+.back-top-button {
+  position: fixed;
+  right: 22px;
+  bottom: calc(var(--player-height) + 18px);
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+  background: rgb(255 214 214 / 92%);
+  color: #d84a72;
+  font-size: 24px;
+  font-weight: 900;
+  box-shadow: 0 10px 24px rgba(93, 54, 70, 0.18);
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease;
+}
+
+.back-top-button.is-auth {
+  bottom: 22px;
+}
+
+.back-top-button:hover {
+  transform: translateY(-3px);
+  background: rgb(255 187 187 / 96%);
 }
 </style>
