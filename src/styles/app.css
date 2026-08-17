@@ -215,7 +215,7 @@ body {
   width: min(1200px, calc(100% - 48px));
   min-height: calc(100vh - var(--player-height));
   margin: 0 auto;
-  padding: 36px 0 56px;
+  padding: 36px 0 calc(var(--player-height) + 56px);
 }
 
 .auth-page {
@@ -388,6 +388,10 @@ body {
   border-radius: 12px;
   text-align: center;
   color: #665d63;
+}
+
+body .mybody {
+  padding-bottom: var(--player-height);
 }
 
 input:focus,

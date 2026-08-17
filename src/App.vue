@@ -51,7 +51,7 @@ onBeforeUnmount(() => {
 }
 
 .app-shell.has-player {
-  padding-bottom: var(--player-height);
+  padding-bottom: 0;
 }
 
 .back-top-button {
