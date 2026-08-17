@@ -174,7 +174,7 @@ a{
     position: relative;
     width: min(1200px, calc(100% - 180px));
     aspect-ratio: 1200 / 520;
-    margin: 0 auto;
+    margin: 28px auto 0;
     overflow: hidden;
     z-index: 1;
     border: 0;
@@ -418,14 +418,18 @@ a{
     transition: 0.3s;
 }
 .cont2-word{
-    width: 240px;
-    height: 50px;
+    width: 280px;
+    max-width: 100%;
+    height: auto;
+    min-height: 50px;
     margin-top: 10px;
-    font-size: 18px;
-    letter-spacing: 2px;
+    font-size: 16px;
+    letter-spacing: 1px;
     font-weight: 1000;
-    line-height: 27px;
+    line-height: 1.4;
     padding: 0px 20px;
+    white-space: normal;
+    word-break: break-word;
     transition: 0.1s;
     cursor: pointer;
 }
@@ -484,7 +488,8 @@ a{
 }
 .cont3-song{
     width: 650px;
-    height: 150px;
+    height: auto;
+    min-height: 150px;
     margin-bottom: 18px;
     display: flex;
     flex-direction: row;
@@ -551,26 +556,39 @@ a{
     left: 10px;
 }
 .cont3-word{
-    width: 300px;
-    height: 60px;
-    margin-top: 40px;
+    width: auto;
+    min-width: 0;
+    flex: 1;
+    height: auto;
+    margin-top: 24px;
     margin-left: 30px;
     font-weight: 1000;
 }
 .cont3-song_name{
-    width: 300px;
-    height: 25px;
-    font-size: 25px;
+    width: auto;
+    max-width: 100%;
+    min-width: 0;
+    height: auto;
+    min-height: 25px;
+    font-size: 22px;
     color: rgba(25,25,25,0.85);
+    line-height: 1.25;
+    white-space: normal;
+    word-break: break-word;
     cursor: context-menu;
 }
 .cont3-song_singer{
-    width: 155px;
-    height: 20px;
-    margin-top: 13px;
+    width: auto;
+    max-width: 100%;
+    min-width: 0;
+    height: auto;
+    min-height: 20px;
+    margin-top: 10px;
     font-size: 15px;
     color: rgba(25,25,25,0.7);
-    line-height: 28px;
+    line-height: 1.4;
+    white-space: normal;
+    word-break: break-word;
     transition: 0.3s;
     cursor: pointer;
 }
@@ -735,15 +753,26 @@ a{
     font-weight: 1000;
 }
 .cont4-chart_song_name{
-    width: 200px;
-    height: 30px;
-    font-size: 25px;
+    width: auto;
+    max-width: 100%;
+    min-width: 0;
+    height: auto;
+    min-height: 30px;
+    font-size: 18px;
+    line-height: 1.3;
+    white-space: normal;
+    word-break: break-word;
 }
 .cont4-chart_song_singer{
-    width: 102px;
-    height: 20px;
+    width: auto;
+    max-width: 100%;
+    min-width: 0;
+    height: auto;
+    min-height: 20px;
     margin-top: 6px;
-    line-height: 25px;
+    line-height: 1.4;
+    white-space: normal;
+    word-break: break-word;
 }
 .footer{
     width: 100%;
