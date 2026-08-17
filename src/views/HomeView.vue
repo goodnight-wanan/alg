@@ -92,7 +92,7 @@ onUnmounted(stopTimer)
   <div class="main">
     <div class="header">
       <div class="header-top">
-        <img src="" class="header-logo" alt="悦音音乐" />
+        <div class="header-logo">悦音音乐</div>
         <div class="header-column">
           <div class="header-col music-hall" @click="router.push('/')">音乐馆</div>
           <div class="header-col my_music" @click="router.push('/mine')">我的音乐</div>
