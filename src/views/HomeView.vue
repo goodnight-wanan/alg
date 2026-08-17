@@ -137,7 +137,9 @@ onUnmounted(stopTimer)
       <div class="cont-title">精彩推荐</div>
       <div class="cont1-shell" @mouseenter="stopTimer" @mouseleave="startTimer">
         <div class="carousel">
-          <img class="carousel-img" :src="slides[activeSlide]" alt="精彩推荐" />
+          <Transition name="carousel-fade" mode="out-in">
+            <img :key="activeSlide" class="carousel-img" :src="slides[activeSlide]" alt="精彩推荐" />
+          </Transition>
         </div>
         <ul class="cont1-point">
           <li
