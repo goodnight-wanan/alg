@@ -240,7 +240,7 @@ body {
   overflow: hidden;
   border: 1px solid rgba(25, 25, 25, 0.12);
   border-radius: 12px;
-  background: #fff;
+  background: rgb(255 214 214 / 92%);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
 }
 
