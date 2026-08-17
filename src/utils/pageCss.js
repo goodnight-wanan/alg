@@ -1,9 +1,9 @@
-import { onMounted, onUnmounted } from 'vue'
+import { onBeforeMount, onUnmounted } from 'vue'
 
 export function usePageCss(hrefs) {
   const links = []
 
-  onMounted(() => {
+  onBeforeMount(() => {
     hrefs.forEach((href) => {
       const link = document.createElement('link')
       link.rel = 'stylesheet'

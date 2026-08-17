@@ -75,7 +75,7 @@ function openPlaylist(id) {
       <div v-if="songResults.length" class="functional-list">
         <div v-for="(song, index) in songResults" :key="song.id" class="functional-row">
           <button type="button" class="row-play" @click="playSong(song, songResults)">▶</button>
-          <img :src="song.cover" :alt="song.title" />
+          <img :src="song.cover" :alt="song.title" loading="lazy" decoding="async" />
           <strong>{{ song.title }} - {{ song.artist }}</strong>
           <span>{{ song.album }}</span>
           <span>{{ song.duration }}</span>
@@ -93,7 +93,7 @@ function openPlaylist(id) {
           @click="openPlaylist(playlist.id)"
         >
           <div class="functional-cover">
-            <img :src="playlist.cover" :alt="playlist.title" />
+            <img :src="playlist.cover" :alt="playlist.title" loading="lazy" decoding="async" />
           </div>
           <p class="functional-card-title">{{ playlist.title }}</p>
         </div>

@@ -162,7 +162,7 @@ onUnmounted(stopTimer)
       <div class="cont2-areas">
         <div v-for="playlist in recommendedPlaylists" :key="playlist.id" class="cont2-area">
           <div class="cont2-shell" @click="goPlaylist(playlist.id)">
-            <img class="cont2-img" :src="playlist.cover" :alt="playlist.title" />
+            <img class="cont2-img" :src="playlist.cover" :alt="playlist.title" loading="lazy" decoding="async" />
             <div class="cont2-shadow"></div>
             <a class="cont2-play_list" href="javascript:;" @click.stop.prevent="playPlaylist(playlist)">
               <div class="cont2-play" title="播放"></div>
@@ -198,7 +198,7 @@ onUnmounted(stopTimer)
       <div class="cont3-songs">
         <div v-for="song in newSongs" :key="song.id" class="cont3-song">
           <div class="cont3-shell" @click="playSong(song, newSongs)">
-            <img class="cont3-img" :src="song.cover" :alt="song.title" />
+            <img class="cont3-img" :src="song.cover" :alt="song.title" loading="lazy" decoding="async" />
             <div class="cont3-shadow"></div>
             <div class="cont3-back">
               <img

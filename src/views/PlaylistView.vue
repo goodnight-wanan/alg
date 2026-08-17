@@ -62,10 +62,10 @@ function playSong(song) {
 <template>
   <div v-if="playlist" class="mybody">
     <div class="head">
-      <table border="1px" style="height: 200px; width: 1200px">
+      <table border="1px" style="height: 200px; width: 100%">
         <tr>
           <td rowspan="3" colspan="1">
-            <img :src="playlist.cover" width="180px" height="180px" :alt="playlist.title" />
+            <img :src="playlist.cover" width="180px" height="180px" :alt="playlist.title" loading="lazy" decoding="async" />
           </td>
           <td>名称：{{ playlist.title }}</td>
         </tr>

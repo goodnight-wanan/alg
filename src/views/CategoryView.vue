@@ -125,7 +125,7 @@ function openPlaylist(id) {
     <div class="content">
       <div v-for="playlist in filteredPlaylists" :key="playlist.id" class="song-sheet">
         <div class="song-sheet_picture" @click="openPlaylist(playlist.id)">
-          <img :src="playlist.cover" width="160px" height="160px" :alt="playlist.title" />
+          <img :src="playlist.cover" width="160px" height="160px" :alt="playlist.title" loading="lazy" decoding="async" />
         </div>
         <div class="song-sheet_name">
           <a href="javascript:;" class="name1" @click.prevent="openPlaylist(playlist.id)">
