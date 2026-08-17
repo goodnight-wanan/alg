@@ -702,3 +702,55 @@ button:focus-visible {
     margin-left: 12px;
   }
 }
+
+@media (max-width: 960px) {
+  .functional-row {
+    grid-template-columns: 42px 52px minmax(0, 1fr) 70px;
+  }
+
+  .functional-row span:last-child {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  body .header-top {
+    height: auto;
+    flex-wrap: wrap;
+    padding: 8px 0;
+  }
+
+  body .header-seek {
+    width: 100%;
+    margin-top: 8px;
+  }
+}
+
+@media (max-width: 700px) {
+  body .cont3-word,
+  body .cont3-song_name,
+  body .cont3-song_singer {
+    width: 100%;
+  }
+
+  body .cont4-chart_list,
+  body .cont4-chart_song,
+  body .cont4-chart_song_meg,
+  body .cont4-chart_song_name {
+    width: 100%;
+  }
+
+  body .mybody .content table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 380px) {
+  body .login-container,
+  body .register-container {
+    width: calc(100% - 28px);
+    max-width: 350px;
+  }
+}
