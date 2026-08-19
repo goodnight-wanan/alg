@@ -96,6 +96,11 @@ export const usePlayerStore = defineStore('player', () => {
     } else {
       const nextIndex = currentIndex.value + 1
       if (nextIndex >= queue.value.length) {
+        if (mode.value === 'order') {
+          audio.pause()
+          isPlaying.value = false
+          return
+        }
         currentIndex.value = 0
       } else {
         currentIndex.value = nextIndex
@@ -157,23 +162,35 @@ export const usePlayerStore = defineStore('player', () => {
   }
 
   function cycleMode() {
-    const modes = ['order', 'loop', 'shuffle']
+    const modes = ['order', 'list-loop', 'loop', 'shuffle']
     const index = modes.indexOf(mode.value)
     mode.value = modes[(index + 1) % modes.length]
   }
 
   function handleEnded() {
+    if (!queue.value.length) {
+      isPlaying.value = false
+      return
+    }
+
     if (mode.value === 'loop') {
       audio.currentTime = 0
       play()
       return
     }
 
-    if (queue.value.length > 1) {
-      next()
-    } else {
+    if (mode.value === 'order' && currentIndex.value >= queue.value.length - 1) {
       isPlaying.value = false
+      audio.currentTime = 0
+      return
     }
+
+    if (mode.value === 'shuffle' && queue.value.length === 1) {
+      isPlaying.value = false
+      return
+    }
+
+    next()
   }
 
   audio.volume = volume.value

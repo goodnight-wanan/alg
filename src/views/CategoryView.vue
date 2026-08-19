@@ -1,19 +1,51 @@
 <script setup>
-import { computed, reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, reactive, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { categories, getPlaylistSongs, playlists } from '../data/musicData'
 import { usePageCss } from '../utils/pageCss'
 
 usePageCss(['/assets/css/歌单分类.css'])
 
+const route = useRoute()
 const router = useRouter()
-const keyword = ref('')
+const keyword = ref(String(route.query.q || ''))
 const filters = reactive({
-  genre: '',
-  mood: '',
-  era: '',
-  region: ''
+  genre: String(route.query.genre || ''),
+  mood: String(route.query.mood || ''),
+  era: String(route.query.era || ''),
+  region: String(route.query.region || '')
 })
+
+let keywordTimer = null
+
+function syncQuery() {
+  const query = {}
+  const word = keyword.value.trim()
+  if (word) query.q = word
+  if (filters.genre) query.genre = filters.genre
+  if (filters.mood) query.mood = filters.mood
+  if (filters.era) query.era = filters.era
+  if (filters.region) query.region = filters.region
+  router.replace({ name: 'category', query })
+}
+
+watch(keyword, () => {
+  window.clearTimeout(keywordTimer)
+  keywordTimer = window.setTimeout(syncQuery, 400)
+})
+
+watch(filters, syncQuery)
+
+watch(
+  () => [route.query.q, route.query.genre, route.query.mood, route.query.era, route.query.region].join('|'),
+  () => {
+    keyword.value = String(route.query.q || '')
+    filters.genre = String(route.query.genre || '')
+    filters.mood = String(route.query.mood || '')
+    filters.era = String(route.query.era || '')
+    filters.region = String(route.query.region || '')
+  }
+)
 
 const filteredPlaylists = computed(() => {
   const word = keyword.value.trim().toLowerCase()

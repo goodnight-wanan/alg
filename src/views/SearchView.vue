@@ -11,12 +11,45 @@ const playerStore = usePlayerStore()
 const keyword = ref(String(route.query.q || ''))
 const activeTab = ref(route.query.tab === 'playlist' ? 'playlist' : 'song')
 
+let keywordTimer = null
+
 watch(
   () => route.query.q,
   (value) => {
     keyword.value = String(value || '')
   }
 )
+
+watch(
+  () => route.query.tab,
+  (value) => {
+    activeTab.value = value === 'playlist' ? 'playlist' : 'song'
+  }
+)
+
+watch(keyword, () => {
+  window.clearTimeout(keywordTimer)
+  keywordTimer = window.setTimeout(() => {
+    const query = { ...route.query }
+    const value = keyword.value.trim()
+    if (value) {
+      query.q = value
+    } else {
+      delete query.q
+    }
+    router.replace({ name: 'search', query })
+  }, 400)
+})
+
+watch(activeTab, (value) => {
+  const query = { ...route.query }
+  if (value === 'playlist') {
+    query.tab = 'playlist'
+  } else {
+    delete query.tab
+  }
+  router.replace({ name: 'search', query })
+})
 
 const normalizedKeyword = computed(() => keyword.value.trim().toLowerCase())
 

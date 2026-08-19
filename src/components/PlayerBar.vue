@@ -10,10 +10,21 @@ const showQueue = ref(false)
 const modeLabel = computed(() => {
   const labels = {
     order: '顺序播放',
+    'list-loop': '列表循环',
     loop: '单曲循环',
     shuffle: '随机播放'
   }
   return labels[playerStore.mode]
+})
+
+const modeIcon = computed(() => {
+  const icons = {
+    order: '→',
+    'list-loop': '↻',
+    loop: '⟳',
+    shuffle: '⤨'
+  }
+  return icons[playerStore.mode]
 })
 
 function onSeek(event) {
@@ -77,7 +88,7 @@ function toggleFavorite() {
             :title="modeLabel"
             @click="playerStore.cycleMode"
           >
-            {{ playerStore.mode === 'shuffle' ? '⤨' : playerStore.mode === 'loop' ? '⟳' : '→' }}
+            {{ modeIcon }}
           </button>
           <button class="vue-player-button" type="button" title="上一首" @click="playerStore.previous">⏮</button>
           <button class="vue-player-button" type="button" title="播放/暂停" @click="playerStore.togglePlay">
