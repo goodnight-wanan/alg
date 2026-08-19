@@ -24,7 +24,7 @@ function handleAuthMessage(event) {
   if (event.data?.type !== 'auth-success') return
 
   userStore.syncSession()
-  router.push(String(event.data.redirect || '/mine'))
+  router.push(String(event.data.redirect || '/'))
 }
 
 function handleStorage(event) {

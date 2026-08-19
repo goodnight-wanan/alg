@@ -79,6 +79,24 @@ body {
   flex: 0 0 auto;
 }
 
+.user-avatar {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.55);
+  color: #e94e77;
+  font-size: 18px;
+  font-weight: 1000;
+  text-decoration: none;
+}
+
+.user-avatar:hover {
+  border-color: #e94e77;
+}
+
 @media (max-width: 700px) {
   .site-nav {
     gap: 8px;
@@ -439,6 +457,26 @@ body {
   background: rgba(25, 25, 25, 0.06);
   color: #665d63;
   font-weight: 700;
+}
+
+.profile-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.profile-avatar {
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 96px;
+  border: 3px solid rgba(255, 255, 255, 0.85);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.55);
+  color: #e94e77;
+  font-size: 40px;
+  font-weight: 1000;
 }
 
 .not-found-page {

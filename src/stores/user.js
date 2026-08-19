@@ -107,8 +107,7 @@ export const useUserStore = defineStore('user', () => {
     }
 
     users.value.push(user)
-    currentUser.value = sanitizeUser(user)
-    return { ok: true, message: '注册成功' }
+    return { ok: true, message: '注册成功，请登录' }
   }
 
   function login({ account, password }) {

@@ -36,7 +36,7 @@ function submit() {
     return
   }
 
-  const redirect = String(route.query.redirect || '/mine')
+  const redirect = String(route.query.redirect || '/')
 
   if (window.opener) {
     window.opener.postMessage(

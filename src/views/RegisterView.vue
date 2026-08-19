@@ -26,17 +26,7 @@ function submit() {
     return
   }
 
-  if (window.opener) {
-    window.opener.postMessage(
-      { type: 'auth-success', redirect: '/mine' },
-      window.location.origin
-    )
-    window.opener.focus()
-    window.close()
-    return
-  }
-
-  router.replace('/mine')
+  router.replace('/login')
 }
 </script>
 

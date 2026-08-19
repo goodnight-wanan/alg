@@ -45,6 +45,12 @@ const routes = [
     meta: { title: '我的音乐', requiresAuth: true }
   },
   {
+    path: '/profile',
+    name: 'profile',
+    component: () => import('../views/ProfileView.vue'),
+    meta: { title: '个人中心', requiresAuth: true }
+  },
+  {
     path: '/404',
     name: 'not-found',
     component: () => import('../views/NotFoundView.vue'),
@@ -68,10 +74,7 @@ router.beforeEach((to) => {
   const userStore = useUserStore()
 
   if (to.meta.requiresAuth && !userStore.isLoggedIn) {
-    return {
-      name: 'login',
-      query: { redirect: to.fullPath }
-    }
+    return { name: 'login' }
   }
 
   document.title = to.meta.title || '悦音音乐'

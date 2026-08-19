@@ -18,10 +18,10 @@ const activeSlide = ref(0)
 let slideTimer = null
 
 const slides = [
-  '/assets/imgs/homepage/carousel/carousel1.png',
-  '/assets/imgs/homepage/carousel/carousel2.png',
-  '/assets/imgs/homepage/carousel/carousel3.png',
-  '/assets/imgs/homepage/carousel/carousel4.png'
+  '/assets/imgs/homepage/carousel/carousel1.jpg',
+  '/assets/imgs/homepage/carousel/carousel2.jpg',
+  '/assets/imgs/homepage/carousel/carousel3.jpg',
+  '/assets/imgs/homepage/carousel/carousel4.jpg'
 ]
 
 const recommendedPlaylists = playlists.slice(0, 5)
@@ -98,8 +98,8 @@ onUnmounted(stopTimer)
           <a
             v-if="!userStore.isLoggedIn"
             class="header-col my_music"
-            href="#/login?redirect=%2Fmine"
-            @click.prevent="openAuthWindow('/mine')"
+            href="#/login"
+            @click.prevent="openAuthWindow()"
           >我的音乐</a>
           <div v-else class="header-col my_music" @click="router.push('/mine')">我的音乐</div>
           <div class="header-col download" @click.prevent>客户端</div>
@@ -110,8 +110,8 @@ onUnmounted(stopTimer)
           <button class="header-button" type="submit" title="搜索">⌕</button>
         </form>
         <div class="login" title="账号登录">
-          <RouterLink v-if="userStore.isLoggedIn" class="a_login" to="/mine">
-            {{ userStore.currentUser.username }}
+          <RouterLink v-if="userStore.isLoggedIn" class="user-avatar" to="/profile" :title="userStore.currentUser.username">
+            {{ userStore.currentUser.username?.charAt(0).toUpperCase() || '?' }}
           </RouterLink>
           <a v-else class="a_login" href="#/login" @click.prevent="openAuthWindow()">登录</a>
         </div>

@@ -15,16 +15,16 @@ const userStore = useUserStore()
       <RouterLink to="/search" class="site-link" active-class="active">搜索</RouterLink>
       <a
         v-if="!userStore.isLoggedIn"
-        href="#/login?redirect=%2Fmine"
+        href="#/login"
         class="site-link"
-        @click.prevent="openAuthWindow('/mine')"
+        @click.prevent="openAuthWindow()"
       >我的音乐</a>
       <RouterLink v-else to="/mine" class="site-link" active-class="active">我的音乐</RouterLink>
     </nav>
 
     <div class="site-action">
-      <RouterLink v-if="userStore.isLoggedIn" to="/mine" class="site-user">
-        {{ userStore.currentUser.username }}
+      <RouterLink v-if="userStore.isLoggedIn" to="/profile" class="user-avatar" :title="userStore.currentUser.username">
+        {{ userStore.currentUser.username?.charAt(0).toUpperCase() || '?' }}
       </RouterLink>
       <a v-else href="#/login" class="site-login" @click.prevent="openAuthWindow()">登录</a>
     </div>

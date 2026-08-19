@@ -379,6 +379,7 @@ a{
     height: 280px;
     cursor: pointer;
     transition: 0.5s;
+    object-fit: cover;
 }
 .cont2-shell:hover .cont2-img{
     transform: scale(1.1);
@@ -526,6 +527,7 @@ a{
     width: 140px;
     height: 150px;
     transition: 0.5s;
+    object-fit: cover;
 }
 .cont3-shadow{
     width: 140px;
