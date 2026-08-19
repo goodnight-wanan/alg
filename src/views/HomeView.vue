@@ -81,7 +81,6 @@ function playPlaylist(playlist) {
 }
 
 function playSong(song, list = [song]) {
-  userStore.recordPlay(song.id)
   playerStore.playSong(song, list)
 }
 

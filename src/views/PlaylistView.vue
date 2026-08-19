@@ -3,14 +3,12 @@ import { computed, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { getPlaylistById, getPlaylistSongs } from '../data/musicData'
 import { usePlayerStore } from '../stores/player'
-import { useUserStore } from '../stores/user'
 import { usePageCss } from '../utils/pageCss'
 
 usePageCss(['/assets/css/歌单页面.css'])
 
 const route = useRoute()
 const playerStore = usePlayerStore()
-const userStore = useUserStore()
 
 const playlist = computed(() => getPlaylistById(route.params.id))
 const songs = computed(() => getPlaylistSongs(playlist.value))
@@ -54,7 +52,6 @@ function removeSong(index) {
 }
 
 function playSong(song) {
-  userStore.recordPlay(song.id)
   playerStore.playSong(song, localSongs.value)
 }
 </script>

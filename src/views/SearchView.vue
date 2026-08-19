@@ -3,12 +3,10 @@ import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { playlists, songs } from '../data/musicData'
 import { usePlayerStore } from '../stores/player'
-import { useUserStore } from '../stores/user'
 
 const route = useRoute()
 const router = useRouter()
 const playerStore = usePlayerStore()
-const userStore = useUserStore()
 
 const keyword = ref(String(route.query.q || ''))
 const activeTab = ref(route.query.tab === 'playlist' ? 'playlist' : 'song')
@@ -43,7 +41,6 @@ const playlistResults = computed(() => {
 })
 
 function playSong(song, list) {
-  userStore.recordPlay(song.id)
   playerStore.playSong(song, list)
 }
 

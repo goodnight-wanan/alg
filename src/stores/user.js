@@ -9,12 +9,30 @@ function sanitizeUser(user) {
   return safeUser
 }
 
+function dataKey(base, userId) {
+  return userId ? `${base}:${userId}` : null
+}
+
+function loadUserData(userId) {
+  if (!userId) {
+    return { favoriteSongs: [], favoritePlaylists: [], playHistory: [] }
+  }
+
+  return {
+    favoriteSongs: loadJSON(dataKey('favorite-songs', userId), []),
+    favoritePlaylists: loadJSON(dataKey('favorite-playlists', userId), []),
+    playHistory: loadJSON(dataKey('play-history', userId), [])
+  }
+}
+
 export const useUserStore = defineStore('user', () => {
   const users = ref(loadJSON('users', []))
   const currentUser = ref(sanitizeUser(loadJSON('session', null)))
-  const favoriteSongs = ref(loadJSON('favorite-songs', []))
-  const favoritePlaylists = ref(loadJSON('favorite-playlists', []))
-  const playHistory = ref(loadJSON('play-history', []))
+  const initialData = loadUserData(currentUser.value?.id)
+
+  const favoriteSongs = ref(initialData.favoriteSongs)
+  const favoritePlaylists = ref(initialData.favoritePlaylists)
+  const playHistory = ref(initialData.playHistory)
 
   const isLoggedIn = computed(() => Boolean(currentUser.value))
   const favoriteSongObjects = computed(() =>
@@ -23,9 +41,28 @@ export const useUserStore = defineStore('user', () => {
 
   watch(users, (value) => saveJSON('users', value), { deep: true })
   watch(currentUser, (value) => saveJSON('session', sanitizeUser(value)), { deep: true })
-  watch(favoriteSongs, (value) => saveJSON('favorite-songs', value), { deep: true })
-  watch(favoritePlaylists, (value) => saveJSON('favorite-playlists', value), { deep: true })
-  watch(playHistory, (value) => saveJSON('play-history', value), { deep: true })
+
+  watch(currentUser, (value) => {
+    const data = loadUserData(value?.id)
+    favoriteSongs.value = data.favoriteSongs
+    favoritePlaylists.value = data.favoritePlaylists
+    playHistory.value = data.playHistory
+  })
+
+  watch(favoriteSongs, (value) => {
+    const key = dataKey('favorite-songs', currentUser.value?.id)
+    if (key) saveJSON(key, value)
+  }, { deep: true })
+
+  watch(favoritePlaylists, (value) => {
+    const key = dataKey('favorite-playlists', currentUser.value?.id)
+    if (key) saveJSON(key, value)
+  }, { deep: true })
+
+  watch(playHistory, (value) => {
+    const key = dataKey('play-history', currentUser.value?.id)
+    if (key) saveJSON(key, value)
+  }, { deep: true })
 
   function findUser(account) {
     return users.value.find(
@@ -100,6 +137,8 @@ export const useUserStore = defineStore('user', () => {
   }
 
   function toggleFavoriteSong(songId) {
+    if (!isLoggedIn.value) return false
+
     const index = favoriteSongs.value.indexOf(songId)
     if (index >= 0) {
       favoriteSongs.value.splice(index, 1)
@@ -115,6 +154,8 @@ export const useUserStore = defineStore('user', () => {
   }
 
   function toggleFavoritePlaylist(playlistId) {
+    if (!isLoggedIn.value) return false
+
     const index = favoritePlaylists.value.indexOf(playlistId)
     if (index >= 0) {
       favoritePlaylists.value.splice(index, 1)
@@ -126,6 +167,8 @@ export const useUserStore = defineStore('user', () => {
   }
 
   function recordPlay(songId) {
+    if (!isLoggedIn.value) return
+
     const nextHistory = [songId, ...playHistory.value.filter((id) => id !== songId)]
     playHistory.value = nextHistory.slice(0, 50)
   }

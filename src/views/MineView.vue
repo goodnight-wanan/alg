@@ -21,7 +21,6 @@ const favoritePlaylists = computed(() =>
 )
 
 function playSong(song, list) {
-  userStore.recordPlay(song.id)
   playerStore.playSong(song, list)
 }
 

@@ -1,5 +1,6 @@
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { defineStore } from 'pinia'
+import { useUserStore } from './user'
 
 const audio = new Audio()
 
@@ -28,6 +29,11 @@ export const usePlayerStore = defineStore('player', () => {
   })
   const currentTimeText = computed(() => formatTime(currentTime.value))
   const durationText = computed(() => formatTime(duration.value))
+
+  watch(currentSong, (song) => {
+    if (!song?.id) return
+    useUserStore().recordPlay(song.id)
+  })
 
   function syncVolume() {
     audio.volume = isMuted.value ? 0 : volume.value

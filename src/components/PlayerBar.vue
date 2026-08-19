@@ -30,9 +30,14 @@ function playAt(index) {
 }
 
 function toggleFavorite() {
-  if (playerStore.currentSong) {
-    userStore.toggleFavoriteSong(playerStore.currentSong.id)
+  if (!playerStore.currentSong) return
+
+  if (!userStore.isLoggedIn) {
+    alert('请先登录后再收藏')
+    return
   }
+
+  userStore.toggleFavoriteSong(playerStore.currentSong.id)
 }
 </script>
 
