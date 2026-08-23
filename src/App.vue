@@ -21,10 +21,16 @@ function scrollToTop() {
 }
 
 function handleAuthMessage(event) {
+  if (event.origin !== window.location.origin) return
   if (event.data?.type !== 'auth-success') return
 
+  const redirect =
+    typeof event.data.redirect === 'string' && event.data.redirect.startsWith('/')
+      ? event.data.redirect
+      : '/'
+
   userStore.syncSession()
-  router.push(String(event.data.redirect || '/'))
+  router.push(redirect)
 }
 
 function handleStorage(event) {

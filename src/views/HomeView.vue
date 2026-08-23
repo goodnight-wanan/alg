@@ -16,6 +16,8 @@ const userStore = useUserStore()
 const keyword = ref('')
 const activeSlide = ref(0)
 let slideTimer = null
+const notice = ref('')
+let noticeTimer = null
 
 const slides = [
   '/assets/imgs/homepage/carousel/carousel1.jpg',
@@ -62,6 +64,14 @@ function stopTimer() {
   }
 }
 
+function showNotice(message) {
+  notice.value = message
+  window.clearTimeout(noticeTimer)
+  noticeTimer = window.setTimeout(() => {
+    notice.value = ''
+  }, 2200)
+}
+
 function submitSearch() {
   const value = keyword.value.trim()
   if (!value) return
@@ -85,11 +95,17 @@ function playSong(song, list = [song]) {
 }
 
 onMounted(startTimer)
-onUnmounted(stopTimer)
+onUnmounted(() => {
+  stopTimer()
+  window.clearTimeout(noticeTimer)
+})
 </script>
 
 <template>
   <div class="main">
+    <Transition name="notice">
+      <div v-if="notice" class="page-notice">{{ notice }}</div>
+    </Transition>
     <div class="header">
       <div class="header-top">
         <div class="header-logo">悦音音乐</div>
@@ -102,11 +118,11 @@ onUnmounted(stopTimer)
             @click.prevent="openAuthWindow()"
           >我的音乐</a>
           <div v-else class="header-col my_music" @click="router.push('/mine')">我的音乐</div>
-          <div class="header-col download" @click.prevent>客户端</div>
-          <div class="header-col vip" @click.prevent>VIP</div>
+          <div class="header-col download" @click="showNotice('客户端为演示功能，暂未开放')">客户端</div>
+          <div class="header-col vip" @click="showNotice('VIP 为演示功能，暂未开放')">VIP</div>
         </div>
         <form class="header-seek" @submit.prevent="submitSearch">
-          <input v-model="keyword" class="header-search" type="text" placeholder="搜索音乐，歌单，用户" />
+          <input v-model="keyword" class="header-search" type="text" placeholder="搜索歌曲、歌单、歌手" />
           <button class="header-button" type="submit" title="搜索">⌕</button>
         </form>
         <div class="login" title="账号登录">
@@ -121,8 +137,8 @@ onUnmounted(stopTimer)
         <a href="javascript:;" @click.prevent="router.push('/')">
           <div class="header-mn homepage">主页</div>
         </a>
-        <a href="#" @click.prevent><div class="header-mn singer">歌手</div></a>
-        <a href="#" @click.prevent><div class="header-mn newCD">新碟</div></a>
+        <a href="#" @click.prevent="showNotice('歌手功能暂未开放')"><div class="header-mn singer">歌手</div></a>
+        <a href="#" @click.prevent="showNotice('新碟功能暂未开放')"><div class="header-mn newCD">新碟</div></a>
         <a href="javascript:;" @click.prevent="router.push('/search?tab=song')">
           <div class="header-mn chart">排行榜</div>
         </a>
@@ -267,7 +283,7 @@ onUnmounted(stopTimer)
 
     <div class="footer">
       <div class="footer-moreMeg">
-        <a class="ft-download" href="#" @click.prevent>
+        <a class="ft-download" href="#" @click.prevent="showNotice('下载客户端为演示功能，暂未开放')">
           <div class="footer-download">
             <p title="下载客户端">下载客户端</p>
           </div>
@@ -282,3 +298,31 @@ onUnmounted(stopTimer)
     </div>
   </div>
 </template>
+
+<style scoped>
+.page-notice {
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  z-index: 2000;
+  padding: 12px 22px;
+  border-radius: 999px;
+  background: rgb(25 25 25 / 88%);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+  transform: translateX(-50%);
+}
+
+.notice-enter-active,
+.notice-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.notice-enter-from,
+.notice-leave-to {
+  opacity: 0;
+  transform: translate(-50%, -8px);
+}
+</style>
