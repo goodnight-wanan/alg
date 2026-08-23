@@ -2,14 +2,16 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import PlayerBar from './components/PlayerBar.vue'
-import SiteNav from './components/SiteNav.vue'
+import AppHeader from './components/AppHeader.vue'
 import { useUserStore } from './stores/user'
+import { useNotice } from './utils/notice'
 
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
+const notice = useNotice()
 const showPlayer = computed(() => !['login', 'register'].includes(route.name))
-const showSiteNav = computed(() => !['login', 'register', 'home'].includes(route.name))
+const showHeader = computed(() => !['login', 'register'].includes(route.name))
 const showBackTop = ref(false)
 
 function handleScroll() {
@@ -55,9 +57,13 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="app-shell" :class="{ 'has-player': showPlayer }">
-    <SiteNav v-if="showSiteNav" />
+    <AppHeader v-if="showHeader" />
     <RouterView />
     <PlayerBar v-if="showPlayer" />
+
+    <Transition name="notice">
+      <div v-if="notice" class="page-notice">{{ notice }}</div>
+    </Transition>
 
     <button
       v-show="showBackTop"
@@ -76,6 +82,7 @@ onBeforeUnmount(() => {
 <style scoped>
 .app-shell {
   min-height: 100vh;
+  padding-top: var(--header-height, 0px);
   padding-bottom: 0;
 }
 
@@ -111,5 +118,30 @@ onBeforeUnmount(() => {
 .back-top-button:hover {
   transform: translateY(-3px);
   background: rgb(255 187 187 / 96%);
+}
+.page-notice {
+  position: fixed;
+  top: calc(var(--header-height, 0px) + 18px);
+  left: 50%;
+  z-index: 2000;
+  padding: 12px 22px;
+  border-radius: 999px;
+  background: rgb(25 25 25 / 88%);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+  transform: translateX(-50%);
+}
+
+.notice-enter-active,
+.notice-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.notice-enter-from,
+.notice-leave-to {
+  opacity: 0;
+  transform: translate(-50%, -8px);
 }
 </style>
