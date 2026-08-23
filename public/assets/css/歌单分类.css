@@ -7,13 +7,6 @@ html,
 body{
     min-height: 100%;
 }
-body{
-    background-image: url(../imgs/54a4a22596a48d24576bfe912d73640.jpg);
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-}
 .mybody{
     width:1680px;
     height:auto;

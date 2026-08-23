@@ -4,12 +4,6 @@
     list-style-type: none;
     text-decoration: none;
 }
-body{
-    background-image: url(../imgs/homepage/homepage.jpg);
-    background-position: center;
-    background-size: cover;
-    background-repeat: no-repeat;
-}
 a{
     color: black;
 }
