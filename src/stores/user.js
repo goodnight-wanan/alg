@@ -13,6 +13,15 @@ function dataKey(base, userId) {
   return userId ? `${base}:${userId}` : null
 }
 
+function normalizeHistory(history) {
+  return (Array.isArray(history) ? history : [])
+    .map((item) => {
+      if (typeof item === 'string') return { id: item, time: 0 }
+      return { id: item?.id, time: item?.time || 0 }
+    })
+    .filter((item) => item.id)
+}
+
 function loadUserData(userId) {
   if (!userId) {
     return { favoriteSongs: [], favoritePlaylists: [], playHistory: [] }
@@ -21,7 +30,7 @@ function loadUserData(userId) {
   return {
     favoriteSongs: loadJSON(dataKey('favorite-songs', userId), []),
     favoritePlaylists: loadJSON(dataKey('favorite-playlists', userId), []),
-    playHistory: loadJSON(dataKey('play-history', userId), [])
+    playHistory: normalizeHistory(loadJSON(dataKey('play-history', userId), []))
   }
 }
 
@@ -168,8 +177,15 @@ export const useUserStore = defineStore('user', () => {
   function recordPlay(songId) {
     if (!isLoggedIn.value) return
 
-    const nextHistory = [songId, ...playHistory.value.filter((id) => id !== songId)]
+    const nextHistory = [
+      { id: songId, time: Date.now() },
+      ...playHistory.value.filter((item) => item.id !== songId)
+    ]
     playHistory.value = nextHistory.slice(0, 50)
+  }
+
+  function clearPlayHistory() {
+    playHistory.value = []
   }
 
   function syncSession() {
@@ -192,6 +208,7 @@ export const useUserStore = defineStore('user', () => {
     isFavoritePlaylist,
     toggleFavoritePlaylist,
     recordPlay,
+    clearPlayHistory,
     syncSession
   }
 })
