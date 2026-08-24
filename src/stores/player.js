@@ -53,19 +53,21 @@ export const usePlayerStore = defineStore('player', () => {
   function playSong(song, playQueue = null) {
     if (!song) return
 
-    const list = playQueue?.length ? playQueue : queue.value
-    const nextIndex = list.findIndex((item) => item.id === song.id)
-
-    if (list !== queue.value) {
-      queue.value = [...list]
-      currentIndex.value = nextIndex >= 0 ? nextIndex : 0
-    } else if (currentSong.value?.id === song.id) {
+    if (currentSong.value?.id === song.id) {
       if (audio.paused) {
         play()
       } else {
         pause()
       }
       return
+    }
+
+    const list = playQueue?.length ? playQueue : queue.value
+    const nextIndex = list.findIndex((item) => item.id === song.id)
+
+    if (list !== queue.value) {
+      queue.value = [...list]
+      currentIndex.value = nextIndex >= 0 ? nextIndex : 0
     } else if (nextIndex >= 0) {
       currentIndex.value = nextIndex
     }
