@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import { openAuthWindow } from '../utils/openAuthWindow'
@@ -11,6 +11,7 @@ const userStore = useUserStore()
 
 const keyword = ref('')
 const headerEl = ref(null)
+const menuOpen = ref(false)
 let resizeObserver = null
 
 const isHome = computed(() => route.path === '/')
@@ -31,6 +32,10 @@ function updateHeaderHeight() {
   }
 }
 
+watch(() => route.path, () => {
+  menuOpen.value = false
+})
+
 onMounted(() => {
   updateHeaderHeight()
   if ('ResizeObserver' in window) {
@@ -48,26 +53,34 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <header ref="headerEl" class="app-header">
+  <header ref="headerEl" class="app-header" :class="{ 'menu-open': menuOpen }">
     <div class="app-header-top">
-      <div class="app-header-logo" @click="router.push('/')">悦音音乐</div>
-      <div class="app-header-column">
-        <div class="app-header-col" :class="{ 'is-active': isHome }" @click="router.push('/')">音乐馆</div>
-        <a
+      <RouterLink to="/" class="app-header-logo">
+        <span class="app-header-logo-mark"><Icon name="music-note" :size="20" /></span>
+        <span class="app-header-logo-text">悦音音乐</span>
+      </RouterLink>
+
+      <nav class="app-header-column" aria-label="主导航">
+        <RouterLink to="/" class="app-header-col" :class="{ 'is-active': isHome }" :aria-current="isHome ? 'page' : undefined">音乐馆</RouterLink>
+        <button
           v-if="!userStore.isLoggedIn"
+          type="button"
           class="app-header-col"
-          href="#/login"
-          @click.prevent="openAuthWindow()"
-        >我的音乐</a>
-        <div v-else class="app-header-col" :class="{ 'is-active': isMine }" @click="router.push('/mine')">我的音乐</div>
-        <div class="app-header-col" @click="showNotice('客户端为演示功能，暂未开放')">客户端</div>
-        <div class="app-header-col" @click="showNotice('VIP 为演示功能，暂未开放')">VIP</div>
-      </div>
-      <form class="app-header-search" @submit.prevent="submitSearch">
-        <input v-model="keyword" class="app-header-input" type="text" placeholder="搜索歌曲、歌单、歌手" />
-        <button class="app-header-search-btn" type="submit" title="搜索">⌕</button>
+          @click="openAuthWindow()"
+        >我的音乐</button>
+        <RouterLink v-else to="/mine" class="app-header-col" :class="{ 'is-active': isMine }" :aria-current="isMine ? 'page' : undefined">我的音乐</RouterLink>
+        <button type="button" class="app-header-col" @click="showNotice('客户端为演示功能，暂未开放')">客户端</button>
+        <button type="button" class="app-header-col" @click="showNotice('VIP 为演示功能，暂未开放')">VIP</button>
+      </nav>
+
+      <form class="app-header-search" role="search" @submit.prevent="submitSearch">
+        <input v-model="keyword" class="app-header-input" type="search" placeholder="搜索歌曲、歌单、歌手" aria-label="搜索" />
+        <button class="app-header-search-btn" type="submit" title="搜索" aria-label="搜索">
+          <Icon name="search" :size="18" />
+        </button>
       </form>
-      <div class="app-header-login" title="账号登录">
+
+      <div class="app-header-login">
         <RouterLink
           v-if="userStore.isLoggedIn"
           class="user-avatar"
@@ -76,22 +89,22 @@ onUnmounted(() => {
         >
           {{ userStore.currentUser.username?.charAt(0).toUpperCase() || '?' }}
         </RouterLink>
-        <a v-else class="app-header-login-link" href="#/login" @click.prevent="openAuthWindow()">登录</a>
+        <button v-else type="button" class="app-header-login-link" @click="openAuthWindow()">登录</button>
       </div>
+
+      <button type="button" class="app-header-burger" :aria-expanded="menuOpen" aria-label="菜单" @click="menuOpen = !menuOpen">
+        <Icon :name="menuOpen ? 'close' : 'menu'" :size="22" />
+      </button>
     </div>
+
     <div class="app-header-line"></div>
-    <nav class="app-header-menu">
-      <a href="javascript:;" @click.prevent="router.push('/')">
-        <div class="app-header-menu-item" :class="{ 'is-active': isHome }">主页</div>
-      </a>
-      <a href="#" @click.prevent="showNotice('歌手功能暂未开放')"><div class="app-header-menu-item">歌手</div></a>
-      <a href="#" @click.prevent="showNotice('新碟功能暂未开放')"><div class="app-header-menu-item">新碟</div></a>
-      <a href="javascript:;" @click.prevent="router.push('/rank')">
-        <div class="app-header-menu-item" :class="{ 'is-active': isRank }">排行榜</div>
-      </a>
-      <a href="javascript:;" @click.prevent="router.push('/category')">
-        <div class="app-header-menu-item" :class="{ 'is-active': isCategory }">分类歌单</div>
-      </a>
+
+    <nav class="app-header-menu" aria-label="分类导航">
+      <RouterLink to="/" class="app-header-menu-item" :class="{ 'is-active': isHome }" :aria-current="isHome ? 'page' : undefined">主页</RouterLink>
+      <button type="button" class="app-header-menu-item" @click="showNotice('歌手功能暂未开放')">歌手</button>
+      <button type="button" class="app-header-menu-item" @click="showNotice('新碟功能暂未开放')">新碟</button>
+      <RouterLink to="/rank" class="app-header-menu-item" :class="{ 'is-active': isRank }" :aria-current="isRank ? 'page' : undefined">排行榜</RouterLink>
+      <RouterLink to="/category" class="app-header-menu-item" :class="{ 'is-active': isCategory }" :aria-current="isCategory ? 'page' : undefined">分类歌单</RouterLink>
     </nav>
   </header>
 </template>
@@ -103,7 +116,9 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   z-index: 100;
-  background: rgb(255 214 214 / 97%);
+  background: rgb(255 214 214 / 82%);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   box-shadow: 0 4px 14px rgba(93, 54, 70, 0.08);
 }
@@ -120,16 +135,31 @@ onUnmounted(() => {
 
 .app-header-logo {
   flex: 0 0 auto;
-  width: 200px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   height: 56px;
-  border: 1px solid black;
-  display: grid;
-  place-items: center;
-  font-size: 24px;
-  font-weight: 1000;
-  letter-spacing: 4px;
+  text-decoration: none;
   cursor: pointer;
   user-select: none;
+}
+
+.app-header-logo-mark {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: linear-gradient(135deg, #ff9ec4, #e94e77);
+  color: #fff;
+  box-shadow: 0 6px 14px rgba(233, 78, 119, 0.28);
+}
+
+.app-header-logo-text {
+  color: #191516;
+  font-size: 22px;
+  font-weight: 1000;
+  letter-spacing: 2px;
 }
 
 .app-header-column {
@@ -139,6 +169,7 @@ onUnmounted(() => {
 }
 
 .app-header-col {
+  position: relative;
   min-width: 86px;
   height: 36px;
   padding: 0 12px;
@@ -148,10 +179,13 @@ onUnmounted(() => {
   line-height: 34px;
   font-size: 16px;
   font-weight: 800;
-  color: black;
+  color: #191516;
   cursor: pointer;
   border: 1px solid transparent;
   border-radius: 8px;
+  background: transparent;
+  font-family: inherit;
+  text-align: center;
   text-decoration: none;
   transition: 0.15s;
   white-space: nowrap;
@@ -164,7 +198,18 @@ onUnmounted(() => {
 
 .app-header-col.is-active {
   color: #e94e77;
-  border-color: rgba(255, 105, 157, 0.28);
+}
+
+.app-header-col.is-active::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  width: 16px;
+  height: 3px;
+  border-radius: 999px;
+  background: #e94e77;
+  transform: translateX(-50%);
 }
 
 .app-header-search {
@@ -180,7 +225,7 @@ onUnmounted(() => {
   padding-right: 36px;
   outline: none;
   font-size: 14px;
-  border-radius: 5px;
+  border-radius: 8px;
   border: 1px solid rgba(25, 25, 25, 0.12);
   background-color: rgba(255, 255, 255, 0.6);
 }
@@ -191,11 +236,13 @@ onUnmounted(() => {
   right: 6px;
   width: 32px;
   height: 32px;
+  display: grid;
+  place-items: center;
   border: 0;
   background: transparent;
-  cursor: pointer;
-  font-size: 20px;
   color: #665d63;
+  cursor: pointer;
+  transition: color 0.2s ease;
 }
 
 .app-header-search-btn:hover {
@@ -204,22 +251,32 @@ onUnmounted(() => {
 
 .app-header-login {
   flex: 0 0 auto;
-  height: 36px;
-  text-align: center;
-  font-size: 18px;
-  font-weight: 800;
-  line-height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .app-header-login-link {
-  color: black;
+  display: inline-block;
+  padding: 7px 16px;
+  border: 1px solid #ff7eb3;
+  border-radius: 999px;
+  background: transparent;
+  color: #e94e77;
+  font-size: 14px;
+  font-weight: 800;
   text-decoration: none;
   cursor: pointer;
-  transition: 0.2s;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .app-header-login-link:hover {
-  color: #e94e77;
+  background: #ff7eb3;
+  color: #fff;
+}
+
+.app-header-burger {
+  display: none;
 }
 
 .app-header-line {
@@ -238,16 +295,18 @@ onUnmounted(() => {
   text-align: center;
 }
 
-.app-header-menu a {
-  color: black;
-  text-decoration: none;
-}
-
 .app-header-menu-item {
+  position: relative;
   font-size: 16px;
   font-weight: 1000;
   line-height: 36px;
+  color: #191516;
   cursor: pointer;
+  background: transparent;
+  border: 0;
+  font-family: inherit;
+  text-align: center;
+  text-decoration: none;
   transition: 0.1s;
 }
 
@@ -257,6 +316,18 @@ onUnmounted(() => {
 
 .app-header-menu-item.is-active {
   color: #e94e77;
+}
+
+.app-header-menu-item.is-active::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  width: 18px;
+  height: 3px;
+  border-radius: 999px;
+  background: #e94e77;
+  transform: translateX(-50%);
 }
 
 @media (max-width: 1100px) {
@@ -284,62 +355,89 @@ onUnmounted(() => {
 
 @media (max-width: 700px) {
   .app-header-top {
-    flex-wrap: wrap;
-    padding: 0;
+    height: 60px;
+    flex-wrap: nowrap;
+    gap: 10px;
+    padding: 0 12px;
   }
 
   .app-header-logo {
-    width: 100%;
-    height: 58px;
-  }
-
-  .app-header-column {
-    width: 100%;
-    flex-wrap: wrap;
-    gap: 4px;
-  }
-
-  .app-header-col {
-    flex: 1 1 auto;
     height: 48px;
-    line-height: 48px;
-    font-size: 16px;
+    gap: 8px;
   }
 
-  .app-header-search {
-    width: 100%;
-    height: 42px;
-    margin: 12px 0 0;
+  .app-header-logo-mark {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
   }
 
-  .app-header-input {
-    height: 42px;
-    width: 100%;
-  }
-
-  .app-header-search-btn {
-    top: 1px;
-    right: 6px;
-    height: 40px;
+  .app-header-logo-text {
+    font-size: 19px;
+    letter-spacing: 1px;
   }
 
   .app-header-login {
-    height: auto;
-    margin: 10px 0 0;
-    font-size: 18px;
+    margin-left: auto;
   }
 
-  .app-header-line {
-    width: 100%;
+  .app-header-burger {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    flex: 0 0 auto;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: #191516;
+    cursor: pointer;
   }
 
+  .app-header-search,
+  .app-header-column,
+  .app-header-line,
   .app-header-menu {
-    width: 100%;
-    flex-wrap: wrap;
-    margin-top: 12px;
+    display: none;
   }
 
-  .app-header-menu-item {
+  .app-header.menu-open .app-header-search,
+  .app-header.menu-open .app-header-column,
+  .app-header.menu-open .app-header-line,
+  .app-header.menu-open .app-header-menu {
+    display: flex;
+  }
+
+  .app-header.menu-open .app-header-search {
+    width: 100%;
+    height: 42px;
+    margin: 10px 0 0;
+  }
+
+  .app-header.menu-open .app-header-input {
+    height: 42px;
+  }
+
+  .app-header.menu-open .app-header-column {
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 10px;
+  }
+
+  .app-header.menu-open .app-header-col {
+    flex: 1 1 auto;
+    height: 44px;
+    line-height: 44px;
+    font-size: 15px;
+  }
+
+  .app-header.menu-open .app-header-menu {
+    flex-wrap: wrap;
+    margin-top: 8px;
+    padding-bottom: 10px;
+  }
+
+  .app-header.menu-open .app-header-menu-item {
     line-height: 38px;
   }
 }
