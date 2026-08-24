@@ -17,6 +17,10 @@ const isFavorite = computed(() =>
   playlist.value ? userStore.isFavoritePlaylist(playlist.value.id) : false
 )
 
+const isPlayingList = computed(() =>
+  playerStore.isListActive(songs.value) && playerStore.isPlaying
+)
+
 function playAll() {
   if (!songs.value.length) return
   playerStore.playSong(songs.value[0], songs.value)
@@ -50,7 +54,10 @@ function toggleFavorite() {
         <p class="playlist-desc">{{ playlist.description }}</p>
         <p class="playlist-meta">{{ playlist.genre }} · {{ playlist.mood }} · {{ playlist.era }}</p>
         <div class="playlist-actions">
-          <button type="button" class="playlist-play" @click="playAll"><Icon name="play" /> 播放全部</button>
+          <button type="button" class="playlist-play" @click="playAll">
+            <Icon :name="isPlayingList ? 'pause' : 'play'" />
+            {{ isPlayingList ? '暂停' : '播放全部' }}
+          </button>
           <button
             type="button"
             class="playlist-favorite"

@@ -76,14 +76,19 @@ export const usePlayerStore = defineStore('player', () => {
     play()
   }
 
+  function isListActive(list) {
+    if (!list?.length || !queue.value.length) return false
+
+    return (
+      queue.value.length === list.length &&
+      queue.value.every((item, index) => item.id === list[index].id)
+    )
+  }
+
   function playAll(list) {
     if (!list?.length) return
 
-    const sameList =
-      queue.value.length === list.length &&
-      queue.value.every((item, index) => item.id === list[index].id)
-
-    if (sameList) {
+    if (isListActive(list)) {
       if (audio.paused) {
         play()
       } else {
@@ -247,6 +252,7 @@ export const usePlayerStore = defineStore('player', () => {
     durationText,
     playSong,
     playAll,
+    isListActive,
     togglePlay,
     next,
     previous,

@@ -32,6 +32,10 @@ const activeChart = computed(() =>
 
 const currentSong = computed(() => playerStore.currentSong)
 
+const isPlayingList = computed(() =>
+  playerStore.isListActive(activeChart.value?.songs || []) && playerStore.isPlaying
+)
+
 function selectChart(name) {
   router.replace({ name: 'rank', query: { chart: name } })
 }
@@ -80,7 +84,10 @@ function playSong(song, list) {
           <h2 class="rank-detail-title">{{ activeChart.name }}</h2>
           <p class="rank-detail-meta">共 {{ activeChart.songs.length }} 首</p>
         </div>
-        <button type="button" class="rank-play-all" @click="playAll(activeChart)"><Icon name="play" /> 播放全部</button>
+        <button type="button" class="rank-play-all" @click="playAll(activeChart)">
+          <Icon :name="isPlayingList ? 'pause' : 'play'" />
+          {{ isPlayingList ? '暂停' : '播放全部' }}
+        </button>
       </div>
 
       <div class="rank-list">
