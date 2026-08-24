@@ -71,120 +71,219 @@ function formatTimeAgo(time) {
 
     <UserCard show-stats />
 
-    <div class="functional-tabs">
-      <button type="button" :class="{ active: activeTab === 'favorite' }" @click="activeTab = 'favorite'">
-        收藏歌曲 <span class="tab-count">{{ favoriteSongs.length }}</span>
+    <div class="mine-tabs" role="tablist">
+      <button
+        type="button"
+        class="mine-tab"
+        role="tab"
+        :aria-selected="activeTab === 'favorite'"
+        :class="{ active: activeTab === 'favorite' }"
+        @click="activeTab = 'favorite'"
+      >
+        <Icon name="heart" :size="16" />
+        <span>收藏歌曲</span>
+        <span class="tab-badge">{{ favoriteSongs.length }}</span>
       </button>
-      <button type="button" :class="{ active: activeTab === 'playlist' }" @click="activeTab = 'playlist'">
-        收藏歌单 <span class="tab-count">{{ favoritePlaylists.length }}</span>
+      <button
+        type="button"
+        class="mine-tab"
+        role="tab"
+        :aria-selected="activeTab === 'playlist'"
+        :class="{ active: activeTab === 'playlist' }"
+        @click="activeTab = 'playlist'"
+      >
+        <Icon name="list" :size="16" />
+        <span>收藏歌单</span>
+        <span class="tab-badge">{{ favoritePlaylists.length }}</span>
       </button>
-      <button type="button" :class="{ active: activeTab === 'history' }" @click="activeTab = 'history'">
-        最近播放 <span class="tab-count">{{ historySongs.length }}</span>
+      <button
+        type="button"
+        class="mine-tab"
+        role="tab"
+        :aria-selected="activeTab === 'history'"
+        :class="{ active: activeTab === 'history' }"
+        @click="activeTab = 'history'"
+      >
+        <Icon name="clock" :size="16" />
+        <span>最近播放</span>
+        <span class="tab-badge">{{ historySongs.length }}</span>
       </button>
     </div>
 
-    <template v-if="activeTab === 'favorite'">
-      <div v-if="favoriteSongs.length" class="functional-list">
-        <div
-          v-for="song in favoriteSongs"
-          :key="song.id"
-          class="mine-row"
-          :class="{ playing: currentSong?.id === song.id }"
-          @click="playSong(song, favoriteSongs)"
-        >
-          <button type="button" class="row-play" @click.stop="playSong(song, favoriteSongs)">
-            <Icon :name="currentSong?.id === song.id && playerStore.isPlaying ? 'pause' : 'play'" />
-          </button>
-          <img :src="song.cover" :alt="song.title" loading="lazy" decoding="async" />
-          <div class="song-meta">
-            <strong>{{ song.title }}</strong>
-            <span class="song-artist">{{ song.artist }}</span>
-          </div>
-          <span>{{ song.album }}</span>
-          <span>{{ song.duration }}</span>
-          <button type="button" class="row-remove" title="取消收藏" @click.stop="removeFavoriteSong(song.id)">
-            <Icon name="heart" :size="18" />
-          </button>
-        </div>
-      </div>
-      <div v-else class="mine-empty">
-        <Icon name="heart-outline" :size="48" />
-        <p>还没有收藏歌曲</p>
-        <RouterLink to="/" class="empty-action">去发现音乐</RouterLink>
-      </div>
-    </template>
-
-    <template v-else-if="activeTab === 'playlist'">
-      <div v-if="favoritePlaylists.length" class="functional-grid">
-        <div
-          v-for="playlist in favoritePlaylists"
-          :key="playlist.id"
-          class="mine-card"
-          @click="openPlaylist(playlist.id)"
-        >
-          <div class="mine-card-cover">
-            <img :src="playlist.cover" :alt="playlist.title" loading="lazy" decoding="async" />
-            <button type="button" class="mine-card-play" title="播放" @click.stop="playPlaylist(playlist)">
-              <Icon name="play" :size="18" />
+    <Transition name="tab" mode="out-in">
+      <div v-if="activeTab === 'favorite'" key="favorite">
+        <div v-if="favoriteSongs.length" class="functional-list">
+          <div
+            v-for="song in favoriteSongs"
+            :key="song.id"
+            class="mine-row"
+            :class="{ playing: currentSong?.id === song.id }"
+            @click="playSong(song, favoriteSongs)"
+          >
+            <button type="button" class="row-play" @click.stop="playSong(song, favoriteSongs)">
+              <Icon :name="currentSong?.id === song.id && playerStore.isPlaying ? 'pause' : 'play'" />
             </button>
-            <button type="button" class="mine-card-remove" title="取消收藏" @click.stop="removeFavoritePlaylist(playlist.id)">
-              <Icon name="heart" :size="16" />
+            <img :src="song.cover" :alt="song.title" loading="lazy" decoding="async" />
+            <div class="song-meta">
+              <strong>{{ song.title }}</strong>
+              <span class="song-artist">{{ song.artist }}</span>
+            </div>
+            <span>{{ song.album }}</span>
+            <span>{{ song.duration }}</span>
+            <button type="button" class="row-remove" title="取消收藏" @click.stop="removeFavoriteSong(song.id)">
+              <Icon name="heart" :size="18" />
             </button>
           </div>
-          <p class="mine-card-title">{{ playlist.title }}</p>
+        </div>
+        <div v-else class="mine-empty">
+          <Icon name="heart-outline" :size="48" />
+          <p>还没有收藏歌曲</p>
+          <RouterLink to="/" class="empty-action">去发现音乐</RouterLink>
         </div>
       </div>
-      <div v-else class="mine-empty">
-        <Icon name="list" :size="48" />
-        <p>还没有收藏歌单</p>
-        <RouterLink to="/category" class="empty-action">去逛逛歌单</RouterLink>
-      </div>
-    </template>
 
-    <template v-else>
-      <div v-if="historySongs.length" class="history-head">
-        <span class="history-count">共 {{ historySongs.length }} 首</span>
-        <button type="button" class="clear-history" @click="clearHistory">清空播放记录</button>
-      </div>
-      <div v-if="historySongs.length" class="functional-list">
-        <div
-          v-for="song in historySongs"
-          :key="song.id"
-          class="mine-row"
-          :class="{ playing: currentSong?.id === song.id }"
-          @click="playSong(song, historySongs)"
-        >
-          <button type="button" class="row-play" @click.stop="playSong(song, historySongs)">
-            <Icon :name="currentSong?.id === song.id && playerStore.isPlaying ? 'pause' : 'play'" />
-          </button>
-          <img :src="song.cover" :alt="song.title" loading="lazy" decoding="async" />
-          <div class="song-meta">
-            <strong>{{ song.title }}</strong>
-            <span class="song-artist">{{ song.artist }}</span>
+      <div v-else-if="activeTab === 'playlist'" key="playlist">
+        <div v-if="favoritePlaylists.length" class="functional-grid">
+          <div
+            v-for="playlist in favoritePlaylists"
+            :key="playlist.id"
+            class="mine-card"
+            @click="openPlaylist(playlist.id)"
+          >
+            <div class="mine-card-cover">
+              <img :src="playlist.cover" :alt="playlist.title" loading="lazy" decoding="async" />
+              <button type="button" class="mine-card-play" title="播放" @click.stop="playPlaylist(playlist)">
+                <Icon name="play" :size="18" />
+              </button>
+              <button type="button" class="mine-card-remove" title="取消收藏" @click.stop="removeFavoritePlaylist(playlist.id)">
+                <Icon name="heart" :size="16" />
+              </button>
+            </div>
+            <p class="mine-card-title">{{ playlist.title }}</p>
           </div>
-          <span>{{ song.album }}</span>
-          <span>{{ formatTimeAgo(song.playedAt) }}</span>
+        </div>
+        <div v-else class="mine-empty">
+          <Icon name="list" :size="48" />
+          <p>还没有收藏歌单</p>
+          <RouterLink to="/category" class="empty-action">去逛逛歌单</RouterLink>
         </div>
       </div>
-      <div v-else class="mine-empty">
-        <Icon name="clock" :size="48" />
-        <p>还没有播放记录</p>
-        <RouterLink to="/" class="empty-action">去发现音乐</RouterLink>
+
+      <div v-else key="history">
+        <template v-if="historySongs.length">
+          <div class="history-head">
+            <span class="history-count">共 {{ historySongs.length }} 首</span>
+            <button type="button" class="clear-history" @click="clearHistory">清空播放记录</button>
+          </div>
+          <div class="functional-list">
+            <div
+              v-for="song in historySongs"
+              :key="song.id"
+              class="mine-row"
+              :class="{ playing: currentSong?.id === song.id }"
+              @click="playSong(song, historySongs)"
+            >
+              <button type="button" class="row-play" @click.stop="playSong(song, historySongs)">
+                <Icon :name="currentSong?.id === song.id && playerStore.isPlaying ? 'pause' : 'play'" />
+              </button>
+              <img :src="song.cover" :alt="song.title" loading="lazy" decoding="async" />
+              <div class="song-meta">
+                <strong>{{ song.title }}</strong>
+                <span class="song-artist">{{ song.artist }}</span>
+              </div>
+              <span>{{ song.album }}</span>
+              <span>{{ formatTimeAgo(song.playedAt) }}</span>
+            </div>
+          </div>
+        </template>
+        <div v-else class="mine-empty">
+          <Icon name="clock" :size="48" />
+          <p>还没有播放记录</p>
+          <RouterLink to="/" class="empty-action">去发现音乐</RouterLink>
+        </div>
       </div>
-    </template>
+    </Transition>
   </div>
 </template>
 
 <style scoped>
-.tab-count {
-  margin-left: 4px;
-  color: #b0a8ac;
-  font-size: 12px;
-  font-weight: 700;
+.mine-tabs {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.5);
 }
 
-.functional-tabs button.active .tab-count {
+.mine-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #665d63;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.15s ease,
+    box-shadow 0.2s ease;
+}
+
+.mine-tab:hover {
   color: #e94e77;
+  background: rgba(255, 105, 157, 0.08);
+  transform: translateY(-1px);
+}
+
+.mine-tab.active {
+  background: #ff7eb3;
+  color: #fff;
+  box-shadow: 0 6px 14px rgba(255, 126, 179, 0.28);
+}
+
+.mine-tab.active:hover {
+  background: #ff7eb3;
+  color: #fff;
+}
+
+.tab-badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: rgba(25, 25, 25, 0.08);
+  color: #8a7d83;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.mine-tab.active .tab-badge {
+  background: rgba(255, 255, 255, 0.28);
+  color: #fff;
+}
+
+.tab-enter-active,
+.tab-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.tab-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.tab-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
 }
 
 .mine-row {
@@ -416,6 +515,19 @@ function formatTimeAgo(time) {
 }
 
 @media (max-width: 700px) {
+  .mine-tabs {
+    width: 100%;
+    display: flex;
+    overflow-x: auto;
+  }
+
+  .mine-tab {
+    flex: 1 0 auto;
+    justify-content: center;
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
   .mine-row {
     grid-template-columns: 38px 48px minmax(0, 1fr) 36px;
     gap: 8px;
