@@ -295,7 +295,7 @@ a{
     border: 0;
 }
 .cont-title{
-    width: 350px;
+    width: 100%;
     height: 50px;
     font-size: 55px;
     line-height: 52px;
@@ -306,7 +306,7 @@ a{
     text-align: center;       
 }
 .cont-list{
-    width: 800px;
+    width: 47.619%;
     height: 50px;
     font-size: 25px;
     font-weight: 1000;
@@ -344,7 +344,7 @@ a{
     color: pink;
 }
 .cont2-areas{
-    width: 1500px;
+    width: 89.2857%;
     height: 350px;
     display: flex;
     flex-direction: row;
@@ -353,7 +353,7 @@ a{
     margin-top: 50px;
 }
 .cont2-area{
-    width: 280px;
+    width: 18.6667%;
     height: 350px;
     position: relative;
     top: 0px;
@@ -364,13 +364,14 @@ a{
     box-shadow: 0px 5px 5px 5px rgba(25,25,25,0.1);
 }
 .cont2-shell{
-    width: 280px;
-    height: 280px;
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
     overflow: hidden;
 }
 .cont2-img{
-    width: 280px;
-    height: 280px;
+    width: 100%;
+    height: 100%;
     cursor: pointer;
     transition: 0.5s;
     object-fit: cover;
@@ -385,35 +386,32 @@ a{
     opacity: 1;
 }
 .cont2-shadow{
-    width: 280px;
-    height: 280px;
+    position: absolute;
+    inset: 0;
     background-color: rgba(25,25,25,0.4);
-    position: relative;
-    top: -284px;
     opacity: 0;
     transition: 0.3s;
 }
 .cont2-play_list{
-    width: 100px;
-    height: 100px;
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
 }
 .cont2-play{
-    width: 100px;
-    height: 100px;
+    width: 64px;
+    height: 64px;
     border-radius: 100%;
     background-image: url(../imgs/media/play.png);
     background-position: center;
     background-repeat: no-repeat;
     background-color: rgba(255,255,255,0.8);
-    margin: 0 auto;
-    position: relative;
-    top: -460px;
     cursor: pointer;
     opacity: 0;
     transition: 0.3s;
 }
 .cont2-word{
-    width: 280px;
+    width: 100%;
     max-width: 100%;
     height: auto;
     min-height: 50px;
@@ -472,9 +470,9 @@ a{
     color: pink;
 }
 .cont3-songs{
-    width: 1400px;
+    width: 83.3333%;
     height: 500px;
-    margin-left: 138px;
+    margin-left: 8.2143%;
     margin-top: 30px;
     display: flex;
     flex-direction: row;
@@ -482,7 +480,7 @@ a{
     justify-content: space-between;
 }
 .cont3-song{
-    width: 650px;
+    width: 46.4286%;
     height: auto;
     min-height: 150px;
     margin-bottom: 18px;
@@ -502,8 +500,9 @@ a{
     background-color: rgba(255,255,255,0.5);
 }
 .cont3-shell{
-    width: 140px;
-    height: 150px;
+    position: relative;
+    width: 21.5385%;
+    aspect-ratio: 140 / 150;
     border-radius: 10px;
     overflow: hidden;
 }
@@ -514,32 +513,31 @@ a{
     opacity: 1;
 }
 .cont3-shell:hover .cont3-back{
-    transform: scale(1.5);
+    transform: translate(-50%, -50%) scale(1.5);
     opacity: 1;
 }
 .cont3-img{
-    width: 140px;
-    height: 150px;
+    width: 100%;
+    height: 100%;
     transition: 0.5s;
     object-fit: cover;
 }
 .cont3-shadow{
-    width: 140px;
-    height: 150px;
+    position: absolute;
+    inset: 0;
     background-color: rgba(25,25,25,0.4);
-    position: relative;
-    top: -155px;
     opacity: 0;
     transition: 0.5s;
 }
 .cont3-back{
+    position: absolute;
+    top: 50%;
+    left: 50%;
     width: 40px;
     height: 40px;
     border-radius: 100%;
     background-color: rgba(255,255,255,0.8);
-    margin: 0 auto;
-    position: relative;
-    top: -245px;
+    transform: translate(-50%, -50%);
     opacity: 0;
     transition: 0.5s;
     cursor: pointer;
@@ -631,7 +629,7 @@ a{
 .cont4-chart{
     border: 3px solid rgba(255,255,255,0.5);
     border-radius: 10px;
-    width: 360px;
+    width: 30%;
     height: 500px;
     position: relative;
     top: 0px;
@@ -662,7 +660,7 @@ a{
     transform: scale(2);
 }
 .cont4-chart_title{
-    width: 150px;
+    width: 41.6667%;
     height: 50px;
     margin: 0 auto;
     margin-top: 40px;
@@ -706,14 +704,14 @@ a{
 .cont4-chart_list{
     margin: 0 auto;
     margin-top: 20px;
-    width: 300px;
+    width: 83.3333%;
     height: 300px;
     display: flex;
     flex-direction: column;
     justify-content: space-evenly;
 }
 .cont4-chart_song{
-    width: 300px;
+    width: 100%;
     height: 80px;              
     border: 2px solid rgba(255,255,255,0.3);
     border-radius: 10px;
@@ -733,7 +731,7 @@ a{
     color: pink;
 }
 .cont4-chart_song_num{
-    width: 70px;
+    width: 23.3333%;
     height: 80px;
     text-align: center;
     font-size: 35px;
@@ -742,7 +740,7 @@ a{
     transition: 0.3s;
 }
 .cont4-chart_song_meg{
-    width: 200px;
+    width: 66.6667%;
     height: 60px;
     margin-left: 15px;
     margin-top: 10px;
