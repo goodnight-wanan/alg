@@ -196,6 +196,8 @@ body {
   background: transparent;
   color: #191516;
   font-size: 20px;
+  line-height: 1;
+  font-variant-emoji: text;
 }
 
 .vue-player-button:hover {
@@ -245,13 +247,15 @@ body {
 
 .vue-player-favorite {
   background: transparent;
-  color: #e94e77;
+  color: #b8b0b4;
   font-size: 24px;
-  transition: transform 0.18s ease;
+  line-height: 1;
+  font-variant-emoji: text;
+  transition: color 0.18s ease;
 }
 
 .vue-player-favorite.active {
-  transform: scale(1.25);
+  color: #e94e77;
 }
 
 .vue-player-queue {
@@ -428,6 +432,8 @@ body {
   border-radius: 50%;
   background: pink;
   color: #fff;
+  line-height: 1;
+  font-variant-emoji: text;
 }
 
 .search-input {
