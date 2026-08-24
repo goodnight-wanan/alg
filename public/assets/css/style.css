@@ -601,8 +601,8 @@ a{
     color: rgba(25,25,25,0.5);
 }
 .cont4{
-    width: 1680px;
-    height: 800px;
+    width: min(1680px, 100%);
+    height: auto;
     border: 0;
 }
 .cont4-L{
@@ -618,13 +618,15 @@ a{
     color: pink;
 }
 .cont4-charts{
-    width: 1200px;
-    height: 500px;
+    width: min(1200px, 100%);
+    height: auto;
     margin: 0 auto;
     margin-top: 30px;
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 30px;
 }
 .cont4-chart{
     border: 3px solid rgba(255,255,255,0.5);
