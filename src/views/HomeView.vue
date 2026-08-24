@@ -3,7 +3,10 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { playlists, songs } from '../data/musicData'
 import { usePlayerStore } from '../stores/player'
+import { usePageCss } from '../utils/pageCss'
 import { showNotice } from '../utils/notice'
+
+usePageCss(['/assets/css/style.css'])
 
 const router = useRouter()
 const playerStore = usePlayerStore()
