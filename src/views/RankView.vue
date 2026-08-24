@@ -227,7 +227,9 @@ function playSong(song, list) {
 .rank-play-all {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
+  min-width: 132px;
   padding: 11px 22px;
   border-radius: 999px;
   background: #ff7eb3;

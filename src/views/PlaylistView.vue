@@ -174,6 +174,8 @@ function toggleFavorite() {
 }
 
 .playlist-play {
+  min-width: 132px;
+  justify-content: center;
   background: #ff7eb3;
   color: #fff;
 }
@@ -186,7 +188,7 @@ function toggleFavorite() {
   background: rgba(25, 25, 25, 0.06);
   color: #665d63;
   min-width: 132px;
-  text-align: center;
+  justify-content: center;
   font-variant-emoji: text;
 }
 
