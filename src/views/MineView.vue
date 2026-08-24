@@ -9,6 +9,7 @@ const router = useRouter()
 const playerStore = usePlayerStore()
 const userStore = useUserStore()
 const activeTab = ref('favorite')
+const currentSong = computed(() => playerStore.currentSong)
 
 const favoriteSongs = computed(() =>
   userStore.favoriteSongs.map(getSongById).filter(Boolean)
@@ -49,8 +50,15 @@ function openPlaylist(id) {
 
     <template v-if="activeTab === 'favorite'">
       <div v-if="favoriteSongs.length" class="functional-list">
-        <div v-for="(song, index) in favoriteSongs" :key="song.id" class="functional-row">
-          <button type="button" class="row-play" @click="playSong(song, favoriteSongs)">▶</button>
+        <div
+          v-for="(song, index) in favoriteSongs"
+          :key="song.id"
+          class="functional-row"
+          :class="{ playing: currentSong?.id === song.id }"
+        >
+          <button type="button" class="row-play" @click="playSong(song, favoriteSongs)">
+            {{ currentSong?.id === song.id && playerStore.isPlaying ? '⏸' : '▶' }}
+          </button>
           <img :src="song.cover" :alt="song.title" loading="lazy" decoding="async" />
           <strong>{{ song.title }} - {{ song.artist }}</strong>
           <span>{{ song.album }}</span>
@@ -79,8 +87,15 @@ function openPlaylist(id) {
 
     <template v-else>
       <div v-if="historySongs.length" class="functional-list">
-        <div v-for="(song, index) in historySongs" :key="song.id" class="functional-row">
-          <button type="button" class="row-play" @click="playSong(song, historySongs)">▶</button>
+        <div
+          v-for="(song, index) in historySongs"
+          :key="song.id"
+          class="functional-row"
+          :class="{ playing: currentSong?.id === song.id }"
+        >
+          <button type="button" class="row-play" @click="playSong(song, historySongs)">
+            {{ currentSong?.id === song.id && playerStore.isPlaying ? '⏸' : '▶' }}
+          </button>
           <img :src="song.cover" :alt="song.title" />
           <strong>{{ song.title }} - {{ song.artist }}</strong>
           <span>{{ song.album }}</span>

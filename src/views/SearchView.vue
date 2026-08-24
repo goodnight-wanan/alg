@@ -7,6 +7,7 @@ import { usePlayerStore } from '../stores/player'
 const route = useRoute()
 const router = useRouter()
 const playerStore = usePlayerStore()
+const currentSong = computed(() => playerStore.currentSong)
 
 const keyword = ref(String(route.query.q || ''))
 const activeTab = ref(route.query.tab === 'playlist' ? 'playlist' : 'song')
@@ -103,8 +104,15 @@ function openPlaylist(id) {
 
     <template v-if="activeTab === 'song'">
       <div v-if="songResults.length" class="functional-list">
-        <div v-for="(song, index) in songResults" :key="song.id" class="functional-row">
-          <button type="button" class="row-play" @click="playSong(song, songResults)">▶</button>
+        <div
+          v-for="(song, index) in songResults"
+          :key="song.id"
+          class="functional-row"
+          :class="{ playing: currentSong?.id === song.id }"
+        >
+          <button type="button" class="row-play" @click="playSong(song, songResults)">
+            {{ currentSong?.id === song.id && playerStore.isPlaying ? '⏸' : '▶' }}
+          </button>
           <img :src="song.cover" :alt="song.title" loading="lazy" decoding="async" />
           <strong>{{ song.title }} - {{ song.artist }}</strong>
           <span>{{ song.album }}</span>
