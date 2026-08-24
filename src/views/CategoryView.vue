@@ -104,9 +104,7 @@ function openPlaylist(id) {
 
 function playPlaylist(playlist) {
   const list = getPlaylistSongs(playlist)
-  if (list.length) {
-    playerStore.playSong(list[0], list)
-  }
+  playerStore.playAll(list)
 }
 </script>
 

@@ -69,9 +69,7 @@ function goRank(chart) {
 
 function playPlaylist(playlist) {
   const list = songs.filter((song) => playlist.songIds.includes(song.id))
-  if (list.length) {
-    playerStore.playSong(list[0], list)
-  }
+  playerStore.playAll(list)
 }
 
 function playSong(song, list = [song]) {

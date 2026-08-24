@@ -175,6 +175,9 @@ function toggleFavorite() {
 .playlist-favorite {
   background: rgba(25, 25, 25, 0.06);
   color: #665d63;
+  min-width: 132px;
+  text-align: center;
+  font-variant-emoji: text;
 }
 
 .playlist-favorite.active {

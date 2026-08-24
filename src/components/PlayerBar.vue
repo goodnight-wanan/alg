@@ -6,6 +6,7 @@ import { useUserStore } from '../stores/user'
 const playerStore = usePlayerStore()
 const userStore = useUserStore()
 const showQueue = ref(false)
+const volumePercent = computed(() => Math.round(playerStore.volume * 100))
 
 const modeLabel = computed(() => {
   const labels = {
@@ -129,6 +130,7 @@ function toggleFavorite() {
           aria-label="音量"
           @input="onVolume"
         />
+        <span class="vue-player-volume-value">{{ volumePercent }}%</span>
       </div>
     </div>
 

@@ -38,7 +38,7 @@ function selectChart(name) {
 
 function playAll(chart) {
   if (!chart.songs.length) return
-  playerStore.playSong(chart.songs[0], chart.songs)
+  playerStore.playAll(chart.songs)
 }
 
 function playSong(song, list) {
