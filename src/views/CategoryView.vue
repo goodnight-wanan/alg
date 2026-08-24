@@ -163,7 +163,7 @@ function playPlaylist(playlist) {
             class="category-play"
             title="播放"
             @click.stop="playPlaylist(playlist)"
-          >▶</button>
+          ><Icon name="play" /></button>
         </div>
         <h3 class="category-card-title" @click="openPlaylist(playlist.id)">{{ playlist.title }}</h3>
         <p class="category-card-meta">{{ playlist.genre }} · {{ playlist.mood }}</p>
@@ -171,7 +171,7 @@ function playPlaylist(playlist) {
     </div>
 
     <div v-else class="category-empty">
-      <div class="category-empty-icon">♪</div>
+      <div class="category-empty-icon"><Icon name="music-note" /></div>
       <p>没有找到符合条件的歌单</p>
       <button type="button" class="clear-filter" @click="resetAll">清除筛选</button>
     </div>

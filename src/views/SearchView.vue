@@ -111,7 +111,7 @@ function openPlaylist(id) {
           :class="{ playing: currentSong?.id === song.id }"
         >
           <button type="button" class="row-play" @click="playSong(song, songResults)">
-            {{ currentSong?.id === song.id && playerStore.isPlaying ? '⏸' : '▶' }}
+            <Icon :name="currentSong?.id === song.id && playerStore.isPlaying ? 'pause' : 'play'" />
           </button>
           <img :src="song.cover" :alt="song.title" loading="lazy" decoding="async" />
           <strong>{{ song.title }} - {{ song.artist }}</strong>

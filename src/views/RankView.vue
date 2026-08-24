@@ -80,7 +80,7 @@ function playSong(song, list) {
           <h2 class="rank-detail-title">{{ activeChart.name }}</h2>
           <p class="rank-detail-meta">共 {{ activeChart.songs.length }} 首</p>
         </div>
-        <button type="button" class="rank-play-all" @click="playAll(activeChart)">▶ 播放全部</button>
+        <button type="button" class="rank-play-all" @click="playAll(activeChart)"><Icon name="play" /> 播放全部</button>
       </div>
 
       <div class="rank-list">
@@ -92,7 +92,7 @@ function playSong(song, list) {
         >
           <span class="rank-num">{{ String(index + 1).padStart(2, '0') }}</span>
           <button type="button" class="row-play" @click="playSong(song, activeChart.songs)">
-            {{ currentSong?.id === song.id && playerStore.isPlaying ? '⏸' : '▶' }}
+            <Icon :name="currentSong?.id === song.id && playerStore.isPlaying ? 'pause' : 'play'" />
           </button>
           <img :src="song.cover" :alt="song.title" loading="lazy" decoding="async" />
           <strong>{{ song.title }} - {{ song.artist }}</strong>
@@ -218,6 +218,9 @@ function playSong(song, list) {
 }
 
 .rank-play-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 11px 22px;
   border-radius: 999px;
   background: #ff7eb3;

@@ -18,15 +18,7 @@ const modeLabel = computed(() => {
   return labels[playerStore.mode]
 })
 
-const modeIcon = computed(() => {
-  const icons = {
-    order: '→',
-    'list-loop': '↻',
-    loop: '⟳',
-    shuffle: '⤨'
-  }
-  return icons[playerStore.mode]
-})
+const modeIcon = computed(() => playerStore.mode)
 
 function onSeek(event) {
   playerStore.seekRatio(Number(event.target.value))
@@ -63,7 +55,7 @@ function toggleFavorite() {
             :src="playerStore.currentSong.cover"
             :alt="playerStore.currentSong.title"
           />
-          <span v-else>♪</span>
+          <Icon v-else name="music-note" :size="28" />
         </div>
         <div class="vue-player-meta">
           <strong>{{ playerStore.currentSong?.title || '暂无播放' }}</strong>
@@ -77,7 +69,7 @@ function toggleFavorite() {
           :title="userStore.isFavoriteSong(playerStore.currentSong.id) ? '取消收藏' : '收藏'"
           @click="toggleFavorite"
         >
-          {{ userStore.isFavoriteSong(playerStore.currentSong.id) ? '♥' : '♡' }}
+          <Icon :name="userStore.isFavoriteSong(playerStore.currentSong.id) ? 'heart' : 'heart-outline'" />
         </button>
       </div>
 
@@ -89,14 +81,14 @@ function toggleFavorite() {
             :title="modeLabel"
             @click="playerStore.cycleMode"
           >
-            {{ modeIcon }}
+            <Icon :name="modeIcon" />
           </button>
-          <button class="vue-player-button" type="button" title="上一首" @click="playerStore.previous">⏮</button>
+          <button class="vue-player-button" type="button" title="上一首" @click="playerStore.previous"><Icon name="previous" /></button>
           <button class="vue-player-button" type="button" title="播放/暂停" @click="playerStore.togglePlay">
-            {{ playerStore.isPlaying ? '⏸' : '▶' }}
+            <Icon :name="playerStore.isPlaying ? 'pause' : 'play'" />
           </button>
-          <button class="vue-player-button" type="button" title="下一首" @click="playerStore.next">⏭</button>
-          <button class="vue-player-button" type="button" title="播放队列" @click="showQueue = !showQueue">☰</button>
+          <button class="vue-player-button" type="button" title="下一首" @click="playerStore.next"><Icon name="next" /></button>
+          <button class="vue-player-button" type="button" title="播放队列" @click="showQueue = !showQueue"><Icon name="queue" /></button>
         </div>
 
         <div class="vue-player-progress">
@@ -118,7 +110,7 @@ function toggleFavorite() {
 
       <div class="vue-player-volume">
         <button class="vue-player-button" type="button" title="静音" @click="playerStore.toggleMute">
-          {{ playerStore.isMuted ? '×' : '♫' }}
+          <Icon :name="playerStore.isMuted ? 'mute' : 'volume'" />
         </button>
         <input
           class="vue-player-range"

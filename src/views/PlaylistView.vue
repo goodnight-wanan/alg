@@ -50,14 +50,14 @@ function toggleFavorite() {
         <p class="playlist-desc">{{ playlist.description }}</p>
         <p class="playlist-meta">{{ playlist.genre }} · {{ playlist.mood }} · {{ playlist.era }}</p>
         <div class="playlist-actions">
-          <button type="button" class="playlist-play" @click="playAll">▶ 播放全部</button>
+          <button type="button" class="playlist-play" @click="playAll"><Icon name="play" /> 播放全部</button>
           <button
             type="button"
             class="playlist-favorite"
             :class="{ active: isFavorite }"
             @click="toggleFavorite"
           >
-            {{ isFavorite ? '♥ 已收藏' : '♡ 收藏歌单' }}
+            <Icon :name="isFavorite ? 'heart' : 'heart-outline'" /> {{ isFavorite ? '已收藏' : '收藏歌单' }}
           </button>
         </div>
       </div>
@@ -74,7 +74,7 @@ function toggleFavorite() {
           :class="{ playing: currentSong?.id === song.id }"
         >
           <button type="button" class="row-play" @click="playSong(song)">
-            {{ currentSong?.id === song.id && playerStore.isPlaying ? '⏸' : '▶' }}
+            <Icon :name="currentSong?.id === song.id && playerStore.isPlaying ? 'pause' : 'play'" />
           </button>
           <img :src="song.cover" :alt="song.title" loading="lazy" decoding="async" />
           <strong>{{ song.title }} - {{ song.artist }}</strong>
@@ -158,6 +158,9 @@ function toggleFavorite() {
 
 .playlist-play,
 .playlist-favorite {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 11px 22px;
   border-radius: 999px;
   font-weight: 800;

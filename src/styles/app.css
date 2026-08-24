@@ -143,12 +143,15 @@ body {
 }
 
 .vue-player-cover {
+  display: grid;
+  place-items: center;
   width: 58px;
   height: 58px;
   flex: 0 0 auto;
   overflow: hidden;
   border-radius: 8px;
   background: pink;
+  color: #fff;
 }
 
 .vue-player-cover img {
