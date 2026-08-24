@@ -24,14 +24,13 @@ function normalizeHistory(history) {
 
 function loadUserData(userId) {
   if (!userId) {
-    return { favoriteSongs: [], favoritePlaylists: [], playHistory: [], playCounts: {} }
+    return { favoriteSongs: [], favoritePlaylists: [], playHistory: [] }
   }
 
   return {
     favoriteSongs: loadJSON(dataKey('favorite-songs', userId), []),
     favoritePlaylists: loadJSON(dataKey('favorite-playlists', userId), []),
-    playHistory: normalizeHistory(loadJSON(dataKey('play-history', userId), [])),
-    playCounts: loadJSON(dataKey('play-counts', userId), {})
+    playHistory: normalizeHistory(loadJSON(dataKey('play-history', userId), []))
   }
 }
 
@@ -43,7 +42,6 @@ export const useUserStore = defineStore('user', () => {
   const favoriteSongs = ref(initialData.favoriteSongs)
   const favoritePlaylists = ref(initialData.favoritePlaylists)
   const playHistory = ref(initialData.playHistory)
-  const playCounts = ref(initialData.playCounts)
 
   const isLoggedIn = computed(() => Boolean(currentUser.value))
   const favoriteSongObjects = computed(() =>
@@ -58,7 +56,6 @@ export const useUserStore = defineStore('user', () => {
     favoriteSongs.value = data.favoriteSongs
     favoritePlaylists.value = data.favoritePlaylists
     playHistory.value = data.playHistory
-    playCounts.value = data.playCounts
   })
 
   watch(favoriteSongs, (value) => {
@@ -76,10 +73,6 @@ export const useUserStore = defineStore('user', () => {
     if (key) saveJSON(key, value)
   }, { deep: true })
 
-  watch(playCounts, (value) => {
-    const key = dataKey('play-counts', currentUser.value?.id)
-    if (key) saveJSON(key, value)
-  }, { deep: true })
 
   function findUser(account) {
     return users.value.find(
@@ -190,11 +183,6 @@ export const useUserStore = defineStore('user', () => {
       ...playHistory.value.filter((item) => item.id !== songId)
     ]
     playHistory.value = nextHistory.slice(0, 50)
-
-    playCounts.value = {
-      ...playCounts.value,
-      [songId]: (playCounts.value[songId] || 0) + 1
-    }
   }
 
   function clearPlayHistory() {
@@ -211,7 +199,6 @@ export const useUserStore = defineStore('user', () => {
     favoriteSongs,
     favoritePlaylists,
     playHistory,
-    playCounts,
     isLoggedIn,
     favoriteSongObjects,
     register,
