@@ -15,6 +15,12 @@ const routes = [
     meta: { title: '分类歌单' }
   },
   {
+    path: '/rank',
+    name: 'rank',
+    component: () => import('../views/RankView.vue'),
+    meta: { title: '排行榜' }
+  },
+  {
     path: '/playlist/:id',
     name: 'playlist',
     component: () => import('../views/PlaylistView.vue'),

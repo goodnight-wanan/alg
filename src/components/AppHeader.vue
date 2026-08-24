@@ -15,7 +15,7 @@ let resizeObserver = null
 
 const isHome = computed(() => route.path === '/')
 const isCategory = computed(() => route.path.startsWith('/category'))
-const isSearch = computed(() => route.path === '/search')
+const isRank = computed(() => route.path === '/rank')
 const isMine = computed(() => route.name === 'mine' || route.name === 'profile')
 
 function submitSearch() {
@@ -86,8 +86,8 @@ onUnmounted(() => {
       </a>
       <a href="#" @click.prevent="showNotice('歌手功能暂未开放')"><div class="app-header-menu-item">歌手</div></a>
       <a href="#" @click.prevent="showNotice('新碟功能暂未开放')"><div class="app-header-menu-item">新碟</div></a>
-      <a href="javascript:;" @click.prevent="router.push('/search?tab=song')">
-        <div class="app-header-menu-item" :class="{ 'is-active': isSearch }">排行榜</div>
+      <a href="javascript:;" @click.prevent="router.push('/rank')">
+        <div class="app-header-menu-item" :class="{ 'is-active': isRank }">排行榜</div>
       </a>
       <a href="javascript:;" @click.prevent="router.push('/category')">
         <div class="app-header-menu-item" :class="{ 'is-active': isCategory }">分类歌单</div>

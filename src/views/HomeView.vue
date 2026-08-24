@@ -63,6 +63,10 @@ function goPlaylist(id) {
   router.push({ name: 'playlist', params: { id } })
 }
 
+function goRank(chart) {
+  router.push({ name: 'rank', query: { chart } })
+}
+
 function playPlaylist(playlist) {
   const list = songs.filter((song) => playlist.songIds.includes(song.id))
   if (list.length) {
@@ -183,6 +187,9 @@ onUnmounted(stopTimer)
         <div class="cont4-L">韩国</div>
         <div class="cont4-L">日本</div>
       </div>
+      <RouterLink to="/rank">
+        <div class="cont-more cont4-more">更多 &gt;&gt;</div>
+      </RouterLink>
       <div class="cont4-charts">
         <div
           v-for="(group, index) in chartGroups"
@@ -190,7 +197,7 @@ onUnmounted(stopTimer)
           class="cont4-chart"
           :class="`chart${index + 1}`"
         >
-          <div class="cont4-chart_title">{{ group.name }}</div>
+          <div class="cont4-chart_title" style="cursor:pointer" title="查看完整榜单" @click="goRank(group.name)">{{ group.name }}</div>
           <div class="cont4-chart_line"></div>
           <div class="cont4-chart_play_back" @click="playSong(group.songs[0], group.songs)">
             <img src="/assets/imgs/media/play.png" class="cont4-chart_play" alt="播放" />
