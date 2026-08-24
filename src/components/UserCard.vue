@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
+import { getSongById } from '../data/musicData'
 
 defineProps({
   showStats: { type: Boolean, default: false }
@@ -14,10 +15,25 @@ const initial = computed(() =>
   userStore.currentUser?.username?.charAt(0).toUpperCase() || '?'
 )
 
+const listeningSeconds = computed(() =>
+  userStore.playHistory.reduce((sum, item) => {
+    const song = getSongById(item.id)
+    return sum + (song?.durationSeconds || 0)
+  }, 0)
+)
+
+function formatListening(seconds) {
+  if (!seconds) return '0 分钟'
+  const minutes = Math.round(seconds / 60)
+  if (minutes < 60) return `${minutes} 分钟`
+  return `${(minutes / 60).toFixed(1)} 小时`
+}
+
 const stats = computed(() => [
   { label: '收藏歌曲', value: userStore.favoriteSongs.length },
   { label: '收藏歌单', value: userStore.favoritePlaylists.length },
-  { label: '最近播放', value: userStore.playHistory.length }
+  { label: '最近播放', value: userStore.playHistory.length },
+  { label: '听歌时长', value: formatListening(listeningSeconds.value) }
 ])
 
 function logout() {
