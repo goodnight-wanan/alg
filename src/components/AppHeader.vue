@@ -100,7 +100,7 @@ onUnmounted(() => {
     <div class="app-header-line"></div>
 
     <nav class="app-header-menu" aria-label="分类导航">
-      <RouterLink to="/" class="app-header-menu-item" :class="{ 'is-active': isHome }" :aria-current="isHome ? 'page' : undefined">主页</RouterLink>
+      <RouterLink to="/" class="app-header-menu-item" :class="{ 'is-active': isHome }" :aria-current="isHome ? 'page' : undefined">首页</RouterLink>
       <button type="button" class="app-header-menu-item" @click="showNotice('歌手功能暂未开放')">歌手</button>
       <button type="button" class="app-header-menu-item" @click="showNotice('新碟功能暂未开放')">新碟</button>
       <RouterLink to="/rank" class="app-header-menu-item" :class="{ 'is-active': isRank }" :aria-current="isRank ? 'page' : undefined">排行榜</RouterLink>
@@ -172,6 +172,7 @@ onUnmounted(() => {
   position: relative;
   min-width: 86px;
   height: 36px;
+  margin: 0;
   padding: 0 12px;
   display: flex;
   align-items: center;
@@ -187,7 +188,9 @@ onUnmounted(() => {
   font-family: inherit;
   text-align: center;
   text-decoration: none;
-  transition: 0.15s;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: color 0.15s ease, border-color 0.15s ease;
   white-space: nowrap;
 }
 
@@ -297,6 +300,8 @@ onUnmounted(() => {
 
 .app-header-menu-item {
   position: relative;
+  margin: 0;
+  padding: 0;
   font-size: 16px;
   font-weight: 1000;
   line-height: 36px;
@@ -307,7 +312,9 @@ onUnmounted(() => {
   font-family: inherit;
   text-align: center;
   text-decoration: none;
-  transition: 0.1s;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: color 0.15s ease;
 }
 
 .app-header-menu-item:hover {
