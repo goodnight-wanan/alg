@@ -159,7 +159,7 @@ a{
     color: pink;
 }
 .cont1{
-    width: 1680px;
+    width: 100%;
     height: auto;
     padding: 30px 0 20px;
     border: 0;
@@ -289,16 +289,16 @@ a{
     opacity: 0;
 }
 .cont2{
-    width: 1680px;
-    height: 700px;
+    width: 100%;
+    height: auto;
     margin: 0 auto;
     border: 0;
 }
 .cont-title{
-    width: 350px;
-    height: 50px;
-    font-size: 55px;
-    line-height: 52px;
+    width: 100%;
+    height: auto;
+    font-size: clamp(30px, 4vw, 55px);
+    line-height: 1.1;
     margin: 0 auto;
     margin-top: 80px;
     font-weight: 1000;
@@ -306,9 +306,9 @@ a{
     text-align: center;       
 }
 .cont-list{
-    width: 800px;
-    height: 50px;
-    font-size: 25px;
+    width: min(800px, 100%);
+    height: auto;
+    font-size: clamp(18px, 2.5vw, 25px);
     font-weight: 1000;
     text-align: center;
     display: flex;
@@ -344,17 +344,17 @@ a{
     color: pink;
 }
 .cont2-areas{
-    width: 1500px;
-    height: 350px;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
+    width: 100%;
+    height: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 24px;
     margin: 0 auto;
     margin-top: 50px;
 }
 .cont2-area{
-    width: 280px;
-    height: 350px;
+    width: 100%;
+    height: auto;
     position: relative;
     top: 0px;
     transition: 0.4s;
@@ -364,13 +364,14 @@ a{
     box-shadow: 0px 5px 5px 5px rgba(25,25,25,0.1);
 }
 .cont2-shell{
-    width: 280px;
-    height: 280px;
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
     overflow: hidden;
 }
 .cont2-img{
-    width: 280px;
-    height: 280px;
+    width: 100%;
+    height: 100%;
     cursor: pointer;
     transition: 0.5s;
     object-fit: cover;
@@ -385,35 +386,32 @@ a{
     opacity: 1;
 }
 .cont2-shadow{
-    width: 280px;
-    height: 280px;
+    position: absolute;
+    inset: 0;
     background-color: rgba(25,25,25,0.4);
-    position: relative;
-    top: -284px;
     opacity: 0;
     transition: 0.3s;
 }
 .cont2-play_list{
-    width: 100px;
-    height: 100px;
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
 }
 .cont2-play{
-    width: 100px;
-    height: 100px;
+    width: 64px;
+    height: 64px;
     border-radius: 100%;
     background-image: url(../imgs/media/play.png);
     background-position: center;
     background-repeat: no-repeat;
     background-color: rgba(255,255,255,0.8);
-    margin: 0 auto;
-    position: relative;
-    top: -460px;
     cursor: pointer;
     opacity: 0;
     transition: 0.3s;
 }
 .cont2-word{
-    width: 280px;
+    width: 100%;
     max-width: 100%;
     height: auto;
     min-height: 50px;
@@ -455,8 +453,8 @@ a{
     background-color: rgba(25,25,25,0.5);
 }
 .cont3{
-    width: 1680px;
-    height: 800px;
+    width: 100%;
+    height: auto;
     border: 0;
 }
 .cont3-L{
@@ -472,20 +470,17 @@ a{
     color: pink;
 }
 .cont3-songs{
-    width: 1400px;
-    height: 500px;
-    margin-left: 138px;
-    margin-top: 30px;
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: space-between;
+    width: 100%;
+    height: auto;
+    margin: 30px auto 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 18px;
 }
 .cont3-song{
-    width: 650px;
+    width: 100%;
     height: auto;
     min-height: 150px;
-    margin-bottom: 18px;
     display: flex;
     flex-direction: row;
     border: 3px solid rgba(255,255,255,0.2);
@@ -618,20 +613,18 @@ a{
     color: pink;
 }
 .cont4-charts{
-    width: min(1200px, 100%);
+    width: 100%;
     height: auto;
     margin: 0 auto;
     margin-top: 30px;
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 30px;
 }
 .cont4-chart{
     border: 3px solid rgba(255,255,255,0.5);
     border-radius: 10px;
-    width: 360px;
+    width: 100%;
     height: 500px;
     position: relative;
     top: 0px;
