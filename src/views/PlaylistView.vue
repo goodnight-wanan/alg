@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import { getPlaylistById, getPlaylistSongs } from '../data/musicData'
 import { usePlayerStore } from '../stores/player'
 import { useUserStore } from '../stores/user'
+import { showNotice } from '../utils/notice'
 
 const route = useRoute()
 const playerStore = usePlayerStore()
@@ -34,7 +35,7 @@ function toggleFavorite() {
   if (!playlist.value) return
 
   if (!userStore.isLoggedIn) {
-    alert('请先登录后再收藏歌单')
+    showNotice('请先登录后再收藏歌单')
     return
   }
 

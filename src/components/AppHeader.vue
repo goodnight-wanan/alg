@@ -2,7 +2,6 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
-import { openAuthWindow } from '../utils/openAuthWindow'
 import { showNotice } from '../utils/notice'
 
 const route = useRoute()
@@ -32,6 +31,10 @@ function updateHeaderHeight() {
   if (headerEl.value) {
     document.documentElement.style.setProperty('--header-height', `${headerEl.value.offsetHeight}px`)
   }
+}
+
+function goLogin(redirect = route.fullPath) {
+  router.push({ name: 'login', query: { redirect } })
 }
 
 watch(() => route.path, () => {
@@ -68,7 +71,7 @@ onUnmounted(() => {
           v-if="!userStore.isLoggedIn"
           type="button"
           class="app-header-col"
-          @click="openAuthWindow()"
+          @click="goLogin('/mine')"
         >我的音乐</button>
         <RouterLink v-else to="/mine" class="app-header-col" :class="{ 'is-active': isMine }" :aria-current="isMine ? 'page' : undefined">我的音乐</RouterLink>
         <button type="button" class="app-header-col" @click="showNotice('客户端为演示功能，暂未开放')">客户端</button>
@@ -91,7 +94,7 @@ onUnmounted(() => {
         >
           {{ userStore.currentUser.username?.charAt(0).toUpperCase() || '?' }}
         </RouterLink>
-        <button v-else type="button" class="app-header-login-link" @click="openAuthWindow()">登录</button>
+        <button v-else type="button" class="app-header-login-link" @click="goLogin()">登录</button>
       </div>
 
       <button type="button" class="app-header-burger" :aria-expanded="menuOpen" aria-label="菜单" @click="menuOpen = !menuOpen">

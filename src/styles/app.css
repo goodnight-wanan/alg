@@ -539,9 +539,21 @@ body .mybody {
 }
 
 input:focus,
-button:focus-visible {
+button:focus-visible,
+[role='button']:focus-visible {
   outline: 3px solid rgba(255, 94, 148, 0.32);
   outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 @media (max-width: 960px) {

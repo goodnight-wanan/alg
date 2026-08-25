@@ -59,7 +59,14 @@ function playAlbum(album) {
             <Icon :name="currentSong?.id === album.id && playerStore.isPlaying ? 'pause' : 'play'" />
           </button>
         </div>
-        <h3 class="album-title" @click="playAlbum(album)">{{ album.album }}</h3>
+        <h3
+          class="album-title"
+          role="button"
+          tabindex="0"
+          :aria-label="`播放新碟 ${album.album}`"
+          @click="playAlbum(album)"
+          @keydown.enter.space.prevent="playAlbum(album)"
+        >{{ album.album }}</h3>
         <p class="album-artist">{{ album.artist }}</p>
         <p class="album-meta">{{ album.genre }} · {{ album.duration }}</p>
       </article>

@@ -1,18 +1,27 @@
 <script setup>
-import { computed, nextTick, ref } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { categories, getArtists } from '../data/musicData'
 import { usePlayerStore } from '../stores/player'
 
 const playerStore = usePlayerStore()
+const route = useRoute()
 
 const artists = computed(() =>
   [...getArtists()].sort((a, b) => b.songCount - a.songCount || a.name.localeCompare(b.name))
 )
 
-const keyword = ref('')
+const keyword = ref(String(route.query.q || ''))
 const activeRegion = ref('')
 const selectedArtist = ref(null)
 const detailEl = ref(null)
+
+watch(
+  () => route.query.q,
+  (value) => {
+    keyword.value = String(value || '')
+  }
+)
 
 const regionOptions = categories.regions
 const currentSong = computed(() => playerStore.currentSong)

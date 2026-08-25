@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { usePlayerStore } from '../stores/player'
 import { useUserStore } from '../stores/user'
+import { showNotice } from '../utils/notice'
 
 const playerStore = usePlayerStore()
 const userStore = useUserStore()
@@ -37,7 +38,7 @@ function toggleFavorite() {
   if (!playerStore.currentSong) return
 
   if (!userStore.isLoggedIn) {
-    alert('请先登录后再收藏')
+    showNotice('请先登录后再收藏')
     return
   }
 

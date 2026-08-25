@@ -1,7 +1,6 @@
 import { computed, ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 import { loadJSON, saveJSON, removeStorage, hashPassword } from '../utils/storage'
-import { getSongById } from '../data/musicData'
 
 function sanitizeUser(user) {
   if (!user) return null
@@ -44,9 +43,6 @@ export const useUserStore = defineStore('user', () => {
   const playHistory = ref(initialData.playHistory)
 
   const isLoggedIn = computed(() => Boolean(currentUser.value))
-  const favoriteSongObjects = computed(() =>
-    favoriteSongs.value.map(getSongById).filter(Boolean)
-  )
 
   watch(users, (value) => saveJSON('users', value), { deep: true })
   watch(currentUser, (value) => saveJSON('session', sanitizeUser(value)), { deep: true })
@@ -200,7 +196,6 @@ export const useUserStore = defineStore('user', () => {
     favoritePlaylists,
     playHistory,
     isLoggedIn,
-    favoriteSongObjects,
     register,
     login,
     logout,

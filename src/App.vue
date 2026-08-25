@@ -1,13 +1,12 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import PlayerBar from './components/PlayerBar.vue'
 import AppHeader from './components/AppHeader.vue'
 import { useUserStore } from './stores/user'
 import { useNotice } from './utils/notice'
 
 const route = useRoute()
-const router = useRouter()
 const userStore = useUserStore()
 const notice = useNotice()
 const showPlayer = computed(() => !['login', 'register'].includes(route.name))
@@ -22,19 +21,6 @@ function scrollToTop() {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-function handleAuthMessage(event) {
-  if (event.origin !== window.location.origin) return
-  if (event.data?.type !== 'auth-success') return
-
-  const redirect =
-    typeof event.data.redirect === 'string' && event.data.redirect.startsWith('/')
-      ? event.data.redirect
-      : '/'
-
-  userStore.syncSession()
-  router.push(redirect)
-}
-
 function handleStorage(event) {
   if (event.key === 'music-site:session') {
     userStore.syncSession()
@@ -43,14 +29,12 @@ function handleStorage(event) {
 
 onMounted(() => {
   window.addEventListener('scroll', handleScroll, { passive: true })
-  window.addEventListener('message', handleAuthMessage)
   window.addEventListener('storage', handleStorage)
   handleScroll()
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', handleScroll)
-  window.removeEventListener('message', handleAuthMessage)
   window.removeEventListener('storage', handleStorage)
 })
 </script>

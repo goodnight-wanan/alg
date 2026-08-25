@@ -95,12 +95,17 @@ onUnmounted(stopTimer)
             v-for="(slide, index) in slides"
             :key="slide"
             :class="{ active: activeSlide === index }"
+            role="button"
+            tabindex="0"
+            :aria-label="`切换到第 ${index + 1} 张`"
+            :aria-current="activeSlide === index ? 'true' : undefined"
             @click="goTo(index)"
+            @keydown.enter.space.prevent="goTo(index)"
           ></li>
         </ul>
         <div class="cont1-button">
-          <button class="cont1-button-left" type="button" @click="previousSlide">&lt;</button>
-          <button class="cont1-button-right" type="button" @click="nextSlide">&gt;</button>
+          <button class="cont1-button-left" type="button" aria-label="上一张" title="上一张" @click="previousSlide">&lt;</button>
+          <button class="cont1-button-right" type="button" aria-label="下一张" title="下一张" @click="nextSlide">&gt;</button>
         </div>
       </div>
     </div>

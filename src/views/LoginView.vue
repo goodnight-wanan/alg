@@ -36,18 +36,8 @@ function submit() {
     return
   }
 
-  const redirect = String(route.query.redirect || '/')
-
-  if (window.opener) {
-    window.opener.postMessage(
-      { type: 'auth-success', redirect },
-      window.location.origin
-    )
-    window.opener.focus()
-    window.close()
-    return
-  }
-
+  const raw = String(route.query.redirect || '/')
+  const redirect = raw.startsWith('/') && !raw.startsWith('//') ? raw : '/'
   router.replace(redirect)
 }
 

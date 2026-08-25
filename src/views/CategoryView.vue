@@ -165,7 +165,14 @@ function playPlaylist(playlist) {
             @click.stop="playPlaylist(playlist)"
           ><Icon name="play" /></button>
         </div>
-        <h3 class="category-card-title" @click="openPlaylist(playlist.id)">{{ playlist.title }}</h3>
+        <h3
+          class="category-card-title"
+          role="button"
+          tabindex="0"
+          :aria-label="`打开歌单 ${playlist.title}`"
+          @click="openPlaylist(playlist.id)"
+          @keydown.enter.space.prevent="openPlaylist(playlist.id)"
+        >{{ playlist.title }}</h3>
         <p class="category-card-meta">{{ playlist.genre }} · {{ playlist.mood }}</p>
       </article>
     </div>

@@ -172,11 +172,6 @@ export const usePlayerStore = defineStore('player', () => {
     audio.currentTime = Math.min(Math.max(ratio, 0), 1) * duration.value
   }
 
-  function seek(seconds) {
-    if (!duration.value) return
-    audio.currentTime = Math.min(Math.max(seconds, 0), duration.value)
-  }
-
   function setVolume(value) {
     volume.value = Math.min(Math.max(value, 0), 1)
     syncVolume()
@@ -258,7 +253,6 @@ export const usePlayerStore = defineStore('player', () => {
     previous,
     playAt,
     seekRatio,
-    seek,
     setVolume,
     toggleMute,
     cycleMode,
