@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getArtists, playlists, songs } from '../data/musicData'
+import { getArtists, getPlaylistSongs, playlists, songs } from '../data/musicData'
 import { usePlayerStore } from '../stores/player'
 import { loadJSON, saveJSON } from '../utils/storage'
 
@@ -171,6 +171,10 @@ function playSong(song, list) {
   playerStore.playSong(song, list)
 }
 
+function playPlaylist(playlist) {
+  playerStore.playAll(getPlaylistSongs(playlist))
+}
+
 function openPlaylist(id) {
   router.push({ name: 'playlist', params: { id } })
 }
@@ -196,6 +200,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKey))
     <h1 class="functional-title">搜索</h1>
 
     <div class="search-box">
+      <Icon name="search" class="search-box-icon" :size="18" />
       <input
         ref="searchInput"
         v-model="keyword"
@@ -247,19 +252,30 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKey))
     </div>
 
     <template v-else>
-      <p class="search-summary">
-        搜索 “{{ keyword.trim() }}”：歌曲 {{ songResults.length }} · 歌单 {{ playlistResults.length }} · 歌手 {{ artistResults.length }}
-      </p>
+      <div class="search-summary">
+        <Icon name="search" :size="16" />
+        <span class="search-summary-word">“{{ keyword.trim() }}”</span>
+        <span class="search-summary-sep" aria-hidden="true"></span>
+        <span>歌曲 <b>{{ songResults.length }}</b></span>
+        <span>歌单 <b>{{ playlistResults.length }}</b></span>
+        <span>歌手 <b>{{ artistResults.length }}</b></span>
+      </div>
 
-      <div class="functional-tabs search-tabs" role="tablist" aria-label="搜索结果分类">
-        <button type="button" role="tab" :aria-selected="activeTab === 'song'" :class="{ active: activeTab === 'song' }" @click="activeTab = 'song'">
-          歌曲 {{ songResults.length }}
+      <div class="search-tabs" role="tablist" aria-label="搜索结果分类">
+        <button type="button" class="search-tab" role="tab" :aria-selected="activeTab === 'song'" :class="{ active: activeTab === 'song' }" @click="activeTab = 'song'">
+          <Icon name="music-note" :size="16" />
+          <span>歌曲</span>
+          <span class="search-tab-badge">{{ songResults.length }}</span>
         </button>
-        <button type="button" role="tab" :aria-selected="activeTab === 'playlist'" :class="{ active: activeTab === 'playlist' }" @click="activeTab = 'playlist'">
-          歌单 {{ playlistResults.length }}
+        <button type="button" class="search-tab" role="tab" :aria-selected="activeTab === 'playlist'" :class="{ active: activeTab === 'playlist' }" @click="activeTab = 'playlist'">
+          <Icon name="list" :size="16" />
+          <span>歌单</span>
+          <span class="search-tab-badge">{{ playlistResults.length }}</span>
         </button>
-        <button type="button" role="tab" :aria-selected="activeTab === 'artist'" :class="{ active: activeTab === 'artist' }" @click="activeTab = 'artist'">
-          歌手 {{ artistResults.length }}
+        <button type="button" class="search-tab" role="tab" :aria-selected="activeTab === 'artist'" :class="{ active: activeTab === 'artist' }" @click="activeTab = 'artist'">
+          <Icon name="star" :size="16" />
+          <span>歌手</span>
+          <span class="search-tab-badge">{{ artistResults.length }}</span>
         </button>
       </div>
 
@@ -289,26 +305,39 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKey))
       </template>
 
       <template v-else-if="activeTab === 'playlist'">
-        <div v-if="playlistResults.length" class="functional-grid" role="tabpanel" aria-label="歌单结果">
-          <div
+        <div v-if="playlistResults.length" class="search-playlist-grid" role="tabpanel" aria-label="歌单结果">
+          <article
             v-for="playlist in playlistResults"
             :key="playlist.id"
-            class="functional-card"
-            role="button"
-            tabindex="0"
-            :aria-label="`打开歌单 ${playlist.title}`"
-            @click="openPlaylist(playlist.id)"
-            @keydown.enter.space.prevent="openPlaylist(playlist.id)"
+            class="search-playlist-card"
           >
-            <div class="functional-cover">
+            <div
+              class="search-playlist-cover"
+              role="button"
+              tabindex="0"
+              :aria-label="`打开歌单 ${playlist.title}`"
+              @click="openPlaylist(playlist.id)"
+              @keydown.enter.space.prevent="openPlaylist(playlist.id)"
+            >
               <img :src="playlist.cover" :alt="playlist.title" loading="lazy" decoding="async" />
+              <button type="button" class="search-playlist-play" title="播放" @click.stop="playPlaylist(playlist)">
+                <Icon name="play" />
+              </button>
             </div>
-            <p class="functional-card-title">
+            <h3
+              class="search-playlist-title"
+              role="button"
+              tabindex="0"
+              :aria-label="`打开歌单 ${playlist.title}`"
+              @click="openPlaylist(playlist.id)"
+              @keydown.enter.space.prevent="openPlaylist(playlist.id)"
+            >
               <template v-for="(seg, i) in highlight(playlist.title)" :key="i">
                 <mark v-if="seg.match">{{ seg.text }}</mark><template v-else>{{ seg.text }}</template>
               </template>
-            </p>
-          </div>
+            </h3>
+            <p class="search-playlist-meta">{{ playlist.genre }} · {{ playlist.mood }}</p>
+          </article>
         </div>
         <div v-else class="functional-empty">没有找到相关歌单</div>
       </template>
@@ -344,8 +373,30 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKey))
   position: relative;
 }
 
+.search-box-icon {
+  position: absolute;
+  top: 50%;
+  left: 16px;
+  z-index: 1;
+  color: #8a7d83;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
 .search-box .search-input {
-  padding-right: 46px;
+  height: 56px;
+  padding: 0 46px 0 46px;
+  font-size: 16px;
+}
+
+.search-box .search-input::-webkit-search-cancel-button,
+.search-box .search-input::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.search-box .search-input::-ms-clear {
+  display: none;
 }
 
 .search-clear {
@@ -448,10 +499,185 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKey))
 }
 
 .search-summary {
-  margin: 18px 0 12px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 20px 0 16px;
+  padding: 12px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.5);
   color: #665d63;
   font-size: 13px;
   font-weight: 700;
+}
+
+.search-summary-word {
+  color: #191516;
+}
+
+.search-summary-sep {
+  width: 1px;
+  height: 16px;
+  background: rgba(25, 25, 25, 0.12);
+}
+
+.search-summary b {
+  color: #e94e77;
+  font-weight: 1000;
+}
+
+.search-tabs {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.search-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #665d63;
+  font-size: 14px;
+  font-weight: 800;
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.search-tab:hover {
+  color: #e94e77;
+  background: rgba(255, 105, 157, 0.08);
+}
+
+.search-tab.active {
+  background: #ff7eb3;
+  color: #fff;
+  box-shadow: 0 6px 14px rgba(255, 126, 179, 0.28);
+}
+
+.search-tab-badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: rgba(25, 25, 25, 0.08);
+  color: #8a7d83;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.search-tab.active .search-tab-badge {
+  background: rgba(255, 255, 255, 0.28);
+  color: #fff;
+}
+
+.search-playlist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 22px 18px;
+}
+
+.search-playlist-card {
+  min-width: 0;
+}
+
+.search-playlist-cover {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(93, 54, 70, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.search-playlist-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.search-playlist-card:hover .search-playlist-cover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 30px rgba(93, 54, 70, 0.16);
+}
+
+.search-playlist-card:hover .search-playlist-cover img {
+  transform: scale(1.06);
+}
+
+.search-playlist-play {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: #e94e77;
+  font-size: 18px;
+  box-shadow: 0 6px 14px rgba(93, 54, 70, 0.2);
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease;
+  cursor: pointer;
+}
+
+.search-playlist-card:hover .search-playlist-play {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.search-playlist-play:hover {
+  background: #ff7eb3;
+  color: #fff;
+}
+
+.search-playlist-title {
+  margin: 10px 0 4px;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.4;
+  cursor: pointer;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.search-playlist-title:hover {
+  color: #e94e77;
+}
+
+.search-playlist-meta {
+  margin: 0;
+  color: #8a7d83;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .search-row {
@@ -536,10 +762,12 @@ mark {
 
 @media (max-width: 700px) {
   .search-tabs {
+    display: flex;
+    width: 100%;
     overflow-x: auto;
   }
 
-  .search-tabs button {
+  .search-tab {
     flex: 0 0 auto;
     white-space: nowrap;
   }
