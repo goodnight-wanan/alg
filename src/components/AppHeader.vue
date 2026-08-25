@@ -17,6 +17,8 @@ let resizeObserver = null
 const isHome = computed(() => route.path === '/')
 const isCategory = computed(() => route.path.startsWith('/category'))
 const isRank = computed(() => route.path === '/rank')
+const isAlbum = computed(() => route.path === '/album')
+const isArtist = computed(() => route.path === '/artist')
 const isMine = computed(() => route.name === 'mine' || route.name === 'profile')
 
 function submitSearch() {
@@ -101,8 +103,8 @@ onUnmounted(() => {
 
     <nav class="app-header-menu" aria-label="分类导航">
       <RouterLink to="/" class="app-header-menu-item" :class="{ 'is-active': isHome }" :aria-current="isHome ? 'page' : undefined">首页</RouterLink>
-      <button type="button" class="app-header-menu-item" @click="showNotice('歌手功能暂未开放')">歌手</button>
-      <button type="button" class="app-header-menu-item" @click="showNotice('新碟功能暂未开放')">新碟</button>
+      <RouterLink to="/artist" class="app-header-menu-item" :class="{ 'is-active': isArtist }" :aria-current="isArtist ? 'page' : undefined">歌手</RouterLink>
+      <RouterLink to="/album" class="app-header-menu-item" :class="{ 'is-active': isAlbum }" :aria-current="isAlbum ? 'page' : undefined">新碟</RouterLink>
       <RouterLink to="/rank" class="app-header-menu-item" :class="{ 'is-active': isRank }" :aria-current="isRank ? 'page' : undefined">排行榜</RouterLink>
       <RouterLink to="/category" class="app-header-menu-item" :class="{ 'is-active': isCategory }" :aria-current="isCategory ? 'page' : undefined">分类歌单</RouterLink>
     </nav>

@@ -544,3 +544,37 @@ export function getPlaylistById(id) {
 export function getPlaylistSongs(playlist) {
   return (playlist?.songIds || []).map(getSongById).filter(Boolean)
 }
+
+export function getArtists() {
+  const artistMap = new Map()
+
+  songs.forEach((song) => {
+    const names = song.artist
+      .split('/')
+      .map((name) => name.trim())
+      .filter(Boolean)
+
+    names.forEach((name) => {
+      if (!artistMap.has(name)) {
+        artistMap.set(name, {
+          name,
+          cover: song.cover,
+          region: song.region,
+          genres: new Set(),
+          songs: []
+        })
+      }
+
+      const artist = artistMap.get(name)
+      artist.songs.push(song)
+      if (song.genre) artist.genres.add(song.genre)
+    })
+  })
+
+  return [...artistMap.values()].map(({ genres, songs: artistSongs, ...rest }) => ({
+    ...rest,
+    genre: [...genres].join(' / '),
+    songs: artistSongs,
+    songCount: artistSongs.length
+  }))
+}

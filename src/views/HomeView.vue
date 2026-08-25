@@ -150,7 +150,7 @@ onUnmounted(stopTimer)
         <div class="cont3-L">韩国</div>
         <div class="cont3-L">日本</div>
       </div>
-      <RouterLink to="/search?tab=song">
+      <RouterLink to="/album">
         <div class="cont-more cont3-more">更多 &gt;&gt;</div>
       </RouterLink>
       <div class="cont3-songs">

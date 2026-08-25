@@ -21,6 +21,18 @@ const routes = [
     meta: { title: '排行榜' }
   },
   {
+    path: '/album',
+    name: 'album',
+    component: () => import('../views/AlbumView.vue'),
+    meta: { title: '新碟' }
+  },
+  {
+    path: '/artist',
+    name: 'artist',
+    component: () => import('../views/ArtistView.vue'),
+    meta: { title: '歌手' }
+  },
+  {
     path: '/playlist/:id',
     name: 'playlist',
     component: () => import('../views/PlaylistView.vue'),
