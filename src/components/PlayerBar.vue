@@ -58,7 +58,7 @@ function toggleFavorite() {
           />
           <Icon v-else name="music-note" :size="28" />
         </div>
-        <div class="vue-player-meta">
+        <div class="vue-player-meta" aria-live="polite">
           <strong>{{ playerStore.currentSong?.title || '暂无播放' }}</strong>
           <span>{{ playerStore.currentSong?.artist || '选择一首歌曲开始播放' }}</span>
         </div>
@@ -80,6 +80,7 @@ function toggleFavorite() {
             class="vue-player-button"
             type="button"
             :title="modeLabel"
+            :aria-label="modeLabel"
             @click="playerStore.cycleMode"
           >
             <Icon :name="modeIcon" />
@@ -89,7 +90,14 @@ function toggleFavorite() {
             <Icon :name="playerStore.isPlaying ? 'pause' : 'play'" />
           </button>
           <button class="vue-player-button" type="button" title="下一首" @click="playerStore.next"><Icon name="next" /></button>
-          <button class="vue-player-button" type="button" title="播放队列" @click="showQueue = !showQueue"><Icon name="queue" /></button>
+          <button
+            class="vue-player-button"
+            type="button"
+            title="播放队列"
+            aria-label="播放队列"
+            :aria-expanded="showQueue"
+            @click="showQueue = !showQueue"
+          ><Icon name="queue" /></button>
         </div>
 
         <div class="vue-player-progress">
@@ -139,7 +147,12 @@ function toggleFavorite() {
             :key="`${song.id}-${index}`"
             class="vue-player-queue-item"
             :class="{ active: playerStore.currentIndex === index }"
+            role="button"
+            tabindex="0"
+            :aria-current="playerStore.currentIndex === index ? 'true' : undefined"
+            :aria-label="`播放 ${song.title} - ${song.artist}`"
             @click="playAt(index)"
+            @keydown.enter.space.prevent="playAt(index)"
           >
             <span>{{ index + 1 }}</span>
             <img :src="song.cover" :alt="song.title" />

@@ -378,7 +378,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKey))
   top: 50%;
   left: 16px;
   z-index: 1;
-  color: #8a7d83;
+  color: var(--text-muted);
   pointer-events: none;
   transform: translateY(-50%);
 }
@@ -410,7 +410,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKey))
   border: 0;
   border-radius: 50%;
   background: rgba(25, 25, 25, 0.08);
-  color: #665d63;
+  color: var(--text-secondary);
   cursor: pointer;
   transform: translateY(-50%);
   transition: background 0.18s ease, color 0.18s ease;
@@ -418,7 +418,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKey))
 
 .search-clear:hover {
   background: rgba(255, 105, 157, 0.16);
-  color: #e94e77;
+  color: var(--brand-strong);
 }
 
 .search-guide {
@@ -434,7 +434,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKey))
   margin: 0 0 12px;
   font-size: 16px;
   letter-spacing: 1px;
-  font-weight: 1000;
+  font-weight: 900;
 }
 
 .search-history-head {
@@ -448,14 +448,14 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKey))
   padding: 4px 12px;
   border-radius: 999px;
   background: rgba(25, 25, 25, 0.06);
-  color: #665d63;
+  color: var(--text-secondary);
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
 }
 
 .search-history-clear:hover {
-  color: #e94e77;
+  color: var(--brand-strong);
 }
 
 .search-chips {
@@ -469,7 +469,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKey))
   border: 1px solid rgba(25, 25, 25, 0.08);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.55);
-  color: #191516;
+  color: var(--text);
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
@@ -477,7 +477,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKey))
 }
 
 .search-chip:hover {
-  color: #e94e77;
+  color: var(--brand-strong);
   border-color: rgba(255, 105, 157, 0.4);
 }
 
@@ -489,13 +489,13 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKey))
   padding: 48px 20px;
   border: 1px dashed rgba(25, 25, 25, 0.2);
   border-radius: 12px;
-  color: #e94e77;
+  color: var(--brand-strong);
   text-align: center;
 }
 
 .search-guide-tip p {
   margin: 0;
-  color: #665d63;
+  color: var(--text-secondary);
 }
 
 .search-summary {
@@ -507,14 +507,14 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKey))
   padding: 12px 16px;
   border: 1px solid rgba(255, 255, 255, 0.7);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.5);
-  color: #665d63;
+  background: var(--surface);
+  color: var(--text-secondary);
   font-size: 13px;
   font-weight: 700;
 }
 
 .search-summary-word {
-  color: #191516;
+  color: var(--text);
 }
 
 .search-summary-sep {
@@ -524,8 +524,8 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKey))
 }
 
 .search-summary b {
-  color: #e94e77;
-  font-weight: 1000;
+  color: var(--brand-strong);
+  font-weight: 900;
 }
 
 .search-tabs {
@@ -535,7 +535,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKey))
   margin-bottom: 22px;
   border: 1px solid rgba(255, 255, 255, 0.7);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--surface);
 }
 
 .search-tab {
@@ -546,7 +546,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKey))
   border: 0;
   border-radius: 999px;
   background: transparent;
-  color: #665d63;
+  color: var(--text-secondary);
   font-size: 14px;
   font-weight: 800;
   font-family: inherit;
@@ -558,12 +558,12 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKey))
 }
 
 .search-tab:hover {
-  color: #e94e77;
+  color: var(--brand-strong);
   background: rgba(255, 105, 157, 0.08);
 }
 
 .search-tab.active {
-  background: #ff7eb3;
+  background: var(--brand);
   color: #fff;
   box-shadow: 0 6px 14px rgba(255, 126, 179, 0.28);
 }
@@ -576,7 +576,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKey))
   padding: 0 6px;
   border-radius: 999px;
   background: rgba(25, 25, 25, 0.08);
-  color: #8a7d83;
+  color: var(--text-muted);
   font-size: 11px;
   font-weight: 800;
 }
@@ -601,7 +601,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKey))
   aspect-ratio: 1;
   overflow: hidden;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--surface);
   cursor: pointer;
   box-shadow: 0 8px 20px rgba(93, 54, 70, 0.08);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -634,7 +634,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKey))
   border: 0;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.92);
-  color: #e94e77;
+  color: var(--brand-strong);
   font-size: 18px;
   box-shadow: 0 6px 14px rgba(93, 54, 70, 0.2);
   opacity: 0;
@@ -653,7 +653,7 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKey))
 }
 
 .search-playlist-play:hover {
-  background: #ff7eb3;
+  background: var(--brand);
   color: #fff;
 }
 
@@ -670,12 +670,12 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKey))
 }
 
 .search-playlist-title:hover {
-  color: #e94e77;
+  color: var(--brand-strong);
 }
 
 .search-playlist-meta {
   margin: 0;
-  color: #8a7d83;
+  color: var(--text-muted);
   font-size: 12px;
   font-weight: 600;
 }
@@ -692,7 +692,7 @@ mark {
   padding: 0 1px;
   border-radius: 3px;
   background: rgba(255, 126, 179, 0.18);
-  color: #e94e77;
+  color: var(--brand-strong);
 }
 
 .artist-results {
@@ -709,8 +709,8 @@ mark {
   padding: 20px 12px;
   border: 2px solid transparent;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.5);
-  color: #191516;
+  background: var(--surface);
+  color: var(--text);
   font-family: inherit;
   text-align: center;
   cursor: pointer;
@@ -723,7 +723,7 @@ mark {
 .artist-result-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 26px rgba(93, 54, 70, 0.12);
-  border-color: #ff7eb3;
+  border-color: var(--brand);
 }
 
 .artist-result-avatar {
@@ -755,7 +755,7 @@ mark {
 
 .artist-result-meta {
   display: block;
-  color: #8a7d83;
+  color: var(--text-muted);
   font-size: 12px;
   font-weight: 600;
 }

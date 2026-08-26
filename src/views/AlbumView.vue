@@ -86,7 +86,7 @@ function playAlbum(album) {
   margin-bottom: 34px;
   padding: 34px 38px;
   border-radius: 16px;
-  background: linear-gradient(135deg, #ff9ec4, #e94e77);
+  background: linear-gradient(135deg, var(--brand-soft), var(--brand-strong));
   color: #fff;
   box-shadow: 0 18px 40px rgba(233, 78, 119, 0.25);
 }
@@ -112,7 +112,7 @@ function playAlbum(album) {
   margin: 14px 0 10px;
   font-size: 36px;
   letter-spacing: 3px;
-  font-weight: 1000;
+  font-weight: 900;
 }
 
 .album-hero-desc {
@@ -129,7 +129,7 @@ function playAlbum(album) {
   padding: 12px 26px;
   border-radius: 999px;
   background: #fff;
-  color: #e94e77;
+  color: var(--brand-strong);
   font-weight: 800;
   box-shadow: 0 10px 22px rgba(93, 54, 70, 0.22);
 }
@@ -159,12 +159,12 @@ function playAlbum(album) {
   margin: 0 0 4px;
   font-size: 24px;
   letter-spacing: 1px;
-  font-weight: 1000;
+  font-weight: 900;
 }
 
 .album-section-meta {
   margin: 0;
-  color: #665d63;
+  color: var(--text-secondary);
   font-size: 13px;
   font-weight: 700;
 }
@@ -184,7 +184,7 @@ function playAlbum(album) {
   aspect-ratio: 1;
   overflow: hidden;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--surface);
   cursor: pointer;
   box-shadow: 0 8px 20px rgba(93, 54, 70, 0.08);
   transition:
@@ -214,7 +214,7 @@ function playAlbum(album) {
   left: 10px;
   padding: 4px 9px;
   border-radius: 999px;
-  background: linear-gradient(135deg, #ff9ec4, #e94e77);
+  background: linear-gradient(135deg, var(--brand-soft), var(--brand-strong));
   color: #fff;
   font-size: 11px;
   font-weight: 800;
@@ -232,7 +232,7 @@ function playAlbum(album) {
   border: 0;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.92);
-  color: #e94e77;
+  color: var(--brand-strong);
   font-size: 18px;
   box-shadow: 0 6px 14px rgba(93, 54, 70, 0.2);
   opacity: 0;
@@ -251,7 +251,7 @@ function playAlbum(album) {
 }
 
 .album-play:hover {
-  background: #ff7eb3;
+  background: var(--brand);
   color: #fff;
 }
 
@@ -267,13 +267,13 @@ function playAlbum(album) {
 }
 
 .album-title:hover {
-  color: #e94e77;
+  color: var(--brand-strong);
 }
 
 .album-artist {
   margin: 0 0 3px;
   overflow: hidden;
-  color: #665d63;
+  color: var(--text-secondary);
   font-size: 13px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -281,7 +281,7 @@ function playAlbum(album) {
 
 .album-meta {
   margin: 0;
-  color: #8a7d83;
+  color: var(--text-muted);
   font-size: 12px;
   font-weight: 600;
 }

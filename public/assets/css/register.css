@@ -1,20 +1,11 @@
-*{user-select: none;}
-body {
-    font-family: 'Arial', sans-serif;
-    height: 100vh;
-    margin: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
 .register-container {
-    background-color: rgba(255,255,255,0.5);
+    background: rgba(255, 255, 255, 0.55);
     padding: 40px;
-    border-radius: 10px;
+    border-radius: 12px;
     box-shadow: 0 15px 25px rgba(0, 0, 0, 0.2);
     text-align: center;
-    width: 350px; /* 与登录页面宽度一致 */
+    width: 350px;
+    max-width: calc(100vw - 28px);
 }
 
 .register-container h2 {
@@ -26,28 +17,37 @@ body {
 .register-container input[type="password"],
 .register-container input[type="email"] {
     width: 100%;
-    padding: 10px;
+    padding: 11px;
     margin: 10px 0;
     border: 1px solid #ddd;
-    border-radius: 5px;
+    border-radius: 6px;
     outline: none;
-    background-color: rgba(255,255,255,0.4);
+    background-color: rgba(255, 255, 255, 0.6);
+    box-sizing: border-box;
+    font-family: var(--font-sans);
 }
 
-.register-container button {
+.register-container button[type="submit"] {
     width: 100%;
-    padding: 10px;
+    padding: 11px;
     margin-top: 20px;
-    background-color: #ff7eb3;
-    color: white;
+    background-color: var(--brand);
+    color: #fff;
     border: none;
-    border-radius: 5px;
+    border-radius: 6px;
     cursor: pointer;
+    font-family: var(--font-sans);
     transition: background 0.3s ease;
 }
 
-.register-container button:hover {
-    background-color: #ff758c;
+.register-container button[type="submit"]:hover {
+    background-color: var(--brand-hover);
+}
+
+.form-error {
+    color: var(--brand-strong);
+    font-size: 13px;
+    margin: 10px 0 0;
 }
 
 .register-container a {
@@ -55,14 +55,9 @@ body {
     text-decoration: none;
     display: block;
     margin-top: 20px;
+    font-size: 14px;
 }
 
 .register-container a:hover {
     text-decoration: underline;
 }
-
-
-
-
-
-

@@ -125,8 +125,8 @@ function playSong(song, list) {
   padding: 14px;
   border: 2px solid transparent;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.5);
-  color: #191516;
+  background: var(--surface);
+  color: var(--text);
   font-family: inherit;
   text-align: left;
   cursor: pointer;
@@ -142,7 +142,7 @@ function playSong(song, list) {
 }
 
 .rank-chart-card.active {
-  border-color: #ff7eb3;
+  border-color: var(--brand);
   box-shadow: 0 12px 26px rgba(255, 126, 179, 0.22);
 }
 
@@ -169,7 +169,7 @@ function playSong(song, list) {
 .rank-chart-name {
   margin: 0 0 8px;
   font-size: 18px;
-  font-weight: 1000;
+  font-weight: 900;
   letter-spacing: 1px;
 }
 
@@ -186,13 +186,13 @@ function playSong(song, list) {
   display: flex;
   gap: 8px;
   font-size: 12px;
-  color: #665d63;
+  color: var(--text-secondary);
   overflow: hidden;
 }
 
 .rank-chart-top-num {
   flex: 0 0 auto;
-  color: #e94e77;
+  color: var(--brand-strong);
   font-weight: 800;
 }
 
@@ -214,12 +214,12 @@ function playSong(song, list) {
   margin: 0 0 6px;
   font-size: 28px;
   letter-spacing: 1px;
-  font-weight: 1000;
+  font-weight: 900;
 }
 
 .rank-detail-meta {
   margin: 0;
-  color: #665d63;
+  color: var(--text-secondary);
   font-size: 13px;
   font-weight: 700;
 }
@@ -232,14 +232,14 @@ function playSong(song, list) {
   min-width: 132px;
   padding: 11px 22px;
   border-radius: 999px;
-  background: #ff7eb3;
+  background: var(--brand);
   color: #fff;
   font-weight: 800;
   cursor: pointer;
 }
 
 .rank-play-all:hover {
-  background: #f76a9f;
+  background: var(--brand-hover);
 }
 
 .rank-list {
@@ -257,7 +257,7 @@ function playSong(song, list) {
   padding: 10px 14px;
   border: 1px solid rgba(255, 255, 255, 0.7);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--surface);
 }
 
 .rank-row img {
@@ -275,7 +275,7 @@ function playSong(song, list) {
 }
 
 .rank-row span {
-  color: #665d63;
+  color: var(--text-secondary);
   font-size: 13px;
 }
 

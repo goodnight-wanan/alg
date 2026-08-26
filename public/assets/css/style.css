@@ -41,7 +41,7 @@ a{
     display: grid;
     place-items: center;
     font-size: 24px;
-    font-weight: 1000;
+    font-weight: 900;
     letter-spacing: 4px;
 }
 .header-column{
@@ -71,12 +71,12 @@ a{
 }
 .music-hall{
     background-color: transparent;
-    color: pink;
+    color: var(--brand-strong);
     border-color: rgba(255,105,157,0.28);
 }
 .header-col:hover{
     background-color: transparent;
-    color: pink;
+    color: var(--brand-strong);
     border-color: rgba(25,25,25,0.18);
 }
 .header-seek{
@@ -127,7 +127,7 @@ a{
     cursor: pointer;
 }
 .a_login:hover{
-    color: pink;
+    color: var(--brand-strong);
 }
 .header-line{
     width: min(1320px, calc(100% - 48px));
@@ -147,16 +147,16 @@ a{
 }
 .header-mn{
     font-size: 16px;
-    font-weight: 1000;
+    font-weight: 900;
     line-height: 36px;
     transition: 0.1s;
     cursor: pointer;
 }
 .header-mn:hover{
-    color: pink;
+    color: var(--brand-strong);
 }
 .homepage{
-    color: pink;
+    color: var(--brand-strong);
 }
 .cont1{
     width: min(1680px, 100%);
@@ -215,7 +215,7 @@ a{
 }
 .cont1-point li.active{
     width: 42px;
-    background-color: pink;
+    background-color: var(--brand-strong);
 }
 .cont1-point li:nth-child(1){
     background-image: none;
@@ -301,7 +301,7 @@ a{
     line-height: 52px;
     margin: 0 auto;
     margin-top: 80px;
-    font-weight: 1000;
+    font-weight: 900;
     letter-spacing: 10px;
     text-align: center;       
 }
@@ -309,7 +309,7 @@ a{
     width: 47.619%;
     height: 50px;
     font-size: 25px;
-    font-weight: 1000;
+    font-weight: 900;
     text-align: center;
     display: flex;
     flex-direction: row;
@@ -323,10 +323,10 @@ a{
     cursor: pointer;
 }
 .cont2-L:hover{
-    color: pink;
+    color: var(--brand-strong);
 }
 .c2-L{
-    color: pink;
+    color: var(--brand-strong);
 }
 .cont-more{
     width: 70px;
@@ -341,7 +341,7 @@ a{
     transition: 0.1s;
 }
 .cont-more:hover{
-    color: pink;
+    color: var(--brand-strong);
 }
 .cont2-areas{
     width: 89.2857%;
@@ -418,7 +418,7 @@ a{
     margin-top: 10px;
     font-size: 16px;
     letter-spacing: 1px;
-    font-weight: 1000;
+    font-weight: 900;
     line-height: 1.4;
     padding: 0px 20px;
     white-space: normal;
@@ -427,7 +427,7 @@ a{
     cursor: pointer;
 }
 .cont2-word:hover{
-    color: pink;
+    color: var(--brand-strong);
 }
 .cont-point{
     width: 300px;
@@ -459,15 +459,15 @@ a{
 }
 .cont3-L{
     line-height: 50px;
-    font-weight: 1000;
+    font-weight: 900;
     transition: 0.1s;
     cursor: pointer;
 }
 .cont3-L:hover{
-    color: pink;
+    color: var(--brand-strong);
 }
 .c3-L{
-    color: pink;
+    color: var(--brand-strong);
 }
 .cont3-songs{
     width: 83.3333%;
@@ -556,7 +556,7 @@ a{
     height: auto;
     margin-top: 24px;
     margin-left: 30px;
-    font-weight: 1000;
+    font-weight: 900;
 }
 .cont3-song_name{
     width: auto;
@@ -587,7 +587,7 @@ a{
     cursor: pointer;
 }
 .cont3-song_singer:hover{
-    color: pink;
+    color: var(--brand-strong);
 }
 .cont3-song_time{
     width: 100px;
@@ -605,15 +605,15 @@ a{
 }
 .cont4-L{
     line-height: 50px;
-    font-weight: 1000;
+    font-weight: 900;
     transition: 0.1s;
     cursor: pointer;
 }
 .cont4-L:hover{
-    color: pink;
+    color: var(--brand-strong);
 }
 .c4-L{
-    color: pink;
+    color: var(--brand-strong);
 }
 .cont4-charts{
     width: min(1200px, 100%);
@@ -637,13 +637,13 @@ a{
     background-size: cover;
 }
 .chart1{
-    background-image: url(../imgs/homepage/chart_back/chart_b1.png);
+    background-image: linear-gradient(150deg, var(--brand-soft), var(--brand-strong));
 }
 .chart2{
-    background-image: url(../imgs/homepage/chart_back/chart_b2.png);
+    background-image: linear-gradient(210deg, var(--brand), var(--brand-strong-hover));
 }
 .chart3{
-    background-image: url(../imgs/homepage/chart_back/chart_b3.png);
+    background-image: linear-gradient(120deg, var(--brand), var(--brand-strong));
 }
 .cont4-chart:hover{
     top: -10px;
@@ -664,7 +664,7 @@ a{
     margin-top: 40px;
     text-align: center;
     font-size: 45px;
-    font-weight: 1000;
+    font-weight: 900;
     cursor: context-menu;
 }
 .cont4-chart_line{
@@ -726,7 +726,7 @@ a{
     background-color: rgba(255,255,255,0.5);
 }
 .cont4-chart_song:hover .cont4-chart_song_num{
-    color: pink;
+    color: var(--brand-strong);
 }
 .cont4-chart_song_num{
     width: 23.3333%;
@@ -744,7 +744,7 @@ a{
     margin-top: 10px;
     display: flex;
     flex-direction: column;
-    font-weight: 1000;
+    font-weight: 900;
 }
 .cont4-chart_song_name{
     width: auto;
@@ -780,7 +780,7 @@ a{
     height: auto;
     margin: 0 auto;
     font-size: 16px;
-    font-weight: 1000;
+    font-weight: 900;
     line-height: 1.7;
     letter-spacing: 1px;
     color: white;
@@ -796,7 +796,7 @@ a{
     transition: 0.2s;
 }
 .footer-download:hover{
-    color: pink;
+    color: var(--brand-strong);
 }
 .ft-download{
     color: white;

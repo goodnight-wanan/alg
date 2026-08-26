@@ -131,7 +131,7 @@ function toggleFavorite() {
   padding: 4px 10px;
   border-radius: 999px;
   background: rgba(255, 105, 157, 0.14);
-  color: #e94e77;
+  color: var(--brand-strong);
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 1px;
@@ -141,19 +141,19 @@ function toggleFavorite() {
   margin: 12px 0;
   font-size: 34px;
   letter-spacing: 1px;
-  font-weight: 1000;
+  font-weight: 900;
 }
 
 .playlist-desc {
   margin: 0 0 8px;
-  color: #665d63;
+  color: var(--text-secondary);
   font-size: 15px;
   line-height: 1.7;
 }
 
 .playlist-meta {
   margin: 0 0 20px;
-  color: #8a7d83;
+  color: var(--text-muted);
   font-size: 13px;
   font-weight: 700;
 }
@@ -177,17 +177,17 @@ function toggleFavorite() {
 .playlist-play {
   min-width: 132px;
   justify-content: center;
-  background: #ff7eb3;
+  background: var(--brand);
   color: #fff;
 }
 
 .playlist-play:hover {
-  background: #f76a9f;
+  background: var(--brand-hover);
 }
 
 .playlist-favorite {
   background: rgba(25, 25, 25, 0.06);
-  color: #665d63;
+  color: var(--text-secondary);
   min-width: 132px;
   justify-content: center;
   font-variant-emoji: text;
@@ -195,7 +195,7 @@ function toggleFavorite() {
 
 .playlist-favorite.active {
   background: rgba(255, 105, 157, 0.16);
-  color: #e94e77;
+  color: var(--brand-strong);
 }
 
 .playlist-section-title {

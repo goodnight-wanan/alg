@@ -51,8 +51,8 @@ function socialLogin(name) {
     <div class="login-container">
       <h2>登录</h2>
       <form @submit.prevent="submit">
-        <input v-model="form.account" type="text" placeholder="请输入你的用户名或邮箱" name="account" required />
-        <input v-model="form.password" type="password" placeholder="请输入你的密码" name="password" required />
+        <input v-model="form.account" type="text" placeholder="请输入你的用户名或邮箱" name="account" aria-label="用户名或邮箱" autocomplete="username" required />
+        <input v-model="form.password" type="password" placeholder="请输入你的密码" name="password" aria-label="密码" autocomplete="current-password" required />
 
         <div class="social-login">
           <button type="button" class="social-button QQ" @click="socialLogin('QQ')">使用 QQ 登录</button>
@@ -69,7 +69,7 @@ function socialLogin(name) {
 
         <button type="submit">登录</button>
         <a href="#" @click.prevent>忘记密码？</a>
-        <a href="#/register">注册账号</a>
+        <RouterLink to="/register">注册账号</RouterLink>
       </form>
     </div>
   </div>

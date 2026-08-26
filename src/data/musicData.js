@@ -533,6 +533,34 @@ export const categories = {
   regions: ['内地', '港台', '欧美', '日韩']
 }
 
+export const homePlaylistTabs = [
+  {
+    key: 'recommend',
+    label: '为你推荐',
+    ids: ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10']
+  },
+  {
+    key: 'online',
+    label: '网络歌曲',
+    ids: ['p6', 'p7', 'p9', 'p16', 'p17', 'p18', 'p19', 'p20']
+  },
+  {
+    key: 'love',
+    label: '情歌',
+    ids: ['p1', 'p7', 'p9', 'p11', 'p16', 'p20']
+  },
+  {
+    key: 'rhythm',
+    label: '节奏歌曲',
+    ids: ['p2', 'p3', 'p4', 'p10', 'p17', 'p19']
+  },
+  {
+    key: 'classic',
+    label: '经典歌曲',
+    ids: ['p5', 'p8', 'p9', 'p11', 'p12', 'p13', 'p14', 'p15', 'p20']
+  }
+]
+
 export function getSongById(id) {
   return songs.find((song) => song.id === id)
 }

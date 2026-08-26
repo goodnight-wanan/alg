@@ -67,7 +67,7 @@ function logout() {
   padding: 20px 22px;
   border: 1px solid rgba(255, 255, 255, 0.7);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--surface);
   box-shadow: 0 10px 24px rgba(93, 54, 70, 0.08);
 }
 
@@ -80,9 +80,9 @@ function logout() {
   border: 2px solid rgba(255, 255, 255, 0.85);
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.55);
-  color: #e94e77;
+  color: var(--brand-strong);
   font-size: 28px;
-  font-weight: 1000;
+  font-weight: 900;
 }
 
 .user-card-main {
@@ -92,13 +92,13 @@ function logout() {
 
 .user-card-name {
   font-size: 20px;
-  font-weight: 1000;
+  font-weight: 900;
   letter-spacing: 1px;
 }
 
 .user-card-email {
   margin-top: 2px;
-  color: #665d63;
+  color: var(--text-secondary);
   font-size: 13px;
 }
 
@@ -107,14 +107,14 @@ function logout() {
   flex-wrap: wrap;
   gap: 18px;
   margin-top: 10px;
-  color: #665d63;
+  color: var(--text-secondary);
   font-size: 13px;
   font-weight: 700;
 }
 
 .user-card-stats b {
-  color: #e94e77;
-  font-weight: 1000;
+  color: var(--brand-strong);
+  font-weight: 900;
 }
 
 .user-card-logout {
@@ -122,13 +122,13 @@ function logout() {
   padding: 8px 16px;
   border-radius: 999px;
   background: rgba(25, 25, 25, 0.06);
-  color: #665d63;
+  color: var(--text-secondary);
   font-weight: 700;
   cursor: pointer;
 }
 
 .user-card-logout:hover {
-  color: #e94e77;
+  color: var(--brand-strong);
 }
 
 @media (max-width: 700px) {

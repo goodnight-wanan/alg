@@ -214,7 +214,7 @@ function formatTimeAgo(time) {
   margin-bottom: 22px;
   border: 1px solid rgba(255, 255, 255, 0.7);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--surface);
 }
 
 .mine-tab {
@@ -225,7 +225,7 @@ function formatTimeAgo(time) {
   border: 0;
   border-radius: 999px;
   background: transparent;
-  color: #665d63;
+  color: var(--text-secondary);
   font-size: 14px;
   font-weight: 800;
   cursor: pointer;
@@ -237,19 +237,19 @@ function formatTimeAgo(time) {
 }
 
 .mine-tab:hover {
-  color: #e94e77;
+  color: var(--brand-strong);
   background: rgba(255, 105, 157, 0.08);
   transform: translateY(-1px);
 }
 
 .mine-tab.active {
-  background: #ff7eb3;
+  background: var(--brand);
   color: #fff;
   box-shadow: 0 6px 14px rgba(255, 126, 179, 0.28);
 }
 
 .mine-tab.active:hover {
-  background: #ff7eb3;
+  background: var(--brand);
   color: #fff;
 }
 
@@ -261,7 +261,7 @@ function formatTimeAgo(time) {
   padding: 0 6px;
   border-radius: 999px;
   background: rgba(25, 25, 25, 0.08);
-  color: #8a7d83;
+  color: var(--text-muted);
   font-size: 11px;
   font-weight: 800;
 }
@@ -295,7 +295,7 @@ function formatTimeAgo(time) {
   padding: 10px 14px;
   border: 1px solid rgba(255, 255, 255, 0.7);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--surface);
   cursor: pointer;
   transition: border-color 0.18s ease, background 0.18s ease;
 }
@@ -331,7 +331,7 @@ function formatTimeAgo(time) {
 }
 
 .song-artist {
-  color: #8a7d83;
+  color: var(--text-muted);
   font-size: 12px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -339,7 +339,7 @@ function formatTimeAgo(time) {
 }
 
 .mine-row > span {
-  color: #665d63;
+  color: var(--text-secondary);
   font-size: 13px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -354,7 +354,7 @@ function formatTimeAgo(time) {
   border: 0;
   border-radius: 50%;
   background: transparent;
-  color: #e94e77;
+  color: var(--brand-strong);
   cursor: pointer;
   transition: background 0.18s ease;
 }
@@ -374,7 +374,7 @@ function formatTimeAgo(time) {
   aspect-ratio: 1;
   overflow: hidden;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--surface);
 }
 
 .mine-card-cover img {
@@ -399,7 +399,7 @@ function formatTimeAgo(time) {
   border: 0;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.92);
-  color: #e94e77;
+  color: var(--brand-strong);
   box-shadow: 0 6px 14px rgba(93, 54, 70, 0.2);
   opacity: 0;
   transform: translateY(6px);
@@ -413,7 +413,7 @@ function formatTimeAgo(time) {
 }
 
 .mine-card-play:hover {
-  background: #ff7eb3;
+  background: var(--brand);
   color: #fff;
 }
 
@@ -428,7 +428,7 @@ function formatTimeAgo(time) {
   border: 0;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.92);
-  color: #e94e77;
+  color: var(--brand-strong);
   box-shadow: 0 4px 10px rgba(93, 54, 70, 0.2);
   opacity: 0;
   transition: opacity 0.2s ease;
@@ -456,7 +456,7 @@ function formatTimeAgo(time) {
 }
 
 .history-count {
-  color: #665d63;
+  color: var(--text-secondary);
   font-size: 13px;
   font-weight: 700;
 }
@@ -465,13 +465,13 @@ function formatTimeAgo(time) {
   padding: 7px 16px;
   border-radius: 999px;
   background: rgba(25, 25, 25, 0.06);
-  color: #665d63;
+  color: var(--text-secondary);
   font-weight: 700;
   cursor: pointer;
 }
 
 .clear-history:hover {
-  color: #e94e77;
+  color: var(--brand-strong);
 }
 
 .mine-empty {
@@ -483,25 +483,25 @@ function formatTimeAgo(time) {
   border: 1px dashed rgba(25, 25, 25, 0.2);
   border-radius: 12px;
   text-align: center;
-  color: #e94e77;
+  color: var(--brand-strong);
 }
 
 .mine-empty p {
   margin: 4px 0 8px;
-  color: #665d63;
+  color: var(--text-secondary);
 }
 
 .empty-action {
   padding: 8px 18px;
   border-radius: 999px;
-  background: #ff7eb3;
+  background: var(--brand);
   color: #fff;
   font-weight: 700;
   text-decoration: none;
 }
 
 .empty-action:hover {
-  background: #f76a9f;
+  background: var(--brand-hover);
 }
 
 @media (max-width: 960px) {

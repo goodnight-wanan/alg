@@ -155,15 +155,15 @@ onUnmounted(() => {
   width: 38px;
   height: 38px;
   border-radius: 11px;
-  background: linear-gradient(135deg, #ff9ec4, #e94e77);
+  background: linear-gradient(135deg, var(--brand-soft), var(--brand-strong));
   color: #fff;
   box-shadow: 0 6px 14px rgba(233, 78, 119, 0.28);
 }
 
 .app-header-logo-text {
-  color: #191516;
+  color: var(--text);
   font-size: 22px;
-  font-weight: 1000;
+  font-weight: 900;
   letter-spacing: 2px;
 }
 
@@ -185,7 +185,7 @@ onUnmounted(() => {
   line-height: 34px;
   font-size: 16px;
   font-weight: 800;
-  color: #191516;
+  color: var(--text);
   cursor: pointer;
   border: 1px solid transparent;
   border-radius: 8px;
@@ -200,12 +200,12 @@ onUnmounted(() => {
 }
 
 .app-header-col:hover {
-  color: #e94e77;
+  color: var(--brand-strong);
   border-color: rgba(25, 25, 25, 0.18);
 }
 
 .app-header-col.is-active {
-  color: #e94e77;
+  color: var(--brand-strong);
 }
 
 .app-header-col.is-active::after {
@@ -216,7 +216,7 @@ onUnmounted(() => {
   width: 16px;
   height: 3px;
   border-radius: 999px;
-  background: #e94e77;
+  background: var(--brand-strong);
   transform: translateX(-50%);
 }
 
@@ -248,13 +248,13 @@ onUnmounted(() => {
   place-items: center;
   border: 0;
   background: transparent;
-  color: #665d63;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: color 0.2s ease;
 }
 
 .app-header-search-btn:hover {
-  color: #e94e77;
+  color: var(--brand-strong);
 }
 
 .app-header-login {
@@ -267,10 +267,10 @@ onUnmounted(() => {
 .app-header-login-link {
   display: inline-block;
   padding: 7px 16px;
-  border: 1px solid #ff7eb3;
+  border: 1px solid var(--brand);
   border-radius: 999px;
   background: transparent;
-  color: #e94e77;
+  color: var(--brand-strong);
   font-size: 14px;
   font-weight: 800;
   text-decoration: none;
@@ -279,7 +279,7 @@ onUnmounted(() => {
 }
 
 .app-header-login-link:hover {
-  background: #ff7eb3;
+  background: var(--brand);
   color: #fff;
 }
 
@@ -308,9 +308,9 @@ onUnmounted(() => {
   margin: 0;
   padding: 0;
   font-size: 16px;
-  font-weight: 1000;
+  font-weight: 900;
   line-height: 36px;
-  color: #191516;
+  color: var(--text);
   cursor: pointer;
   background: transparent;
   border: 0;
@@ -323,11 +323,11 @@ onUnmounted(() => {
 }
 
 .app-header-menu-item:hover {
-  color: #e94e77;
+  color: var(--brand-strong);
 }
 
 .app-header-menu-item.is-active {
-  color: #e94e77;
+  color: var(--brand-strong);
 }
 
 .app-header-menu-item.is-active::after {
@@ -338,7 +338,7 @@ onUnmounted(() => {
   width: 18px;
   height: 3px;
   border-radius: 999px;
-  background: #e94e77;
+  background: var(--brand-strong);
   transform: translateX(-50%);
 }
 
@@ -402,7 +402,7 @@ onUnmounted(() => {
     border: 0;
     border-radius: 10px;
     background: transparent;
-    color: #191516;
+    color: var(--text);
     cursor: pointer;
   }
 

@@ -190,7 +190,7 @@ function playSong(song) {
 
 .artist-count {
   margin-left: auto;
-  color: #665d63;
+  color: var(--text-secondary);
   font-size: 13px;
   font-weight: 700;
 }
@@ -200,7 +200,7 @@ function playSong(song) {
   border: 1px solid transparent;
   border-radius: 999px;
   background: rgba(25, 25, 25, 0.06);
-  color: #665d63;
+  color: var(--text-secondary);
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
@@ -211,14 +211,14 @@ function playSong(song) {
 }
 
 .filter-chip:hover {
-  color: #e94e77;
+  color: var(--brand-strong);
   border-color: rgba(255, 105, 157, 0.3);
 }
 
 .filter-chip.active {
-  background: #ff7eb3;
+  background: var(--brand);
   color: #fff;
-  border-color: #ff7eb3;
+  border-color: var(--brand);
 }
 
 .artist-grid {
@@ -235,8 +235,8 @@ function playSong(song) {
   padding: 20px 12px;
   border: 2px solid transparent;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.5);
-  color: #191516;
+  background: var(--surface);
+  color: var(--text);
   font-family: inherit;
   text-align: center;
   cursor: pointer;
@@ -252,7 +252,7 @@ function playSong(song) {
 }
 
 .artist-card.active {
-  border-color: #ff7eb3;
+  border-color: var(--brand);
 }
 
 .artist-avatar {
@@ -284,7 +284,7 @@ function playSong(song) {
 
 .artist-meta {
   display: block;
-  color: #8a7d83;
+  color: var(--text-muted);
   font-size: 12px;
   font-weight: 600;
 }
@@ -301,13 +301,13 @@ function playSong(song) {
   padding: 8px 16px;
   border-radius: 999px;
   background: rgba(25, 25, 25, 0.06);
-  color: #665d63;
+  color: var(--text-secondary);
   font-weight: 700;
   cursor: pointer;
 }
 
 .artist-back:hover {
-  color: #e94e77;
+  color: var(--brand-strong);
 }
 
 .artist-detail-hero {
@@ -344,7 +344,7 @@ function playSong(song) {
   padding: 4px 10px;
   border-radius: 999px;
   background: rgba(255, 105, 157, 0.14);
-  color: #e94e77;
+  color: var(--brand-strong);
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 1px;
@@ -354,12 +354,12 @@ function playSong(song) {
   margin: 12px 0 6px;
   font-size: 32px;
   letter-spacing: 1px;
-  font-weight: 1000;
+  font-weight: 900;
 }
 
 .artist-detail-meta {
   margin: 0 0 20px;
-  color: #8a7d83;
+  color: var(--text-muted);
   font-size: 13px;
   font-weight: 700;
 }
@@ -377,14 +377,14 @@ function playSong(song) {
   min-width: 132px;
   padding: 11px 22px;
   border-radius: 999px;
-  background: #ff7eb3;
+  background: var(--brand);
   color: #fff;
   font-weight: 800;
   cursor: pointer;
 }
 
 .artist-play:hover {
-  background: #f76a9f;
+  background: var(--brand-hover);
 }
 
 .artist-songs-title {

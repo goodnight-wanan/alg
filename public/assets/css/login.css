@@ -1,58 +1,13 @@
-* {
-    user-select: none;
-    margin: 0;
-    padding: 0;
-}
-
-body {
-    font-family: 'Arial', sans-serif;
-    height: 100vh;
-    margin: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-.main{
-    width: 1200px;
-    height: 550px;
-    border: 1px solid black;
-    display: flex;
-    flex-direction: row;
-    overflow: hidden;
-}
-.content{
-    width: 710px;
-    height: 470px;
-    background-color: rgba(255,192,203,0.6);
-    color: white;
-    font-size: 40px;
-    letter-spacing: 2px;
-    font-weight: 1000;
-    text-shadow: 4px 4px rgba(0, 0, 0, 0.2);
-    line-height: 70px;
-    border-radius: 15px;
-    padding: 40px 40px;
-    transition: 1s;
-    opacity: 0;
-}
-p{
-    opacity: 0;
-    transition: 1s;
-    transition-delay: 0.5s;
-}
-body:hover p{
-    opacity: 1;
-}
 .login-container {
-    background: rgba(255,255,255,0.5);
+    background: rgba(255, 255, 255, 0.55);
     padding: 40px;
-    border-radius: 10px;
+    border-radius: 12px;
     box-shadow: 0 15px 25px rgba(0, 0, 0, 0.2);
     text-align: center;
+    width: 420px;
+    max-width: calc(100vw - 28px);
 }
-body:hover .content{
-     opacity: 1;
-}
+
 .login-container h2 {
     margin-bottom: 20px;
     color: #333;
@@ -60,31 +15,32 @@ body:hover .content{
 
 .login-container input[type="text"],
 .login-container input[type="password"] {
-    width: 373px;
-    margin: auto;
-    display: block;
-    padding: 10px;
+    width: 100%;
+    padding: 11px;
     margin: 10px 0;
     border: 1px solid #ddd;
-    border-radius: 5px;
+    border-radius: 6px;
     outline: none;
-    background-color: rgba(255,255,255,0.5);
+    background-color: rgba(255, 255, 255, 0.6);
+    box-sizing: border-box;
+    font-family: var(--font-sans);
 }
 
-.login-container button {
+.login-container button[type="submit"] {
     width: 100%;
-    padding: 10px;
+    padding: 11px;
     margin-top: 20px;
-    background-color: #ff7eb3;
-    color: white;
+    background-color: var(--brand);
+    color: #fff;
     border: none;
-    border-radius: 5px;
+    border-radius: 6px;
     cursor: pointer;
+    font-family: var(--font-sans);
     transition: background 0.3s ease;
 }
 
-.login-container button:hover {
-    background-color: #6dd5ed;
+.login-container button[type="submit"]:hover {
+    background-color: var(--brand-hover);
 }
 
 .social-login {
@@ -99,26 +55,34 @@ body:hover .content{
     border-radius: 20px;
     cursor: pointer;
     font-weight: bold;
+    font-family: var(--font-sans);
     transition: background 0.3s ease;
 }
 
 .social-button.QQ {
     background-color: #0099FF;
-    color: white;
+    color: #fff;
 }
 
 .social-button.wechat {
     background-color: #95EC69;
-    color: white;
+    color: #fff;
 }
 
 .terms {
     text-align: left;
     margin-top: 20px;
+    font-size: 13px;
 }
 
 .terms input {
     margin-right: 10px;
+}
+
+.form-error {
+    color: var(--brand-strong);
+    font-size: 13px;
+    margin: 10px 0 0;
 }
 
 .login-container a {
@@ -126,6 +90,7 @@ body:hover .content{
     text-decoration: none;
     display: block;
     margin-top: 20px;
+    font-size: 14px;
 }
 
 .login-container a:hover {

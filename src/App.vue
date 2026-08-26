@@ -58,7 +58,7 @@ onBeforeUnmount(() => {
       aria-label="返回顶部"
       @click="scrollToTop"
     >
-      ↑
+      <Icon name="chevron-up" :size="26" />
     </button>
   </div>
 </template>
@@ -86,7 +86,7 @@ onBeforeUnmount(() => {
   border: 1px solid rgba(255, 255, 255, 0.7);
   border-radius: 50%;
   background: rgb(255 214 214 / 92%);
-  color: #d84a72;
+  color: var(--brand-strong-hover);
   font-size: 24px;
   font-weight: 900;
   box-shadow: 0 10px 24px rgba(93, 54, 70, 0.18);
