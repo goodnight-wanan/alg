@@ -85,7 +85,7 @@ function playSong(song, list) {
           <p class="rank-detail-meta">共 {{ activeChart.songs.length }} 首</p>
         </div>
         <button type="button" class="rank-play-all" @click="playAll(activeChart)">
-          <Icon :name="isPlayingList ? 'pause' : 'play'" />
+          <Icon :name="isPlayingList ? 'pause' : 'play'" :size="18" />
           {{ isPlayingList ? '暂停' : '播放全部' }}
         </button>
       </div>

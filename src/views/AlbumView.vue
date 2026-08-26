@@ -29,7 +29,7 @@ function playAlbum(album) {
         <h1 class="album-hero-title">新碟首发</h1>
         <p class="album-hero-desc">本周精选 {{ newAlbums.length }} 张全新唱片，第一时间听见新鲜好声音。</p>
         <button type="button" class="album-hero-play" @click="playAll">
-          <Icon :name="isPlayingList ? 'pause' : 'play'" />
+          <Icon :name="isPlayingList ? 'pause' : 'play'" :size="18" />
           {{ isPlayingList ? '暂停' : '播放全部' }}
         </button>
       </div>
@@ -125,12 +125,15 @@ function playAlbum(album) {
 .album-hero-play {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
+  min-width: 132px;
   padding: 12px 26px;
   border-radius: 999px;
   background: #fff;
   color: var(--brand-strong);
   font-weight: 800;
+  white-space: nowrap;
   box-shadow: 0 10px 22px rgba(93, 54, 70, 0.22);
 }
 

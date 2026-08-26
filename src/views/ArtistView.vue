@@ -133,7 +133,7 @@ function playSong(song) {
           <p class="artist-detail-meta">{{ selectedArtist.region }} · {{ selectedArtist.genre }}</p>
           <div class="artist-detail-actions">
             <button type="button" class="artist-play" @click="playAll">
-              <Icon :name="isPlayingList ? 'pause' : 'play'" />
+              <Icon :name="isPlayingList ? 'pause' : 'play'" :size="18" />
               {{ isPlayingList ? '暂停' : '播放全部' }}
             </button>
           </div>

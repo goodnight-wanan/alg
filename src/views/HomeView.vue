@@ -407,20 +407,6 @@ onUnmounted(() => {
         </div>
       </Transition>
 
-      <div class="cont-point" role="tablist" aria-label="榜单分页">
-        <div
-          v-for="index in PAGE_COUNT"
-          :key="index"
-          class="cont-pt"
-          :class="{ 'c-pt': chartPage === index - 1 }"
-          role="tab"
-          tabindex="0"
-          :aria-selected="chartPage === index - 1"
-          :aria-label="`第 ${index} 页`"
-          @click="chartPage = index - 1"
-          @keydown.enter.space.prevent="chartPage = index - 1"
-        ></div>
-      </div>
     </div>
 
     <div class="footer">

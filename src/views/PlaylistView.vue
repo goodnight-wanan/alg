@@ -56,7 +56,7 @@ function toggleFavorite() {
         <p class="playlist-meta">{{ playlist.genre }} · {{ playlist.mood }} · {{ playlist.era }}</p>
         <div class="playlist-actions">
           <button type="button" class="playlist-play" @click="playAll">
-            <Icon :name="isPlayingList ? 'pause' : 'play'" />
+            <Icon :name="isPlayingList ? 'pause' : 'play'" :size="18" />
             {{ isPlayingList ? '暂停' : '播放全部' }}
           </button>
           <button
