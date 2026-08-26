@@ -11,6 +11,7 @@ usePageCss(['/assets/css/style.css'])
 const router = useRouter()
 const playerStore = usePlayerStore()
 
+const PAGE_COUNT = 4
 const activeSlide = ref(0)
 const carouselPaused = ref(false)
 let slideTimer = null
@@ -22,9 +23,6 @@ const slides = [
   { src: '/assets/imgs/homepage/carousel/carousel4.jpg', alt: '悦音音乐推荐横幅四' }
 ]
 
-const activePlaylistTab = ref(homePlaylistTabs[0].key)
-const playlistPage = ref(0)
-
 const regionTabs = [
   { key: 'all', label: '最新' },
   { key: '内地', label: '内地' },
@@ -35,10 +33,30 @@ const regionTabs = [
 ]
 const regionAlias = { 韩国: '日韩', 日本: '日韩' }
 
+const activePlaylistTab = ref(homePlaylistTabs[0].key)
+const playlistPage = ref(0)
+const songPage = ref(0)
+const chartPage = ref(0)
 const activeNewRegion = ref('all')
 const activeChartRegion = ref('all')
 
 const currentPlaying = computed(() => playerStore.currentSong)
+
+function makePages(items, pageSize) {
+  if (!items?.length) {
+    return Array.from({ length: PAGE_COUNT }, () => [])
+  }
+
+  const pages = []
+  for (let i = 0; i < PAGE_COUNT; i++) {
+    const page = []
+    for (let j = 0; j < pageSize; j++) {
+      page.push(items[(i * pageSize + j) % items.length])
+    }
+    pages.push(page)
+  }
+  return pages
+}
 
 const activePlaylistList = computed(() => {
   const tab = homePlaylistTabs.find((item) => item.key === activePlaylistTab.value)
@@ -47,34 +65,32 @@ const activePlaylistList = computed(() => {
     .filter(Boolean)
 })
 
-const playlistPageCount = computed(() =>
-  Math.max(1, Math.ceil(activePlaylistList.value.length / 5))
-)
+const playlistPages = computed(() => makePages(activePlaylistList.value, 5))
+const visiblePlaylists = computed(() => playlistPages.value[playlistPage.value] || [])
 
-const visiblePlaylists = computed(() => {
-  const start = playlistPage.value * 5
-  return activePlaylistList.value.slice(start, start + 5)
+const newRegionSongs = computed(() => {
+  if (activeNewRegion.value === 'all') return songs.filter((song) => song.isNew)
+  const target = regionAlias[activeNewRegion.value] || activeNewRegion.value
+  return songs.filter((song) => song.region === target)
 })
 
-const newSongs = computed(() =>
-  songs.filter((song) => song.isNew && matchRegion(song, activeNewRegion.value))
-)
+const newSongPages = computed(() => makePages(newRegionSongs.value, 6))
+const visibleNewSongs = computed(() => newSongPages.value[songPage.value] || [])
 
-const chartGroups = computed(() => {
-  const names = ['飙升榜', '热歌榜', '新歌榜']
-  return names.map((name) => ({
-    name,
-    songs: songs.filter(
-      (song) => song.chart === name && matchRegion(song, activeChartRegion.value)
-    )
-  }))
+const chartNames = ['飙升榜', '热歌榜', '新歌榜']
+
+const chartSongsByRegion = computed(() => {
+  if (activeChartRegion.value === 'all') return songs
+  const target = regionAlias[activeChartRegion.value] || activeChartRegion.value
+  return songs.filter((song) => song.region === target)
 })
 
-function matchRegion(song, region) {
-  if (region === 'all') return true
-  const target = regionAlias[region] || region
-  return song.region === target
-}
+const chartGroups = computed(() =>
+  chartNames.map((name) => {
+    const list = chartSongsByRegion.value.filter((song) => song.chart === name)
+    return { name, pages: makePages(list, 3) }
+  })
+)
 
 function pad(index) {
   return String(index + 1).padStart(2, '0')
@@ -128,8 +144,14 @@ function selectPlaylistTab(key) {
   playlistPage.value = 0
 }
 
-function selectPlaylistPage(index) {
-  playlistPage.value = index
+function setRegion(region, target) {
+  if (target === 'new') {
+    activeNewRegion.value = region
+    songPage.value = 0
+  } else {
+    activeChartRegion.value = region
+    chartPage.value = 0
+  }
 }
 
 function goPlaylist(id) {
@@ -146,6 +168,15 @@ function playPlaylist(playlist) {
 }
 
 function playSong(song, list = [song]) {
+  playerStore.playSong(song, list)
+}
+
+function playNewSong(song) {
+  playerStore.playSong(song, newRegionSongs.value)
+}
+
+function playChartSong(song, group) {
+  const list = chartSongsByRegion.value.filter((item) => item.chart === group.name)
   playerStore.playSong(song, list)
 }
 
@@ -252,9 +283,9 @@ onUnmounted(() => {
         </div>
       </Transition>
 
-      <div v-if="playlistPageCount > 1" class="cont-point c2-point" role="tablist" aria-label="歌单分页">
+      <div class="cont-point c2-point" role="tablist" aria-label="歌单分页">
         <div
-          v-for="index in playlistPageCount"
+          v-for="index in PAGE_COUNT"
           :key="index"
           class="cont-pt"
           :class="{ 'c-pt': playlistPage === index - 1 }"
@@ -262,8 +293,8 @@ onUnmounted(() => {
           tabindex="0"
           :aria-selected="playlistPage === index - 1"
           :aria-label="`第 ${index} 页`"
-          @click="selectPlaylistPage(index - 1)"
-          @keydown.enter.space.prevent="selectPlaylistPage(index - 1)"
+          @click="playlistPage = index - 1"
+          @keydown.enter.space.prevent="playlistPage = index - 1"
         ></div>
       </div>
     </div>
@@ -279,8 +310,8 @@ onUnmounted(() => {
           role="tab"
           tabindex="0"
           :aria-selected="activeNewRegion === tab.key"
-          @click="activeNewRegion = tab.key"
-          @keydown.enter.space.prevent="activeNewRegion = tab.key"
+          @click="setRegion(tab.key, 'new')"
+          @keydown.enter.space.prevent="setRegion(tab.key, 'new')"
         >{{ tab.label }}</div>
       </div>
       <RouterLink to="/album">
@@ -288,30 +319,42 @@ onUnmounted(() => {
       </RouterLink>
 
       <Transition name="section-fade" mode="out-in">
-        <div :key="activeNewRegion" class="cont3-songs">
-          <template v-if="newSongs.length">
-            <div v-for="song in newSongs" :key="song.id" class="cont3-song">
-              <div class="cont3-shell" @click="playSong(song, newSongs)">
-                <img class="cont3-img" :src="song.cover" :alt="song.title" loading="lazy" decoding="async" />
-                <div class="cont3-shadow"></div>
-                <div class="cont3-back">
-                  <img
-                    class="cont3-play"
-                    :src="currentPlaying?.id === song.id && playerStore.isPlaying ? '/assets/imgs/media/pause.png' : '/assets/imgs/media/play.png'"
-                    alt="播放"
-                  />
-                </div>
+        <div :key="`${activeNewRegion}-${songPage}`" class="cont3-songs">
+          <div v-for="song in visibleNewSongs" :key="song.id" class="cont3-song">
+            <div class="cont3-shell" @click="playNewSong(song)">
+              <img class="cont3-img" :src="song.cover" :alt="song.title" loading="lazy" decoding="async" />
+              <div class="cont3-shadow"></div>
+              <div class="cont3-back">
+                <img
+                  class="cont3-play"
+                  :src="currentPlaying?.id === song.id && playerStore.isPlaying ? '/assets/imgs/media/pause.png' : '/assets/imgs/media/play.png'"
+                  alt="播放"
+                />
               </div>
-              <div class="cont3-word">
-                <div class="cont3-song_name">{{ song.title }}</div>
-                <div class="cont3-song_singer">{{ song.artist }}</div>
-              </div>
-              <div class="cont3-song_time">{{ song.duration }}</div>
             </div>
-          </template>
-          <div v-else class="cont3-empty">暂无相关新歌</div>
+            <div class="cont3-word">
+              <div class="cont3-song_name">{{ song.title }}</div>
+              <div class="cont3-song_singer">{{ song.artist }}</div>
+            </div>
+            <div class="cont3-song_time">{{ song.duration }}</div>
+          </div>
         </div>
       </Transition>
+
+      <div class="cont-point" role="tablist" aria-label="新歌分页">
+        <div
+          v-for="index in PAGE_COUNT"
+          :key="index"
+          class="cont-pt"
+          :class="{ 'c-pt': songPage === index - 1 }"
+          role="tab"
+          tabindex="0"
+          :aria-selected="songPage === index - 1"
+          :aria-label="`第 ${index} 页`"
+          @click="songPage = index - 1"
+          @keydown.enter.space.prevent="songPage = index - 1"
+        ></div>
+      </div>
     </div>
 
     <div class="cont4">
@@ -325,8 +368,8 @@ onUnmounted(() => {
           role="tab"
           tabindex="0"
           :aria-selected="activeChartRegion === tab.key"
-          @click="activeChartRegion = tab.key"
-          @keydown.enter.space.prevent="activeChartRegion = tab.key"
+          @click="setRegion(tab.key, 'chart')"
+          @keydown.enter.space.prevent="setRegion(tab.key, 'chart')"
         >{{ tab.label }}</div>
       </div>
       <RouterLink to="/rank">
@@ -334,7 +377,7 @@ onUnmounted(() => {
       </RouterLink>
 
       <Transition name="section-fade" mode="out-in">
-        <div :key="activeChartRegion" class="cont4-charts">
+        <div :key="`${activeChartRegion}-${chartPage}`" class="cont4-charts">
           <div
             v-for="(group, index) in chartGroups"
             :key="group.name"
@@ -343,29 +386,41 @@ onUnmounted(() => {
           >
             <div class="cont4-chart_title" style="cursor:pointer" title="查看完整榜单" @click="goRank(group.name)">{{ group.name }}</div>
             <div class="cont4-chart_line"></div>
-            <div class="cont4-chart_play_back" @click="group.songs.length && playSong(group.songs[0], group.songs)">
+            <div class="cont4-chart_play_back" @click="(group.pages[chartPage] || []).length && playChartSong(group.pages[chartPage][0], group)">
               <img src="/assets/imgs/media/play.png" class="cont4-chart_play" alt="播放" />
             </div>
             <div class="cont4-chart_list">
-              <template v-if="group.songs.length">
-                <div
-                  v-for="(song, songIndex) in group.songs.slice(0, 3)"
-                  :key="song.id"
-                  class="cont4-chart_song"
-                  @click="playSong(song, group.songs)"
-                >
-                  <div class="cont4-chart_song_num">{{ pad(songIndex) }}</div>
-                  <div class="cont4-chart_song_meg">
-                    <div class="cont4-chart_song_name">{{ song.title }}</div>
-                    <div class="cont4-chart_song_singer">{{ song.artist }}</div>
-                  </div>
+              <div
+                v-for="(song, songIndex) in group.pages[chartPage] || []"
+                :key="song.id"
+                class="cont4-chart_song"
+                @click="playChartSong(song, group)"
+              >
+                <div class="cont4-chart_song_num">{{ pad(songIndex) }}</div>
+                <div class="cont4-chart_song_meg">
+                  <div class="cont4-chart_song_name">{{ song.title }}</div>
+                  <div class="cont4-chart_song_singer">{{ song.artist }}</div>
                 </div>
-              </template>
-              <div v-else class="cont4-empty">暂无相关歌曲</div>
+              </div>
             </div>
           </div>
         </div>
       </Transition>
+
+      <div class="cont-point" role="tablist" aria-label="榜单分页">
+        <div
+          v-for="index in PAGE_COUNT"
+          :key="index"
+          class="cont-pt"
+          :class="{ 'c-pt': chartPage === index - 1 }"
+          role="tab"
+          tabindex="0"
+          :aria-selected="chartPage === index - 1"
+          :aria-label="`第 ${index} 页`"
+          @click="chartPage = index - 1"
+          @keydown.enter.space.prevent="chartPage = index - 1"
+        ></div>
+      </div>
     </div>
 
     <div class="footer">
@@ -421,17 +476,5 @@ onUnmounted(() => {
 .carousel-pause:hover {
   background: rgba(255, 255, 255, 0.9);
   color: var(--brand-strong);
-}
-
-.cont3-empty,
-.cont4-empty {
-  width: 100%;
-  padding: 24px 0;
-  color: var(--text-secondary);
-  text-align: center;
-}
-
-.cont4-empty {
-  color: rgba(255, 255, 255, 0.9);
 }
 </style>

@@ -533,31 +533,193 @@ export const categories = {
   regions: ['内地', '港台', '欧美', '日韩']
 }
 
+// 追加模拟歌曲数据（文案借鉴 QQ音乐/网易云，接入后端前为占位数据）
+const newSongSeeds = {
+  内地: [
+    ['平凡之路', '朴树'], ['消愁', '毛不易'], ['演员', '薛之谦'], ['成都', '赵雷'],
+    ['年少有为', '李荣浩'], ['麻雀', '李荣浩'], ['起风了', '买辣椒也用券'], ['芒种', '音阙诗听'],
+    ['纸短情长', '烟把儿乐队'], ['红色高跟鞋', '金玟岐'], ['世间美好与你环环相扣', '柏松'], ['光年之外', '邓紫棋'],
+    ['岁月神偷', '金玟岐'], ['慢慢喜欢你', '莫文蔚'], ['像我这样的人', '毛不易']
+  ],
+  港台: [
+    ['江南', '林俊杰'], ['修炼爱情', '林俊杰'], ['她说', '林俊杰'], ['倔强', '五月天'],
+    ['温柔', '五月天'], ['突然好想你', '五月天'], ['日不落', '蔡依林'], ['倒带', '蔡依林'],
+    ['十年', '陈奕迅'], ['好久不见', '陈奕迅'], ['浮夸', '陈奕迅'], ['依然爱你', '王力宏'],
+    ['改变自己', '王力宏'], ['听海', '张惠妹'], ['我可以抱你吗', '张惠妹'], ['黄昏', '周传雄'],
+    ['说谎', '林宥嘉'], ['泡沫', '邓紫棋'], ['七里香', '周杰伦'], ['稻香', '周杰伦']
+  ],
+  欧美: [
+    ['Shape of You', 'Ed Sheeran'], ['Perfect', 'Ed Sheeran'], ['Love Story', 'Taylor Swift'],
+    ['Blank Space', 'Taylor Swift'], ['Counting Stars', 'OneRepublic'], ['Believer', 'Imagine Dragons'],
+    ['Someone Like You', 'Adele'], ['Rolling in the Deep', 'Adele'], ['Uptown Funk', 'Mark Ronson'],
+    ['Just the Way You Are', 'Bruno Mars'], ['Faded', 'Alan Walker'], ['Alone', 'Alan Walker'],
+    ['Let Her Go', 'Passenger'], ['Photograph', 'Ed Sheeran'], ['7 Years', 'Lukas Graham'],
+    ['Halo', 'Beyoncé'], ['Closer', 'The Chainsmokers'], ['Shallow', 'Lady Gaga'], ['Yellow', 'Coldplay']
+  ],
+  日韩: [
+    ['Dynamite', 'BTS'], ['Butter', 'BTS'], ['DNA', 'BTS'], ['How You Like That', 'BLACKPINK'],
+    ['Kill This Love', 'BLACKPINK'], ['DDU-DU DDU-DU', 'BLACKPINK'], ['LOVE SCENARIO', 'iKON'],
+    ['BANG BANG BANG', 'BIGBANG'], ['FANTASTIC BABY', 'BIGBANG'], ['Gee', '少女时代'],
+    ['I GOT A BOY', '少女时代'], ['Boy With Luv', 'BTS'], ['Psycho', 'Red Velvet'], ['TT', 'TWICE'],
+    ['Cheer Up', 'TWICE'], ['FANCY', 'TWICE'], ['Lemon', '米津玄師'], ['打上花火', 'DAOKO'],
+    ['Pretender', 'Official髭男dism'], ['恋', '星野源'], ['Lovesick Girls', 'BLACKPINK'], ['Spring Day', 'BTS']
+  ]
+}
+
+const coverPool = [
+  '/assets/imgs/homepage/song_new/1.jpg',
+  '/assets/imgs/homepage/song_new/2.jpg',
+  '/assets/imgs/homepage/song_new/3.jpg',
+  '/assets/imgs/homepage/song_new/4.jpg',
+  '/assets/imgs/homepage/song_new/5.jpg',
+  '/assets/imgs/homepage/song_new/6.jpg',
+  '/assets/imgs/02a25cab4059a27c229cab3a1ad6b19.jpg',
+  '/assets/imgs/9edb8907f80218d68d9e2376c96f990.jpg',
+  '/assets/imgs/52f2fbefb2a9fa097208f75bc065f72.jpg',
+  '/assets/imgs/07c6f0670d01b72b5e184c00599046c.jpg',
+  '/assets/imgs/73e59189790c2059e8e304f15a79a9e.jpg',
+  '/assets/imgs/d29de73a4e36e45caca9759cf81098c.jpg',
+  '/assets/imgs/647aa2261896fe959a2989f8c660f01.jpg',
+  '/assets/imgs/0ef8a1ffc4738532ba731bda6dc8974.jpg',
+  '/assets/imgs/2c2ba7ec56ac0841806e7a96edf4814.jpg',
+  '/assets/imgs/2d5e809f2849fede0afd5e9ac96ff79.jpg'
+]
+const chartCycle = ['飙升榜', '热歌榜', '新歌榜']
+const genreCycle = ['流行', '民谣', '电子音乐', 'R&B', '轻音乐', '古典音乐']
+const moodCycle = ['欢快', '伤感', '治愈', '思念', '安静', '励志']
+const eraCycle = ['90年代', '00年代', '10年代', '20年代']
+
+let songSeq = songs.length
+Object.entries(newSongSeeds).forEach(([region, pairs]) => {
+  pairs.forEach(([title, artist], index) => {
+    songSeq += 1
+    songs.push({
+      id: `s${songSeq}`,
+      title,
+      artist,
+      album: title,
+      cover: coverPool[songSeq % coverPool.length],
+      audio: demoAudio,
+      duration: `0${3 + (songSeq % 2)}:${String(10 + ((songSeq * 7) % 50)).padStart(2, '0')}`,
+      durationSeconds: 180 + ((songSeq * 7) % 140),
+      genre: genreCycle[songSeq % genreCycle.length],
+      mood: moodCycle[songSeq % moodCycle.length],
+      era: eraCycle[songSeq % eraCycle.length],
+      region,
+      isNew: index % 4 === 0,
+      chart: chartCycle[songSeq % chartCycle.length]
+    })
+  })
+})
+
+playlists.push(
+  {
+    id: 'p21',
+    title: '华语流行｜无限循环的宝藏单曲',
+    description: '每一首都值得加入收藏夹。',
+    cover: '/assets/imgs/homepage/song_list/list1.jpg',
+    genre: '流行',
+    mood: '青春',
+    era: '10年代',
+    songIds: ['s12', 's13', 's5', 's21', 's22', 's23', 's36', 's37']
+  },
+  {
+    id: 'p22',
+    title: '民谣｜一把吉他唱尽人间烟火',
+    description: '平凡生活里的温柔与诗意。',
+    cover: '/assets/imgs/73e59189790c2059e8e304f15a79a9e.jpg',
+    genre: '民谣',
+    mood: '治愈',
+    era: '90年代',
+    songIds: ['s7', 's10', 's18', 's24', 's25', 's28']
+  },
+  {
+    id: 'p23',
+    title: '欧美热单｜今日份心动 BGM',
+    description: '从西海岸到伦敦的律动。',
+    cover: '/assets/imgs/07c6f0670d01b72b5e184c00599046c.jpg',
+    genre: '流行',
+    mood: '欢快',
+    era: '10年代',
+    songIds: ['s56', 's57', 's58', 's60', 's61', 's66']
+  },
+  {
+    id: 'p24',
+    title: 'K-POP｜元气满满的打歌现场',
+    description: '舞台与耳机里的荷尔蒙。',
+    cover: '/assets/imgs/02a25cab4059a27c229cab3a1ad6b19.jpg',
+    genre: '流行',
+    mood: '欢快',
+    era: '10年代',
+    songIds: ['s3', 's17', 's75', 's76', 's77', 's78']
+  },
+  {
+    id: 'p25',
+    title: '深夜 emo｜一个人听的心情歌单',
+    description: '有些情绪，只有歌懂。',
+    cover: '/assets/imgs/647aa2261896fe959a2989f8c660f01.jpg',
+    genre: '流行',
+    mood: '伤感',
+    era: '20年代',
+    songIds: ['s4', 's5', 's8', 's25', 's26', 's36']
+  },
+  {
+    id: 'p26',
+    title: '经典老歌｜岁月里的情怀金曲',
+    description: '前奏一响，回忆就回来了。',
+    cover: '/assets/imgs/homepage/song_list/list5.jpg',
+    genre: '流行',
+    mood: '青春',
+    era: '00年代',
+    songIds: ['s11', 's12', 's13', 's38', 's39', 's40']
+  },
+  {
+    id: 'p27',
+    title: '轻音乐｜专注学习与阅读时光',
+    description: '不打扰思绪的纯音乐陪伴。',
+    cover: '/assets/imgs/52f2fbefb2a9fa097208f75bc065f72.jpg',
+    genre: '轻音乐',
+    mood: '安静',
+    era: '00年代',
+    songIds: ['s14', 's15', 's20']
+  },
+  {
+    id: 'p28',
+    title: '电子｜派对和律动不停歇',
+    description: '让合成器带你在夜晚失重。',
+    cover: '/assets/imgs/d29de73a4e36e45caca9759cf81098c.jpg',
+    genre: '电子音乐',
+    mood: '欢快',
+    era: '10年代',
+    songIds: ['s16', 's20', 's58', 's61']
+  }
+)
+
 export const homePlaylistTabs = [
   {
     key: 'recommend',
     label: '为你推荐',
-    ids: ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10']
+    ids: ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'p11', 'p12', 'p13', 'p14', 'p15', 'p16', 'p17', 'p18', 'p19', 'p20']
   },
   {
     key: 'online',
     label: '网络歌曲',
-    ids: ['p6', 'p7', 'p9', 'p16', 'p17', 'p18', 'p19', 'p20']
+    ids: ['p6', 'p7', 'p9', 'p16', 'p17', 'p18', 'p19', 'p20', 'p21', 'p22', 'p23', 'p24', 'p25', 'p26', 'p27', 'p28', 'p1', 'p2', 'p3', 'p4']
   },
   {
     key: 'love',
     label: '情歌',
-    ids: ['p1', 'p7', 'p9', 'p11', 'p16', 'p20']
+    ids: ['p1', 'p7', 'p9', 'p11', 'p16', 'p20', 'p25', 'p26', 'p2', 'p5', 'p6', 'p8', 'p12', 'p15', 'p3', 'p4', 'p10', 'p13', 'p14', 'p17']
   },
   {
     key: 'rhythm',
     label: '节奏歌曲',
-    ids: ['p2', 'p3', 'p4', 'p10', 'p17', 'p19']
+    ids: ['p3', 'p4', 'p10', 'p17', 'p19', 'p28', 'p24', 'p23', 'p2', 'p1', 'p6', 'p7', 'p16', 'p20', 'p5', 'p8', 'p9', 'p11', 'p12', 'p13']
   },
   {
     key: 'classic',
     label: '经典歌曲',
-    ids: ['p5', 'p8', 'p9', 'p11', 'p12', 'p13', 'p14', 'p15', 'p20']
+    ids: ['p5', 'p8', 'p9', 'p11', 'p12', 'p13', 'p14', 'p15', 'p20', 'p26', 'p27', 'p1', 'p7', 'p16', 'p2', 'p3', 'p4', 'p6', 'p10', 'p17']
   }
 ]
 
