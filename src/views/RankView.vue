@@ -115,7 +115,7 @@ function playSong(song, list) {
   padding: 20px;
   border: 2px solid transparent;
   border-radius: 12px;
-  background-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.5);
   color: var(--text);
   font-family: inherit;
   text-align: left;
@@ -126,16 +126,16 @@ function playSong(song, list) {
     border-color 0.2s ease;
 }
 
-.rank-chart-card.chart1 {
-  background-image: linear-gradient(150deg, rgba(255, 158, 196, 0.72), rgba(233, 78, 119, 0.72));
+.rank-chart-card.chart1.active {
+  background: linear-gradient(150deg, rgba(255, 158, 196, 0.5), rgba(233, 78, 119, 0.5));
 }
 
-.rank-chart-card.chart2 {
-  background-image: linear-gradient(210deg, rgba(255, 126, 179, 0.72), rgba(216, 74, 114, 0.72));
+.rank-chart-card.chart2.active {
+  background: linear-gradient(210deg, rgba(255, 126, 179, 0.5), rgba(216, 74, 114, 0.5));
 }
 
-.rank-chart-card.chart3 {
-  background-image: linear-gradient(120deg, rgba(255, 126, 179, 0.72), rgba(233, 78, 119, 0.72));
+.rank-chart-card.chart3.active {
+  background: linear-gradient(120deg, rgba(255, 126, 179, 0.5), rgba(233, 78, 119, 0.5));
 }
 
 .rank-chart-card:hover {

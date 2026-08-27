@@ -675,6 +675,7 @@ a{
     transform: scale(2);
 }
 .cont4-chart_title{
+    display: block;
     width: 41.6667%;
     height: 50px;
     margin: 0 auto;
