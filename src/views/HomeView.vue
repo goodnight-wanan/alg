@@ -73,7 +73,7 @@ const newRegionSongs = computed(() => {
   return songs.filter((song) => song.isNew && song.region === activeNewRegion.value)
 })
 
-const newSongPages = computed(() => makePages(newRegionSongs.value, 6))
+const newSongPages = computed(() => makePages(newRegionSongs.value, 6).slice(0, 4))
 const visibleNewSongs = computed(() => newSongPages.value[songPage.value] || [])
 
 const chartNames = ['飙升榜', '热歌榜', '新歌榜']

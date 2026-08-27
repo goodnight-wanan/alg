@@ -491,6 +491,8 @@ a{
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: space-between;
+    align-content: flex-start;
+    align-items: flex-start;
 }
 .cont3-song{
     width: 46.4286%;
