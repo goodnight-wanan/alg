@@ -632,8 +632,8 @@ a{
     color: var(--brand-strong);
 }
 .cont4-charts{
-    width: min(1200px, 100%);
-    max-width: 1200px;
+    width: 1200px;
+    max-width: 100%;
     height: auto;
     margin: 30px auto 0;
     display: flex;
