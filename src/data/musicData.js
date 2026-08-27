@@ -527,7 +527,18 @@ export const playlists = [
 ]
 
 export const categories = {
-  genres: ['流行', '蓝调', '轻音乐', '说唱', '电子音乐', 'R&B', '民谣', '古典音乐', '乡村', '重金属'],
+  genres: [
+    '流行',
+    '蓝调',
+    '轻音乐',
+    '说唱',
+    '电子音乐',
+    'R&B',
+    '民谣',
+    '古典音乐',
+    '乡村',
+    '重金属'
+  ],
   moods: ['欢快', '伤感', '安静', '励志', '思念', '甜蜜', '治愈', '青春'],
   eras: ['70年代', '80年代', '90年代', '00年代', '10年代', '20年代'],
   regions: ['内地', '港台', '欧美', '韩国', '日本']
@@ -536,38 +547,100 @@ export const categories = {
 // 追加模拟歌曲数据（文案借鉴 QQ音乐/网易云，接入后端前为占位数据）
 const newSongSeeds = {
   内地: [
-    ['平凡之路', '朴树'], ['消愁', '毛不易'], ['演员', '薛之谦'], ['成都', '赵雷'],
-    ['年少有为', '李荣浩'], ['麻雀', '李荣浩'], ['起风了', '买辣椒也用券'], ['芒种', '音阙诗听'],
-    ['纸短情长', '烟把儿乐队'], ['红色高跟鞋', '金玟岐'], ['世间美好与你环环相扣', '柏松'], ['光年之外', '邓紫棋'],
-    ['岁月神偷', '金玟岐'], ['慢慢喜欢你', '莫文蔚'], ['像我这样的人', '毛不易']
+    ['平凡之路', '朴树'],
+    ['消愁', '毛不易'],
+    ['演员', '薛之谦'],
+    ['成都', '赵雷'],
+    ['年少有为', '李荣浩'],
+    ['麻雀', '李荣浩'],
+    ['起风了', '买辣椒也用券'],
+    ['芒种', '音阙诗听'],
+    ['纸短情长', '烟把儿乐队'],
+    ['红色高跟鞋', '金玟岐'],
+    ['世间美好与你环环相扣', '柏松'],
+    ['光年之外', '邓紫棋'],
+    ['岁月神偷', '金玟岐'],
+    ['慢慢喜欢你', '莫文蔚'],
+    ['像我这样的人', '毛不易']
   ],
   港台: [
-    ['江南', '林俊杰'], ['修炼爱情', '林俊杰'], ['她说', '林俊杰'], ['倔强', '五月天'],
-    ['温柔', '五月天'], ['突然好想你', '五月天'], ['日不落', '蔡依林'], ['倒带', '蔡依林'],
-    ['十年', '陈奕迅'], ['好久不见', '陈奕迅'], ['浮夸', '陈奕迅'], ['依然爱你', '王力宏'],
-    ['改变自己', '王力宏'], ['听海', '张惠妹'], ['我可以抱你吗', '张惠妹'], ['黄昏', '周传雄'],
-    ['说谎', '林宥嘉'], ['泡沫', '邓紫棋'], ['七里香', '周杰伦'], ['稻香', '周杰伦']
+    ['江南', '林俊杰'],
+    ['修炼爱情', '林俊杰'],
+    ['她说', '林俊杰'],
+    ['倔强', '五月天'],
+    ['温柔', '五月天'],
+    ['突然好想你', '五月天'],
+    ['日不落', '蔡依林'],
+    ['倒带', '蔡依林'],
+    ['十年', '陈奕迅'],
+    ['好久不见', '陈奕迅'],
+    ['浮夸', '陈奕迅'],
+    ['依然爱你', '王力宏'],
+    ['改变自己', '王力宏'],
+    ['听海', '张惠妹'],
+    ['我可以抱你吗', '张惠妹'],
+    ['黄昏', '周传雄'],
+    ['说谎', '林宥嘉'],
+    ['泡沫', '邓紫棋'],
+    ['七里香', '周杰伦'],
+    ['稻香', '周杰伦']
   ],
   欧美: [
-    ['Shape of You', 'Ed Sheeran'], ['Perfect', 'Ed Sheeran'], ['Love Story', 'Taylor Swift'],
-    ['Blank Space', 'Taylor Swift'], ['Counting Stars', 'OneRepublic'], ['Believer', 'Imagine Dragons'],
-    ['Someone Like You', 'Adele'], ['Rolling in the Deep', 'Adele'], ['Uptown Funk', 'Mark Ronson'],
-    ['Just the Way You Are', 'Bruno Mars'], ['Faded', 'Alan Walker'], ['Alone', 'Alan Walker'],
-    ['Let Her Go', 'Passenger'], ['Photograph', 'Ed Sheeran'], ['7 Years', 'Lukas Graham'],
-    ['Halo', 'Beyoncé'], ['Closer', 'The Chainsmokers'], ['Shallow', 'Lady Gaga'], ['Yellow', 'Coldplay']
+    ['Shape of You', 'Ed Sheeran'],
+    ['Perfect', 'Ed Sheeran'],
+    ['Love Story', 'Taylor Swift'],
+    ['Blank Space', 'Taylor Swift'],
+    ['Counting Stars', 'OneRepublic'],
+    ['Believer', 'Imagine Dragons'],
+    ['Someone Like You', 'Adele'],
+    ['Rolling in the Deep', 'Adele'],
+    ['Uptown Funk', 'Mark Ronson'],
+    ['Just the Way You Are', 'Bruno Mars'],
+    ['Faded', 'Alan Walker'],
+    ['Alone', 'Alan Walker'],
+    ['Let Her Go', 'Passenger'],
+    ['Photograph', 'Ed Sheeran'],
+    ['7 Years', 'Lukas Graham'],
+    ['Halo', 'Beyoncé'],
+    ['Closer', 'The Chainsmokers'],
+    ['Shallow', 'Lady Gaga'],
+    ['Yellow', 'Coldplay']
   ],
   韩国: [
-    ['Dynamite', 'BTS'], ['Butter', 'BTS'], ['DNA', 'BTS'], ['How You Like That', 'BLACKPINK'],
-    ['Kill This Love', 'BLACKPINK'], ['DDU-DU DDU-DU', 'BLACKPINK'], ['LOVE SCENARIO', 'iKON'],
-    ['BANG BANG BANG', 'BIGBANG'], ['FANTASTIC BABY', 'BIGBANG'], ['Gee', '少女时代'],
-    ['I GOT A BOY', '少女时代'], ['Boy With Luv', 'BTS'], ['Psycho', 'Red Velvet'], ['TT', 'TWICE'],
-    ['Cheer Up', 'TWICE'], ['FANCY', 'TWICE'], ['Lovesick Girls', 'BLACKPINK'], ['Spring Day', 'BTS']
+    ['Dynamite', 'BTS'],
+    ['Butter', 'BTS'],
+    ['DNA', 'BTS'],
+    ['How You Like That', 'BLACKPINK'],
+    ['Kill This Love', 'BLACKPINK'],
+    ['DDU-DU DDU-DU', 'BLACKPINK'],
+    ['LOVE SCENARIO', 'iKON'],
+    ['BANG BANG BANG', 'BIGBANG'],
+    ['FANTASTIC BABY', 'BIGBANG'],
+    ['Gee', '少女时代'],
+    ['I GOT A BOY', '少女时代'],
+    ['Boy With Luv', 'BTS'],
+    ['Psycho', 'Red Velvet'],
+    ['TT', 'TWICE'],
+    ['Cheer Up', 'TWICE'],
+    ['FANCY', 'TWICE'],
+    ['Lovesick Girls', 'BLACKPINK'],
+    ['Spring Day', 'BTS']
   ],
   日本: [
-    ['Lemon', '米津玄師'], ['打上花火', 'DAOKO'], ['Pretender', 'Official髭男dism'], ['恋', '星野源'],
-    ['前前前世', 'RADWIMPS'], ['夜に駆ける', 'YOASOBI'], ['群青', 'YOASOBI'], ['アイドル', 'YOASOBI'],
-    ['紅蓮華', 'LiSA'], ['炎', 'LiSA'], ['廻廻奇譚', 'Eve'], ['unravel', 'TK from 凛として時雨'],
-    ['シルエット', 'KANA-BOON'], ['ドライフラワー', '優里']
+    ['Lemon', '米津玄師'],
+    ['打上花火', 'DAOKO'],
+    ['Pretender', 'Official髭男dism'],
+    ['恋', '星野源'],
+    ['前前前世', 'RADWIMPS'],
+    ['夜に駆ける', 'YOASOBI'],
+    ['群青', 'YOASOBI'],
+    ['アイドル', 'YOASOBI'],
+    ['紅蓮華', 'LiSA'],
+    ['炎', 'LiSA'],
+    ['廻廻奇譚', 'Eve'],
+    ['unravel', 'TK from 凛として時雨'],
+    ['シルエット', 'KANA-BOON'],
+    ['ドライフラワー', '優里']
   ]
 }
 
@@ -704,27 +777,132 @@ export const homePlaylistTabs = [
   {
     key: 'recommend',
     label: '为你推荐',
-    ids: ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'p9', 'p10', 'p11', 'p12', 'p13', 'p14', 'p15', 'p16', 'p17', 'p18', 'p19', 'p20']
+    ids: [
+      'p1',
+      'p2',
+      'p3',
+      'p4',
+      'p5',
+      'p6',
+      'p7',
+      'p8',
+      'p9',
+      'p10',
+      'p11',
+      'p12',
+      'p13',
+      'p14',
+      'p15',
+      'p16',
+      'p17',
+      'p18',
+      'p19',
+      'p20'
+    ]
   },
   {
     key: 'online',
     label: '网络歌曲',
-    ids: ['p6', 'p7', 'p9', 'p16', 'p17', 'p18', 'p19', 'p20', 'p21', 'p22', 'p23', 'p24', 'p25', 'p26', 'p27', 'p28', 'p1', 'p2', 'p3', 'p4']
+    ids: [
+      'p6',
+      'p7',
+      'p9',
+      'p16',
+      'p17',
+      'p18',
+      'p19',
+      'p20',
+      'p21',
+      'p22',
+      'p23',
+      'p24',
+      'p25',
+      'p26',
+      'p27',
+      'p28',
+      'p1',
+      'p2',
+      'p3',
+      'p4'
+    ]
   },
   {
     key: 'love',
     label: '情歌',
-    ids: ['p1', 'p7', 'p9', 'p11', 'p16', 'p20', 'p25', 'p26', 'p2', 'p5', 'p6', 'p8', 'p12', 'p15', 'p3', 'p4', 'p10', 'p13', 'p14', 'p17']
+    ids: [
+      'p1',
+      'p7',
+      'p9',
+      'p11',
+      'p16',
+      'p20',
+      'p25',
+      'p26',
+      'p2',
+      'p5',
+      'p6',
+      'p8',
+      'p12',
+      'p15',
+      'p3',
+      'p4',
+      'p10',
+      'p13',
+      'p14',
+      'p17'
+    ]
   },
   {
     key: 'rhythm',
     label: '节奏歌曲',
-    ids: ['p3', 'p4', 'p10', 'p17', 'p19', 'p28', 'p24', 'p23', 'p2', 'p1', 'p6', 'p7', 'p16', 'p20', 'p5', 'p8', 'p9', 'p11', 'p12', 'p13']
+    ids: [
+      'p3',
+      'p4',
+      'p10',
+      'p17',
+      'p19',
+      'p28',
+      'p24',
+      'p23',
+      'p2',
+      'p1',
+      'p6',
+      'p7',
+      'p16',
+      'p20',
+      'p5',
+      'p8',
+      'p9',
+      'p11',
+      'p12',
+      'p13'
+    ]
   },
   {
     key: 'classic',
     label: '经典歌曲',
-    ids: ['p5', 'p8', 'p9', 'p11', 'p12', 'p13', 'p14', 'p15', 'p20', 'p26', 'p27', 'p1', 'p7', 'p16', 'p2', 'p3', 'p4', 'p6', 'p10', 'p17']
+    ids: [
+      'p5',
+      'p8',
+      'p9',
+      'p11',
+      'p12',
+      'p13',
+      'p14',
+      'p15',
+      'p20',
+      'p26',
+      'p27',
+      'p1',
+      'p7',
+      'p16',
+      'p2',
+      'p3',
+      'p4',
+      'p6',
+      'p10',
+      'p17'
+    ]
   }
 ]
 

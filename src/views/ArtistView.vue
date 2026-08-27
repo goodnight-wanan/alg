@@ -89,7 +89,9 @@ function playSong(song) {
         :class="{ active: !activeRegion }"
         :aria-pressed="!activeRegion"
         @click="activeRegion = ''"
-      >全部</button>
+      >
+        全部
+      </button>
       <button
         v-for="region in regionOptions"
         :key="region"
@@ -98,7 +100,9 @@ function playSong(song) {
         :class="{ active: activeRegion === region }"
         :aria-pressed="activeRegion === region"
         @click="activeRegion = region"
-      >{{ region }}</button>
+      >
+        {{ region }}
+      </button>
       <span class="artist-count">共 {{ filteredArtists.length }} 位歌手</span>
     </div>
 
@@ -125,7 +129,12 @@ function playSong(song) {
 
       <div class="artist-detail-hero">
         <span class="artist-avatar-large">
-          <img :src="selectedArtist.cover" :alt="selectedArtist.name" loading="lazy" decoding="async" />
+          <img
+            :src="selectedArtist.cover"
+            :alt="selectedArtist.name"
+            loading="lazy"
+            decoding="async"
+          />
         </span>
         <div class="artist-detail-info">
           <span class="artist-badge">歌手</span>

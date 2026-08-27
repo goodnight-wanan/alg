@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getArtists, getPlaylistSongs, playlists, songs } from '../data/musicData'
 import { usePlayerStore } from '../stores/player'
@@ -122,7 +122,10 @@ const hotSearches = computed(() => {
 function addHistory(term) {
   const value = term.trim()
   if (!value) return
-  searchHistory.value = [value, ...searchHistory.value.filter((item) => item !== value)].slice(0, 10)
+  searchHistory.value = [value, ...searchHistory.value.filter((item) => item !== value)].slice(
+    0,
+    10
+  )
   saveJSON(HISTORY_KEY, searchHistory.value)
 }
 
@@ -182,17 +185,6 @@ function openPlaylist(id) {
 function openArtist(artist) {
   router.push({ name: 'artist', query: { q: artist.name } })
 }
-
-function handleGlobalKey(event) {
-  if (event.key !== '/' || event.ctrlKey || event.metaKey || event.altKey) return
-  const tag = document.activeElement?.tagName
-  if (tag === 'INPUT' || tag === 'TEXTAREA') return
-  event.preventDefault()
-  searchInput.value?.focus()
-}
-
-onMounted(() => window.addEventListener('keydown', handleGlobalKey))
-onUnmounted(() => window.removeEventListener('keydown', handleGlobalKey))
 </script>
 
 <template>
@@ -227,7 +219,13 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKey))
       <section class="search-hot">
         <h2 class="search-block-title">热门搜索</h2>
         <div class="search-chips">
-          <button v-for="term in hotSearches" :key="term" type="button" class="search-chip" @click="commitSearch(term)">
+          <button
+            v-for="term in hotSearches"
+            :key="term"
+            type="button"
+            class="search-chip"
+            @click="commitSearch(term)"
+          >
             {{ term }}
           </button>
         </div>
@@ -239,7 +237,13 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKey))
           <button type="button" class="search-history-clear" @click="clearHistory">清空</button>
         </div>
         <div class="search-chips">
-          <button v-for="term in searchHistory" :key="term" type="button" class="search-chip" @click="commitSearch(term)">
+          <button
+            v-for="term in searchHistory"
+            :key="term"
+            type="button"
+            class="search-chip"
+            @click="commitSearch(term)"
+          >
             {{ term }}
           </button>
         </div>
@@ -256,23 +260,50 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKey))
         <Icon name="search" :size="16" />
         <span class="search-summary-word">“{{ keyword.trim() }}”</span>
         <span class="search-summary-sep" aria-hidden="true"></span>
-        <span>歌曲 <b>{{ songResults.length }}</b></span>
-        <span>歌单 <b>{{ playlistResults.length }}</b></span>
-        <span>歌手 <b>{{ artistResults.length }}</b></span>
+        <span
+          >歌曲 <b>{{ songResults.length }}</b></span
+        >
+        <span
+          >歌单 <b>{{ playlistResults.length }}</b></span
+        >
+        <span
+          >歌手 <b>{{ artistResults.length }}</b></span
+        >
       </div>
 
       <div class="search-tabs" role="tablist" aria-label="搜索结果分类">
-        <button type="button" class="search-tab" role="tab" :aria-selected="activeTab === 'song'" :class="{ active: activeTab === 'song' }" @click="activeTab = 'song'">
+        <button
+          type="button"
+          class="search-tab"
+          role="tab"
+          :aria-selected="activeTab === 'song'"
+          :class="{ active: activeTab === 'song' }"
+          @click="activeTab = 'song'"
+        >
           <Icon name="music-note" :size="16" />
           <span>歌曲</span>
           <span class="search-tab-badge">{{ songResults.length }}</span>
         </button>
-        <button type="button" class="search-tab" role="tab" :aria-selected="activeTab === 'playlist'" :class="{ active: activeTab === 'playlist' }" @click="activeTab = 'playlist'">
+        <button
+          type="button"
+          class="search-tab"
+          role="tab"
+          :aria-selected="activeTab === 'playlist'"
+          :class="{ active: activeTab === 'playlist' }"
+          @click="activeTab = 'playlist'"
+        >
           <Icon name="list" :size="16" />
           <span>歌单</span>
           <span class="search-tab-badge">{{ playlistResults.length }}</span>
         </button>
-        <button type="button" class="search-tab" role="tab" :aria-selected="activeTab === 'artist'" :class="{ active: activeTab === 'artist' }" @click="activeTab = 'artist'">
+        <button
+          type="button"
+          class="search-tab"
+          role="tab"
+          :aria-selected="activeTab === 'artist'"
+          :class="{ active: activeTab === 'artist' }"
+          @click="activeTab = 'artist'"
+        >
           <Icon name="star" :size="16" />
           <span>歌手</span>
           <span class="search-tab-badge">{{ artistResults.length }}</span>
@@ -280,7 +311,12 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKey))
       </div>
 
       <template v-if="activeTab === 'song'">
-        <div v-if="songResults.length" class="functional-list" role="tabpanel" aria-label="歌曲结果">
+        <div
+          v-if="songResults.length"
+          class="functional-list"
+          role="tabpanel"
+          aria-label="歌曲结果"
+        >
           <div
             v-for="song in songResults"
             :key="song.id"
@@ -289,12 +325,15 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKey))
             @click="playSong(song, songResults)"
           >
             <button type="button" class="row-play" @click.stop="playSong(song, songResults)">
-              <Icon :name="currentSong?.id === song.id && playerStore.isPlaying ? 'pause' : 'play'" />
+              <Icon
+                :name="currentSong?.id === song.id && playerStore.isPlaying ? 'pause' : 'play'"
+              />
             </button>
             <img :src="song.cover" :alt="song.title" loading="lazy" decoding="async" />
             <strong>
               <template v-for="(seg, i) in highlight(`${song.title} - ${song.artist}`)" :key="i">
-                <mark v-if="seg.match">{{ seg.text }}</mark><template v-else>{{ seg.text }}</template>
+                <mark v-if="seg.match">{{ seg.text }}</mark
+                ><template v-else>{{ seg.text }}</template>
               </template>
             </strong>
             <span>{{ song.album }}</span>
@@ -305,7 +344,12 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKey))
       </template>
 
       <template v-else-if="activeTab === 'playlist'">
-        <div v-if="playlistResults.length" class="search-playlist-grid" role="tabpanel" aria-label="歌单结果">
+        <div
+          v-if="playlistResults.length"
+          class="search-playlist-grid"
+          role="tabpanel"
+          aria-label="歌单结果"
+        >
           <article
             v-for="playlist in playlistResults"
             :key="playlist.id"
@@ -320,7 +364,12 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKey))
               @keydown.enter.space.prevent="openPlaylist(playlist.id)"
             >
               <img :src="playlist.cover" :alt="playlist.title" loading="lazy" decoding="async" />
-              <button type="button" class="search-playlist-play" title="播放" @click.stop="playPlaylist(playlist)">
+              <button
+                type="button"
+                class="search-playlist-play"
+                title="播放"
+                @click.stop="playPlaylist(playlist)"
+              >
                 <Icon name="play" />
               </button>
             </div>
@@ -333,7 +382,8 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKey))
               @keydown.enter.space.prevent="openPlaylist(playlist.id)"
             >
               <template v-for="(seg, i) in highlight(playlist.title)" :key="i">
-                <mark v-if="seg.match">{{ seg.text }}</mark><template v-else>{{ seg.text }}</template>
+                <mark v-if="seg.match">{{ seg.text }}</mark
+                ><template v-else>{{ seg.text }}</template>
               </template>
             </h3>
             <p class="search-playlist-meta">{{ playlist.genre }} · {{ playlist.mood }}</p>
@@ -343,7 +393,12 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKey))
       </template>
 
       <template v-else>
-        <div v-if="artistResults.length" class="artist-results" role="tabpanel" aria-label="歌手结果">
+        <div
+          v-if="artistResults.length"
+          class="artist-results"
+          role="tabpanel"
+          aria-label="歌手结果"
+        >
           <button
             v-for="artist in artistResults"
             :key="artist.name"
@@ -356,10 +411,13 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKey))
             </span>
             <span class="artist-result-name">
               <template v-for="(seg, i) in highlight(artist.name)" :key="i">
-                <mark v-if="seg.match">{{ seg.text }}</mark><template v-else>{{ seg.text }}</template>
+                <mark v-if="seg.match">{{ seg.text }}</mark
+                ><template v-else>{{ seg.text }}</template>
               </template>
             </span>
-            <span class="artist-result-meta">{{ artist.region }} · {{ artist.songCount }} 首歌</span>
+            <span class="artist-result-meta"
+              >{{ artist.region }} · {{ artist.songCount }} 首歌</span
+            >
           </button>
         </div>
         <div v-else class="functional-empty">没有找到相关歌手</div>
@@ -413,7 +471,9 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKey))
   color: var(--text-secondary);
   cursor: pointer;
   transform: translateY(-50%);
-  transition: background 0.18s ease, color 0.18s ease;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
 }
 
 .search-clear:hover {
@@ -473,7 +533,9 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKey))
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
-  transition: color 0.18s ease, border-color 0.18s ease;
+  transition:
+    color 0.18s ease,
+    border-color 0.18s ease;
 }
 
 .search-chip:hover {
@@ -604,7 +666,9 @@ onUnmounted(() => window.removeEventListener('keydown', handleGlobalKey))
   background: var(--surface);
   cursor: pointer;
   box-shadow: 0 8px 20px rgba(93, 54, 70, 0.08);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .search-playlist-cover img {

@@ -4,7 +4,9 @@
 
 :root {
   --player-height: 88px;
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', sans-serif;
   --brand: #ff7eb3;
   --brand-strong: #e94e77;
   --brand-strong-hover: #d84a72;
@@ -614,7 +616,6 @@ button:not(:disabled),
     width: 100%;
     margin-left: 0;
   }
-
 }
 
 @media (max-width: 960px) {
@@ -640,7 +641,6 @@ button:not(:disabled),
   body .cont4-chart_song_name {
     width: 100%;
   }
-
 }
 
 @media (max-width: 380px) {

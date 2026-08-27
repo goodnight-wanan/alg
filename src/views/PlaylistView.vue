@@ -18,9 +18,7 @@ const isFavorite = computed(() =>
   playlist.value ? userStore.isFavoritePlaylist(playlist.value.id) : false
 )
 
-const isPlayingList = computed(() =>
-  playerStore.isListActive(songs.value) && playerStore.isPlaying
-)
+const isPlayingList = computed(() => playerStore.isListActive(songs.value) && playerStore.isPlaying)
 
 function playAll() {
   if (!songs.value.length) return
@@ -65,7 +63,8 @@ function toggleFavorite() {
             :class="{ active: isFavorite }"
             @click="toggleFavorite"
           >
-            <Icon :name="isFavorite ? 'heart' : 'heart-outline'" /> {{ isFavorite ? '已收藏' : '收藏歌单' }}
+            <Icon :name="isFavorite ? 'heart' : 'heart-outline'" />
+            {{ isFavorite ? '已收藏' : '收藏歌单' }}
           </button>
         </div>
       </div>

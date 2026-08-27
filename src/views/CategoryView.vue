@@ -44,7 +44,10 @@ watch(keyword, () => {
 watch(filters, syncQuery)
 
 watch(
-  () => [route.query.q, route.query.genre, route.query.mood, route.query.era, route.query.region].join('|'),
+  () =>
+    [route.query.q, route.query.genre, route.query.mood, route.query.era, route.query.region].join(
+      '|'
+    ),
   () => {
     keyword.value = String(route.query.q || '')
     filters.genre = String(route.query.genre || '')
@@ -74,8 +77,8 @@ const filteredPlaylists = computed(() => {
   })
 })
 
-const activeFilterCount = computed(() =>
-  [filters.genre, filters.mood, filters.era, filters.region].filter(Boolean).length
+const activeFilterCount = computed(
+  () => [filters.genre, filters.mood, filters.era, filters.region].filter(Boolean).length
 )
 
 function setFilter(key, value) {
@@ -130,7 +133,9 @@ function playPlaylist(playlist) {
             :class="{ active: !filters[group.key] }"
             :aria-pressed="!filters[group.key]"
             @click="clearFilter(group.key)"
-          >全部</button>
+          >
+            全部
+          </button>
           <button
             v-for="option in group.options"
             :key="option"
@@ -139,7 +144,9 @@ function playPlaylist(playlist) {
             :class="{ active: filters[group.key] === option }"
             :aria-pressed="filters[group.key] === option"
             @click="setFilter(group.key, option)"
-          >{{ option }}</button>
+          >
+            {{ option }}
+          </button>
         </div>
       </div>
 
@@ -150,7 +157,9 @@ function playPlaylist(playlist) {
           class="clear-filter"
           :disabled="!activeFilterCount"
           @click="clearFilters"
-        >清除筛选</button>
+        >
+          清除筛选
+        </button>
       </div>
     </section>
 
@@ -163,7 +172,9 @@ function playPlaylist(playlist) {
             class="category-play"
             title="播放"
             @click.stop="playPlaylist(playlist)"
-          ><Icon name="play" /></button>
+          >
+            <Icon name="play" />
+          </button>
         </div>
         <h3
           class="category-card-title"
@@ -172,7 +183,9 @@ function playPlaylist(playlist) {
           :aria-label="`打开歌单 ${playlist.title}`"
           @click="openPlaylist(playlist.id)"
           @keydown.enter.space.prevent="openPlaylist(playlist.id)"
-        >{{ playlist.title }}</h3>
+        >
+          {{ playlist.title }}
+        </h3>
         <p class="category-card-meta">{{ playlist.genre }} · {{ playlist.mood }}</p>
       </article>
     </div>

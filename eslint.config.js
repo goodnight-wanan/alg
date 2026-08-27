@@ -17,8 +17,13 @@ export default [
       }
     },
     rules: {
-      'vue/multi-word-component-names': 'off',
       'no-unused-vars': ['error', { ignoreRestSiblings: true }]
+    }
+  },
+  {
+    files: ['src/components/Icon.vue', 'src/main.js'],
+    rules: {
+      'vue/multi-word-component-names': 'off'
     }
   },
   skipFormatting

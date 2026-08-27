@@ -37,19 +37,51 @@ function submit() {
       <form @submit.prevent="submit">
         <div class="form-field">
           <label for="reg-username">用户名</label>
-          <input id="reg-username" v-model.trim="form.username" type="text" placeholder="请输入用户名" name="username" autocomplete="username" required />
+          <input
+            id="reg-username"
+            v-model.trim="form.username"
+            type="text"
+            placeholder="请输入用户名"
+            name="username"
+            autocomplete="username"
+            required
+          />
         </div>
         <div class="form-field">
           <label for="reg-email">邮箱地址</label>
-          <input id="reg-email" v-model.trim="form.email" type="email" placeholder="请输入邮箱地址" name="email" autocomplete="email" required />
+          <input
+            id="reg-email"
+            v-model.trim="form.email"
+            type="email"
+            placeholder="请输入邮箱地址"
+            name="email"
+            autocomplete="email"
+            required
+          />
         </div>
         <div class="form-field">
           <label for="reg-password">密码</label>
-          <input id="reg-password" v-model="form.password" type="password" placeholder="请输入密码" name="password" autocomplete="new-password" required />
+          <input
+            id="reg-password"
+            v-model="form.password"
+            type="password"
+            placeholder="请输入密码"
+            name="password"
+            autocomplete="new-password"
+            required
+          />
         </div>
         <div class="form-field">
           <label for="reg-confirm-password">确认密码</label>
-          <input id="reg-confirm-password" v-model="form.confirmPassword" type="password" placeholder="请再次输入密码" name="confirm_password" autocomplete="new-password" required />
+          <input
+            id="reg-confirm-password"
+            v-model="form.confirmPassword"
+            type="password"
+            placeholder="请再次输入密码"
+            name="confirm_password"
+            autocomplete="new-password"
+            required
+          />
         </div>
 
         <p v-if="error" class="form-error"><Icon name="alert" :size="16" />{{ error }}</p>

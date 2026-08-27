@@ -54,26 +54,35 @@ export const useUserStore = defineStore('user', () => {
     playHistory.value = data.playHistory
   })
 
-  watch(favoriteSongs, (value) => {
-    const key = dataKey('favorite-songs', currentUser.value?.id)
-    if (key) saveJSON(key, value)
-  }, { deep: true })
+  watch(
+    favoriteSongs,
+    (value) => {
+      const key = dataKey('favorite-songs', currentUser.value?.id)
+      if (key) saveJSON(key, value)
+    },
+    { deep: true }
+  )
 
-  watch(favoritePlaylists, (value) => {
-    const key = dataKey('favorite-playlists', currentUser.value?.id)
-    if (key) saveJSON(key, value)
-  }, { deep: true })
+  watch(
+    favoritePlaylists,
+    (value) => {
+      const key = dataKey('favorite-playlists', currentUser.value?.id)
+      if (key) saveJSON(key, value)
+    },
+    { deep: true }
+  )
 
-  watch(playHistory, (value) => {
-    const key = dataKey('play-history', currentUser.value?.id)
-    if (key) saveJSON(key, value)
-  }, { deep: true })
-
+  watch(
+    playHistory,
+    (value) => {
+      const key = dataKey('play-history', currentUser.value?.id)
+      if (key) saveJSON(key, value)
+    },
+    { deep: true }
+  )
 
   function findUser(account) {
-    return users.value.find(
-      (user) => user.username === account || user.email === account
-    )
+    return users.value.find((user) => user.username === account || user.email === account)
   }
 
   function register({ username, email, password, confirmPassword }) {

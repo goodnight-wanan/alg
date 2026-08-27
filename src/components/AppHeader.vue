@@ -10,6 +10,7 @@ const userStore = useUserStore()
 
 const keyword = ref('')
 const headerEl = ref(null)
+const searchInput = ref(null)
 const menuOpen = ref(false)
 let resizeObserver = null
 
@@ -29,7 +30,10 @@ function submitSearch() {
 
 function updateHeaderHeight() {
   if (headerEl.value) {
-    document.documentElement.style.setProperty('--header-height', `${headerEl.value.offsetHeight}px`)
+    document.documentElement.style.setProperty(
+      '--header-height',
+      `${headerEl.value.offsetHeight}px`
+    )
   }
 }
 
@@ -37,9 +41,20 @@ function goLogin(redirect = route.fullPath) {
   router.push({ name: 'login', query: { redirect } })
 }
 
-watch(() => route.path, () => {
-  menuOpen.value = false
-})
+function handleGlobalKey(event) {
+  if (event.key !== '/' || event.ctrlKey || event.metaKey || event.altKey) return
+  const tag = document.activeElement?.tagName
+  if (tag === 'INPUT' || tag === 'TEXTAREA') return
+  event.preventDefault()
+  searchInput.value?.focus()
+}
+
+watch(
+  () => route.path,
+  () => {
+    menuOpen.value = false
+  }
+)
 
 onMounted(() => {
   updateHeaderHeight()
@@ -48,11 +63,13 @@ onMounted(() => {
     if (headerEl.value) resizeObserver.observe(headerEl.value)
   }
   window.addEventListener('resize', updateHeaderHeight)
+  window.addEventListener('keydown', handleGlobalKey)
 })
 
 onUnmounted(() => {
   if (resizeObserver) resizeObserver.disconnect()
   window.removeEventListener('resize', updateHeaderHeight)
+  window.removeEventListener('keydown', handleGlobalKey)
   document.documentElement.style.removeProperty('--header-height')
 })
 </script>
@@ -66,20 +83,54 @@ onUnmounted(() => {
       </RouterLink>
 
       <nav class="app-header-column" aria-label="主导航">
-        <RouterLink to="/" class="app-header-col" :class="{ 'is-active': isHome }" :aria-current="isHome ? 'page' : undefined">音乐馆</RouterLink>
+        <RouterLink
+          to="/"
+          class="app-header-col"
+          :class="{ 'is-active': isHome }"
+          :aria-current="isHome ? 'page' : undefined"
+          >音乐馆</RouterLink
+        >
         <button
           v-if="!userStore.isLoggedIn"
           type="button"
           class="app-header-col"
           @click="goLogin('/mine')"
-        >我的音乐</button>
-        <RouterLink v-else to="/mine" class="app-header-col" :class="{ 'is-active': isMine }" :aria-current="isMine ? 'page' : undefined">我的音乐</RouterLink>
-        <button type="button" class="app-header-col" @click="showNotice('客户端为演示功能，暂未开放')">客户端</button>
-        <button type="button" class="app-header-col" @click="showNotice('VIP 为演示功能，暂未开放')">VIP</button>
+        >
+          我的音乐
+        </button>
+        <RouterLink
+          v-else
+          to="/mine"
+          class="app-header-col"
+          :class="{ 'is-active': isMine }"
+          :aria-current="isMine ? 'page' : undefined"
+          >我的音乐</RouterLink
+        >
+        <button
+          type="button"
+          class="app-header-col"
+          @click="showNotice('客户端为演示功能，暂未开放')"
+        >
+          客户端
+        </button>
+        <button
+          type="button"
+          class="app-header-col"
+          @click="showNotice('VIP 为演示功能，暂未开放')"
+        >
+          VIP
+        </button>
       </nav>
 
       <form class="app-header-search" role="search" @submit.prevent="submitSearch">
-        <input v-model="keyword" class="app-header-input" type="search" placeholder="搜索歌曲、歌单、歌手" aria-label="搜索" />
+        <input
+          ref="searchInput"
+          v-model="keyword"
+          class="app-header-input"
+          type="search"
+          placeholder="搜索歌曲、歌单、歌手"
+          aria-label="搜索"
+        />
         <button class="app-header-search-btn" type="submit" title="搜索" aria-label="搜索">
           <Icon name="search" :size="18" />
         </button>
@@ -97,7 +148,13 @@ onUnmounted(() => {
         <button v-else type="button" class="app-header-login-link" @click="goLogin()">登录</button>
       </div>
 
-      <button type="button" class="app-header-burger" :aria-expanded="menuOpen" aria-label="菜单" @click="menuOpen = !menuOpen">
+      <button
+        type="button"
+        class="app-header-burger"
+        :aria-expanded="menuOpen"
+        aria-label="菜单"
+        @click="menuOpen = !menuOpen"
+      >
         <Icon :name="menuOpen ? 'close' : 'menu'" :size="22" />
       </button>
     </div>
@@ -105,11 +162,41 @@ onUnmounted(() => {
     <div class="app-header-line"></div>
 
     <nav class="app-header-menu" aria-label="分类导航">
-      <RouterLink to="/" class="app-header-menu-item" :class="{ 'is-active': isHome }" :aria-current="isHome ? 'page' : undefined">首页</RouterLink>
-      <RouterLink to="/artist" class="app-header-menu-item" :class="{ 'is-active': isArtist }" :aria-current="isArtist ? 'page' : undefined">歌手</RouterLink>
-      <RouterLink to="/album" class="app-header-menu-item" :class="{ 'is-active': isAlbum }" :aria-current="isAlbum ? 'page' : undefined">新碟</RouterLink>
-      <RouterLink to="/rank" class="app-header-menu-item" :class="{ 'is-active': isRank }" :aria-current="isRank ? 'page' : undefined">排行榜</RouterLink>
-      <RouterLink to="/category" class="app-header-menu-item" :class="{ 'is-active': isCategory }" :aria-current="isCategory ? 'page' : undefined">分类歌单</RouterLink>
+      <RouterLink
+        to="/"
+        class="app-header-menu-item"
+        :class="{ 'is-active': isHome }"
+        :aria-current="isHome ? 'page' : undefined"
+        >首页</RouterLink
+      >
+      <RouterLink
+        to="/artist"
+        class="app-header-menu-item"
+        :class="{ 'is-active': isArtist }"
+        :aria-current="isArtist ? 'page' : undefined"
+        >歌手</RouterLink
+      >
+      <RouterLink
+        to="/album"
+        class="app-header-menu-item"
+        :class="{ 'is-active': isAlbum }"
+        :aria-current="isAlbum ? 'page' : undefined"
+        >新碟</RouterLink
+      >
+      <RouterLink
+        to="/rank"
+        class="app-header-menu-item"
+        :class="{ 'is-active': isRank }"
+        :aria-current="isRank ? 'page' : undefined"
+        >排行榜</RouterLink
+      >
+      <RouterLink
+        to="/category"
+        class="app-header-menu-item"
+        :class="{ 'is-active': isCategory }"
+        :aria-current="isCategory ? 'page' : undefined"
+        >分类歌单</RouterLink
+      >
     </nav>
   </header>
 </template>
@@ -195,7 +282,9 @@ onUnmounted(() => {
   text-decoration: none;
   appearance: none;
   -webkit-appearance: none;
-  transition: color 0.15s ease, border-color 0.15s ease;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease;
   white-space: nowrap;
 }
 
@@ -275,7 +364,9 @@ onUnmounted(() => {
   font-weight: 800;
   text-decoration: none;
   cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
 }
 
 .app-header-login-link:hover {

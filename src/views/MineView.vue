@@ -12,9 +12,7 @@ const userStore = useUserStore()
 const activeTab = ref('favorite')
 const currentSong = computed(() => playerStore.currentSong)
 
-const favoriteSongs = computed(() =>
-  userStore.favoriteSongs.map(getSongById).filter(Boolean)
-)
+const favoriteSongs = computed(() => userStore.favoriteSongs.map(getSongById).filter(Boolean))
 const favoritePlaylists = computed(() =>
   userStore.favoritePlaylists.map(getPlaylistById).filter(Boolean)
 )
@@ -121,7 +119,9 @@ function formatTimeAgo(time) {
             @click="playSong(song, favoriteSongs)"
           >
             <button type="button" class="row-play" @click.stop="playSong(song, favoriteSongs)">
-              <Icon :name="currentSong?.id === song.id && playerStore.isPlaying ? 'pause' : 'play'" />
+              <Icon
+                :name="currentSong?.id === song.id && playerStore.isPlaying ? 'pause' : 'play'"
+              />
             </button>
             <img :src="song.cover" :alt="song.title" loading="lazy" decoding="async" />
             <div class="song-meta">
@@ -130,7 +130,12 @@ function formatTimeAgo(time) {
             </div>
             <span>{{ song.album }}</span>
             <span>{{ song.duration }}</span>
-            <button type="button" class="row-remove" title="取消收藏" @click.stop="removeFavoriteSong(song.id)">
+            <button
+              type="button"
+              class="row-remove"
+              title="取消收藏"
+              @click.stop="removeFavoriteSong(song.id)"
+            >
               <Icon name="heart" :size="18" />
             </button>
           </div>
@@ -152,10 +157,20 @@ function formatTimeAgo(time) {
           >
             <div class="mine-card-cover">
               <img :src="playlist.cover" :alt="playlist.title" loading="lazy" decoding="async" />
-              <button type="button" class="mine-card-play" title="播放" @click.stop="playPlaylist(playlist)">
+              <button
+                type="button"
+                class="mine-card-play"
+                title="播放"
+                @click.stop="playPlaylist(playlist)"
+              >
                 <Icon name="play" :size="18" />
               </button>
-              <button type="button" class="mine-card-remove" title="取消收藏" @click.stop="removeFavoritePlaylist(playlist.id)">
+              <button
+                type="button"
+                class="mine-card-remove"
+                title="取消收藏"
+                @click.stop="removeFavoritePlaylist(playlist.id)"
+              >
                 <Icon name="heart" :size="16" />
               </button>
             </div>
@@ -184,7 +199,9 @@ function formatTimeAgo(time) {
               @click="playSong(song, historySongs)"
             >
               <button type="button" class="row-play" @click.stop="playSong(song, historySongs)">
-                <Icon :name="currentSong?.id === song.id && playerStore.isPlaying ? 'pause' : 'play'" />
+                <Icon
+                  :name="currentSong?.id === song.id && playerStore.isPlaying ? 'pause' : 'play'"
+                />
               </button>
               <img :src="song.cover" :alt="song.title" loading="lazy" decoding="async" />
               <div class="song-meta">
@@ -273,7 +290,9 @@ function formatTimeAgo(time) {
 
 .tab-enter-active,
 .tab-leave-active {
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }
 
 .tab-enter-from {
@@ -297,7 +316,9 @@ function formatTimeAgo(time) {
   border-radius: 10px;
   background: var(--surface);
   cursor: pointer;
-  transition: border-color 0.18s ease, background 0.18s ease;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease;
 }
 
 .mine-row:hover {
@@ -403,7 +424,11 @@ function formatTimeAgo(time) {
   box-shadow: 0 6px 14px rgba(93, 54, 70, 0.2);
   opacity: 0;
   transform: translateY(6px);
-  transition: opacity 0.2s ease, transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease;
   cursor: pointer;
 }
 

@@ -152,8 +152,7 @@ export const usePlayerStore = defineStore('player', () => {
       }
       currentIndex.value = nextIndex
     } else {
-      currentIndex.value =
-        currentIndex.value <= 0 ? queue.value.length - 1 : currentIndex.value - 1
+      currentIndex.value = currentIndex.value <= 0 ? queue.value.length - 1 : currentIndex.value - 1
     }
 
     audio.src = currentSong.value?.audio || ''

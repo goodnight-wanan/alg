@@ -27,7 +27,9 @@ function playAlbum(album) {
       <div class="album-hero-copy">
         <span class="album-hero-tag">每周上新</span>
         <h1 class="album-hero-title">新碟首发</h1>
-        <p class="album-hero-desc">本周精选 {{ newAlbums.length }} 张全新唱片，第一时间听见新鲜好声音。</p>
+        <p class="album-hero-desc">
+          本周精选 {{ newAlbums.length }} 张全新唱片，第一时间听见新鲜好声音。
+        </p>
         <button type="button" class="album-hero-play" @click="playAll">
           <Icon :name="isPlayingList ? 'pause' : 'play'" :size="18" />
           {{ isPlayingList ? '暂停' : '播放全部' }}
@@ -56,7 +58,9 @@ function playAlbum(album) {
             :title="currentSong?.id === album.id && playerStore.isPlaying ? '暂停' : '播放'"
             @click.stop="playAlbum(album)"
           >
-            <Icon :name="currentSong?.id === album.id && playerStore.isPlaying ? 'pause' : 'play'" />
+            <Icon
+              :name="currentSong?.id === album.id && playerStore.isPlaying ? 'pause' : 'play'"
+            />
           </button>
         </div>
         <h3
@@ -66,7 +70,9 @@ function playAlbum(album) {
           :aria-label="`播放新碟 ${album.album}`"
           @click="playAlbum(album)"
           @keydown.enter.space.prevent="playAlbum(album)"
-        >{{ album.album }}</h3>
+        >
+          {{ album.album }}
+        </h3>
         <p class="album-artist">{{ album.artist }}</p>
         <p class="album-meta">{{ album.genre }} · {{ album.duration }}</p>
       </article>

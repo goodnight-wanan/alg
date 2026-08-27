@@ -677,10 +677,15 @@ a{
     height: 50px;
     margin: 0 auto;
     margin-top: 40px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font-family: inherit;
     text-align: center;
     font-size: 45px;
     font-weight: 900;
-    cursor: context-menu;
+    cursor: pointer;
 }
 .cont4-chart_line{
     width: 60px;

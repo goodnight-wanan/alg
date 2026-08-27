@@ -120,7 +120,9 @@ onBeforeUnmount(() => {
 
 .notice-enter-active,
 .notice-leave-active {
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
 }
 
 .notice-enter-from,

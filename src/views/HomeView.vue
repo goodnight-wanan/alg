@@ -11,7 +11,6 @@ usePageCss(['/assets/css/style.css'])
 const router = useRouter()
 const playerStore = usePlayerStore()
 
-const PAGE_COUNT = 4
 const activeSlide = ref(0)
 const carouselPaused = ref(false)
 let slideTimer = null
@@ -41,19 +40,22 @@ const activeChartRegion = ref('all')
 const currentPlaying = computed(() => playerStore.currentSong)
 
 function makePages(items, pageSize) {
-  if (!items?.length) {
-    return Array.from({ length: PAGE_COUNT }, () => [])
-  }
-
+  if (!items?.length) return []
   const pages = []
-  for (let i = 0; i < PAGE_COUNT; i++) {
-    const page = []
-    for (let j = 0; j < pageSize; j++) {
-      page.push(items[(i * pageSize + j) % items.length])
-    }
-    pages.push(page)
+  for (let i = 0; i < items.length; i += pageSize) {
+    pages.push(items.slice(i, i + pageSize))
   }
   return pages
+}
+
+function onTabArrow(event, direction) {
+  const current = event.currentTarget
+  const items = Array.from(current.parentElement?.querySelectorAll('[role="tab"]') || [])
+  const index = items.indexOf(current)
+  if (index < 0) return
+  const next = (index + direction + items.length) % items.length
+  items[next]?.focus()
+  items[next]?.click()
 }
 
 const activePlaylistList = computed(() => {
@@ -218,10 +220,22 @@ onUnmounted(() => {
           ></li>
         </ul>
         <div class="cont1-button">
-          <button class="cont1-button-left" type="button" aria-label="上一张" title="上一张" @click="previousSlide">
+          <button
+            class="cont1-button-left"
+            type="button"
+            aria-label="上一张"
+            title="上一张"
+            @click="previousSlide"
+          >
             <Icon name="chevron-left" :size="30" />
           </button>
-          <button class="cont1-button-right" type="button" aria-label="下一张" title="下一张" @click="nextSlide">
+          <button
+            class="cont1-button-right"
+            type="button"
+            aria-label="下一张"
+            title="下一张"
+            @click="nextSlide"
+          >
             <Icon name="chevron-right" :size="30" />
           </button>
         </div>
@@ -246,11 +260,17 @@ onUnmounted(() => {
           class="cont2-L"
           :class="{ 'c2-L': activePlaylistTab === tab.key }"
           role="tab"
-          tabindex="0"
+          :tabindex="activePlaylistTab === tab.key ? 0 : -1"
           :aria-selected="activePlaylistTab === tab.key"
           @click="selectPlaylistTab(tab.key)"
           @keydown.enter.space.prevent="selectPlaylistTab(tab.key)"
-        >{{ tab.label }}</div>
+          @keydown.left.prevent="onTabArrow($event, -1)"
+          @keydown.right.prevent="onTabArrow($event, 1)"
+          @keydown.up.prevent="onTabArrow($event, -1)"
+          @keydown.down.prevent="onTabArrow($event, 1)"
+        >
+          {{ tab.label }}
+        </div>
       </div>
       <RouterLink to="/category">
         <div class="cont-more cont2-more">更多 &gt;&gt;</div>
@@ -259,16 +279,28 @@ onUnmounted(() => {
       <Transition name="section-fade" mode="out-in">
         <div :key="`${activePlaylistTab}-${playlistPage}`" class="cont2-areas">
           <div v-for="playlist in visiblePlaylists" :key="playlist.id" class="cont2-area">
-            <div class="cont2-shell" @click="goPlaylist(playlist.id)">
-              <img class="cont2-img" :src="playlist.cover" :alt="playlist.title" loading="lazy" decoding="async" />
+            <div class="cont2-shell">
+              <img
+                class="cont2-img"
+                :src="playlist.cover"
+                :alt="playlist.title"
+                loading="lazy"
+                decoding="async"
+              />
               <div class="cont2-shadow"></div>
               <button type="button" class="cont2-play_list" @click.stop="playPlaylist(playlist)">
                 <div class="cont2-play" title="播放"></div>
               </button>
             </div>
-            <div class="cont2-word" @click="goPlaylist(playlist.id)">
-              <p>{{ playlist.title }}</p>
-              <p>{{ playlist.description }}</p>
+            <div
+              class="cont2-word"
+              role="button"
+              tabindex="0"
+              @click="goPlaylist(playlist.id)"
+              @keydown.enter.space.prevent="goPlaylist(playlist.id)"
+            >
+              <p :title="playlist.title">{{ playlist.title }}</p>
+              <p :title="playlist.description">{{ playlist.description }}</p>
             </div>
           </div>
         </div>
@@ -276,16 +308,18 @@ onUnmounted(() => {
 
       <div class="cont-point c2-point" role="tablist" aria-label="歌单分页">
         <div
-          v-for="index in PAGE_COUNT"
+          v-for="index in playlistPages.length"
           :key="index"
           class="cont-pt"
           :class="{ 'c-pt': playlistPage === index - 1 }"
           role="tab"
-          tabindex="0"
+          :tabindex="playlistPage === index - 1 ? 0 : -1"
           :aria-selected="playlistPage === index - 1"
           :aria-label="`第 ${index} 页`"
           @click="playlistPage = index - 1"
           @keydown.enter.space.prevent="playlistPage = index - 1"
+          @keydown.left.prevent="onTabArrow($event, -1)"
+          @keydown.right.prevent="onTabArrow($event, 1)"
         ></div>
       </div>
     </div>
@@ -299,11 +333,17 @@ onUnmounted(() => {
           class="cont3-L"
           :class="{ 'c3-L': activeNewRegion === tab.key }"
           role="tab"
-          tabindex="0"
+          :tabindex="activeNewRegion === tab.key ? 0 : -1"
           :aria-selected="activeNewRegion === tab.key"
           @click="setRegion(tab.key, 'new')"
           @keydown.enter.space.prevent="setRegion(tab.key, 'new')"
-        >{{ tab.label }}</div>
+          @keydown.left.prevent="onTabArrow($event, -1)"
+          @keydown.right.prevent="onTabArrow($event, 1)"
+          @keydown.up.prevent="onTabArrow($event, -1)"
+          @keydown.down.prevent="onTabArrow($event, 1)"
+        >
+          {{ tab.label }}
+        </div>
       </div>
       <RouterLink to="/album">
         <div class="cont-more cont3-more">更多 &gt;&gt;</div>
@@ -312,13 +352,29 @@ onUnmounted(() => {
       <Transition name="section-fade" mode="out-in">
         <div :key="`${activeNewRegion}-${songPage}`" class="cont3-songs">
           <div v-for="song in visibleNewSongs" :key="song.id" class="cont3-song">
-            <div class="cont3-shell" @click="playNewSong(song)">
-              <img class="cont3-img" :src="song.cover" :alt="song.title" loading="lazy" decoding="async" />
+            <div
+              class="cont3-shell"
+              role="button"
+              tabindex="0"
+              @click="playNewSong(song)"
+              @keydown.enter.space.prevent="playNewSong(song)"
+            >
+              <img
+                class="cont3-img"
+                :src="song.cover"
+                :alt="song.title"
+                loading="lazy"
+                decoding="async"
+              />
               <div class="cont3-shadow"></div>
               <div class="cont3-back">
                 <img
                   class="cont3-play"
-                  :src="currentPlaying?.id === song.id && playerStore.isPlaying ? '/assets/imgs/media/pause.png' : '/assets/imgs/media/play.png'"
+                  :src="
+                    currentPlaying?.id === song.id && playerStore.isPlaying
+                      ? '/assets/imgs/media/pause.png'
+                      : '/assets/imgs/media/play.png'
+                  "
                   alt="播放"
                 />
               </div>
@@ -334,16 +390,18 @@ onUnmounted(() => {
 
       <div class="cont-point" role="tablist" aria-label="新歌分页">
         <div
-          v-for="index in PAGE_COUNT"
+          v-for="index in newSongPages.length"
           :key="index"
           class="cont-pt"
           :class="{ 'c-pt': songPage === index - 1 }"
           role="tab"
-          tabindex="0"
+          :tabindex="songPage === index - 1 ? 0 : -1"
           :aria-selected="songPage === index - 1"
           :aria-label="`第 ${index} 页`"
           @click="songPage = index - 1"
           @keydown.enter.space.prevent="songPage = index - 1"
+          @keydown.left.prevent="onTabArrow($event, -1)"
+          @keydown.right.prevent="onTabArrow($event, 1)"
         ></div>
       </div>
     </div>
@@ -357,11 +415,17 @@ onUnmounted(() => {
           class="cont4-L"
           :class="{ 'c4-L': activeChartRegion === tab.key }"
           role="tab"
-          tabindex="0"
+          :tabindex="activeChartRegion === tab.key ? 0 : -1"
           :aria-selected="activeChartRegion === tab.key"
           @click="setRegion(tab.key, 'chart')"
           @keydown.enter.space.prevent="setRegion(tab.key, 'chart')"
-        >{{ tab.label }}</div>
+          @keydown.left.prevent="onTabArrow($event, -1)"
+          @keydown.right.prevent="onTabArrow($event, 1)"
+          @keydown.up.prevent="onTabArrow($event, -1)"
+          @keydown.down.prevent="onTabArrow($event, 1)"
+        >
+          {{ tab.label }}
+        </div>
       </div>
       <RouterLink to="/rank">
         <div class="cont-more cont4-more">更多 &gt;&gt;</div>
@@ -375,9 +439,24 @@ onUnmounted(() => {
             class="cont4-chart"
             :class="`chart${index + 1}`"
           >
-            <div class="cont4-chart_title" style="cursor:pointer" title="查看完整榜单" @click="goRank(group.name)">{{ group.name }}</div>
+            <button
+              type="button"
+              class="cont4-chart_title"
+              title="查看完整榜单"
+              @click="goRank(group.name)"
+            >
+              {{ group.name }}
+            </button>
             <div class="cont4-chart_line"></div>
-            <div class="cont4-chart_play_back" @click="group.songs.length && playChartSong(group.songs[0], group)">
+            <div
+              class="cont4-chart_play_back"
+              role="button"
+              tabindex="0"
+              @click="group.songs.length && playChartSong(group.songs[0], group)"
+              @keydown.enter.space.prevent="
+                group.songs.length && playChartSong(group.songs[0], group)
+              "
+            >
               <img src="/assets/imgs/media/play.png" class="cont4-chart_play" alt="播放" />
             </div>
             <div class="cont4-chart_list">
@@ -385,7 +464,10 @@ onUnmounted(() => {
                 v-for="(song, songIndex) in group.songs"
                 :key="song.id"
                 class="cont4-chart_song"
+                role="button"
+                tabindex="0"
                 @click="playChartSong(song, group)"
+                @keydown.enter.space.prevent="playChartSong(song, group)"
               >
                 <div class="cont4-chart_song_num">{{ pad(songIndex) }}</div>
                 <div class="cont4-chart_song_meg">
@@ -397,12 +479,15 @@ onUnmounted(() => {
           </div>
         </div>
       </Transition>
-
     </div>
 
     <div class="footer">
       <div class="footer-moreMeg">
-        <a class="ft-download" href="#" @click.prevent="showNotice('下载客户端为演示功能，暂未开放')">
+        <a
+          class="ft-download"
+          href="#"
+          @click.prevent="showNotice('下载客户端为演示功能，暂未开放')"
+        >
           <div class="footer-download">
             <p title="下载客户端">下载客户端</p>
           </div>
@@ -419,7 +504,9 @@ onUnmounted(() => {
           <span class="footer-sep" aria-hidden="true">|</span>
           <a href="#" @click.prevent="showNotice('隐私政策为演示内容，暂未开放')">隐私政策</a>
           <span class="footer-sep" aria-hidden="true">|</span>
-          <a href="#" @click.prevent="showNotice('版权投诉指引为演示内容，暂未开放')">版权投诉指引</a>
+          <a href="#" @click.prevent="showNotice('版权投诉指引为演示内容，暂未开放')"
+            >版权投诉指引</a
+          >
           <span class="footer-sep" aria-hidden="true">|</span>
           <a href="#" @click.prevent="showNotice('意见反馈为演示功能，暂未开放')">意见反馈</a>
         </p>
@@ -431,7 +518,9 @@ onUnmounted(() => {
 <style scoped>
 .section-fade-enter-active,
 .section-fade-leave-active {
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
 }
 
 .section-fade-enter-from {

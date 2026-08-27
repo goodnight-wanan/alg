@@ -26,14 +26,12 @@ const activeChartName = computed(() => {
   return chartNames.includes(name) ? name : chartNames[0]
 })
 
-const activeChart = computed(() =>
-  charts.find((chart) => chart.name === activeChartName.value)
-)
+const activeChart = computed(() => charts.find((chart) => chart.name === activeChartName.value))
 
 const currentSong = computed(() => playerStore.currentSong)
 
-const isPlayingList = computed(() =>
-  playerStore.isListActive(activeChart.value?.songs || []) && playerStore.isPlaying
+const isPlayingList = computed(
+  () => playerStore.isListActive(activeChart.value?.songs || []) && playerStore.isPlaying
 )
 
 function selectChart(name) {

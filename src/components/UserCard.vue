@@ -11,9 +11,7 @@ defineProps({
 const router = useRouter()
 const userStore = useUserStore()
 
-const initial = computed(() =>
-  userStore.currentUser?.username?.charAt(0).toUpperCase() || '?'
-)
+const initial = computed(() => userStore.currentUser?.username?.charAt(0).toUpperCase() || '?')
 
 const listeningSeconds = computed(() =>
   userStore.playHistory.reduce((sum, item) => {
