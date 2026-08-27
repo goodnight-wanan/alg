@@ -109,6 +109,10 @@ function playPlaylist(playlist) {
   const list = getPlaylistSongs(playlist)
   playerStore.playAll(list)
 }
+
+function isPlaylistPlaying(playlist) {
+  return playerStore.isListActive(getPlaylistSongs(playlist)) && playerStore.isPlaying
+}
 </script>
 
 <template>
@@ -170,10 +174,10 @@ function playPlaylist(playlist) {
           <button
             type="button"
             class="category-play"
-            title="播放"
+            :title="isPlaylistPlaying(playlist) ? '暂停' : '播放'"
             @click.stop="playPlaylist(playlist)"
           >
-            <Icon name="play" />
+            <Icon :name="isPlaylistPlaying(playlist) ? 'pause' : 'play'" />
           </button>
         </div>
         <h3

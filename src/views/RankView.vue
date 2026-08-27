@@ -9,15 +9,9 @@ const router = useRouter()
 const playerStore = usePlayerStore()
 
 const chartNames = ['飙升榜', '热歌榜', '新歌榜']
-const chartCovers = {
-  飙升榜: '/assets/imgs/homepage/chart_back/chart_b1.webp',
-  热歌榜: '/assets/imgs/homepage/chart_back/chart_b2.webp',
-  新歌榜: '/assets/imgs/homepage/chart_back/chart_b3.webp'
-}
 
 const charts = chartNames.map((name) => ({
   name,
-  cover: chartCovers[name],
   songs: songs.filter((song) => song.chart === name)
 }))
 
@@ -54,16 +48,13 @@ function playSong(song, list) {
 
     <div class="rank-charts">
       <button
-        v-for="chart in charts"
+        v-for="(chart, index) in charts"
         :key="chart.name"
         type="button"
         class="rank-chart-card"
-        :class="{ active: activeChartName === chart.name }"
+        :class="[`chart${index + 1}`, { active: activeChartName === chart.name }]"
         @click="selectChart(chart.name)"
       >
-        <div class="rank-chart-cover">
-          <img :src="chart.cover" :alt="chart.name" loading="lazy" decoding="async" />
-        </div>
         <div class="rank-chart-info">
           <h2 class="rank-chart-name">{{ chart.name }}</h2>
           <ol class="rank-chart-top">
@@ -119,11 +110,12 @@ function playSong(song, list) {
 
 .rank-chart-card {
   display: flex;
+  flex-direction: column;
   gap: 14px;
-  padding: 14px;
+  padding: 20px;
   border: 2px solid transparent;
   border-radius: 12px;
-  background: var(--surface);
+  background-color: rgba(255, 255, 255, 0.18);
   color: var(--text);
   font-family: inherit;
   text-align: left;
@@ -132,6 +124,18 @@ function playSong(song, list) {
     transform 0.2s ease,
     box-shadow 0.2s ease,
     border-color 0.2s ease;
+}
+
+.rank-chart-card.chart1 {
+  background-image: linear-gradient(150deg, rgba(255, 158, 196, 0.72), rgba(233, 78, 119, 0.72));
+}
+
+.rank-chart-card.chart2 {
+  background-image: linear-gradient(210deg, rgba(255, 126, 179, 0.72), rgba(216, 74, 114, 0.72));
+}
+
+.rank-chart-card.chart3 {
+  background-image: linear-gradient(120deg, rgba(255, 126, 179, 0.72), rgba(233, 78, 119, 0.72));
 }
 
 .rank-chart-card:hover {
@@ -144,24 +148,8 @@ function playSong(song, list) {
   box-shadow: 0 12px 26px rgba(255, 126, 179, 0.22);
 }
 
-.rank-chart-cover {
-  flex: 0 0 auto;
-  width: 90px;
-  height: 90px;
-  overflow: hidden;
-  border-radius: 8px;
-  background: rgba(255, 192, 203, 0.3);
-}
-
-.rank-chart-cover img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
 .rank-chart-info {
   min-width: 0;
-  flex: 1;
 }
 
 .rank-chart-name {
@@ -190,7 +178,7 @@ function playSong(song, list) {
 
 .rank-chart-top-num {
   flex: 0 0 auto;
-  color: var(--brand-strong);
+  color: rgba(25, 25, 25, 0.8);
   font-weight: 800;
 }
 

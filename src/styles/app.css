@@ -199,16 +199,26 @@ body {
   place-items: center;
   width: 40px;
   height: 40px;
-  background: transparent;
+  border: 1px solid rgba(25, 25, 25, 0.12);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.42);
   color: var(--text-muted);
-  font-size: 24px;
+  font-size: 22px;
   line-height: 1;
-  font-variant-emoji: text;
-  transition: color 0.18s ease;
+  transition: color 0.18s ease, background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.vue-player-favorite:hover {
+  color: var(--brand-strong);
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(233, 78, 119, 0.4);
+  transform: scale(1.08);
 }
 
 .vue-player-favorite.active {
   color: var(--brand-strong);
+  background: rgba(233, 78, 119, 0.14);
+  border-color: rgba(233, 78, 119, 0.45);
 }
 
 .vue-player-queue {
@@ -477,11 +487,15 @@ body {
   color: var(--text-secondary);
 }
 
-input:focus,
+input:focus-visible,
 button:focus-visible,
 [role='button']:focus-visible {
   outline: 3px solid rgba(255, 94, 148, 0.32);
   outline-offset: 2px;
+}
+
+button {
+  border: none;
 }
 
 button:not(:disabled),
