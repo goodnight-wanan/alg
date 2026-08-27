@@ -330,12 +330,21 @@ function openArtist(artist) {
               />
             </button>
             <img :src="song.cover" :alt="song.title" loading="lazy" decoding="async" />
-            <strong>
-              <template v-for="(seg, i) in highlight(`${song.title} - ${song.artist}`)" :key="i">
-                <mark v-if="seg.match">{{ seg.text }}</mark
-                ><template v-else>{{ seg.text }}</template>
-              </template>
-            </strong>
+            <div class="search-row-main">
+              <strong>
+                <template v-for="(seg, i) in highlight(song.title)" :key="`t${i}`">
+                  <mark v-if="seg.match">{{ seg.text }}</mark
+                  ><template v-else>{{ seg.text }}</template>
+                </template>
+              </strong>
+              <button
+                type="button"
+                class="search-artist"
+                @click.stop="openArtist({ name: song.artist })"
+              >
+                {{ song.artist }}
+              </button>
+            </div>
             <span>{{ song.album }}</span>
             <span>{{ song.duration }}</span>
           </div>
@@ -750,6 +759,35 @@ function openArtist(artist) {
 
 .search-row:hover {
   background: rgba(255, 255, 255, 0.78);
+}
+
+.search-row-main {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+}
+
+.search-row-main strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search-artist {
+  flex: 0 0 auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.search-artist:hover {
+  color: var(--brand-strong);
 }
 
 mark {

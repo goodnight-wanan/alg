@@ -9,6 +9,12 @@ import { useNotice } from './utils/notice'
 const route = useRoute()
 const userStore = useUserStore()
 const notice = useNotice()
+const noticeIcon = computed(() => {
+  const type = notice.value?.type
+  if (type === 'success') return 'success'
+  if (type === 'error') return 'alert'
+  return 'info'
+})
 const showPlayer = computed(() => !['login', 'register'].includes(route.name))
 const showHeader = computed(() => !['login', 'register'].includes(route.name))
 const showBackTop = ref(false)
@@ -46,7 +52,10 @@ onBeforeUnmount(() => {
     <PlayerBar v-if="showPlayer" />
 
     <Transition name="notice">
-      <div v-if="notice" class="page-notice">{{ notice }}</div>
+      <div v-if="notice" class="page-notice" :class="`is-${notice.type}`">
+        <Icon :name="noticeIcon" :size="16" />
+        <span>{{ notice.message }}</span>
+      </div>
     </Transition>
 
     <button
@@ -108,6 +117,9 @@ onBeforeUnmount(() => {
   top: calc(var(--header-height, 0px) + 18px);
   left: 50%;
   z-index: 2000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 12px 22px;
   border-radius: 999px;
   background: rgb(25 25 25 / 88%);
@@ -116,6 +128,14 @@ onBeforeUnmount(() => {
   font-weight: 700;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
   transform: translateX(-50%);
+}
+
+.page-notice.is-success {
+  background: rgba(46, 160, 67, 0.92);
+}
+
+.page-notice.is-error {
+  background: rgba(220, 53, 69, 0.92);
 }
 
 .notice-enter-active,

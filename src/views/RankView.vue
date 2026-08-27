@@ -81,7 +81,7 @@ function playSong(song, list) {
 
       <div class="rank-list">
         <div
-          v-for="(song, index) in activeChart.songs"
+          v-for="(song, index) in activeChart.songs.slice(0, 20)"
           :key="song.id"
           class="rank-row"
           :class="[`rank-${index + 1}`, { playing: currentSong?.id === song.id }]"

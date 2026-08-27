@@ -25,7 +25,7 @@ body {
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
-  background-attachment: fixed;
+  background-attachment: scroll;
 }
 
 #app {
@@ -217,6 +217,21 @@ body {
   color: var(--brand-strong);
 }
 
+.player-loading {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(25, 25, 25, 0.25);
+  border-top-color: var(--brand-strong);
+  border-radius: 50%;
+  animation: player-spin 0.7s linear infinite;
+}
+
+@keyframes player-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .vue-player-queue {
   position: absolute;
   right: max(24px, calc((100% - 1500px) / 2));
@@ -232,9 +247,33 @@ body {
 
 .vue-player-queue-head {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   padding: 14px 16px 10px;
   border-bottom: 1px solid #f3f3f3;
+}
+
+.vue-player-queue-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vue-player-queue-close {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(25, 25, 25, 0.06);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.vue-player-queue-close:hover {
+  color: var(--brand-strong);
+  background: rgba(255, 105, 157, 0.14);
 }
 
 .vue-player-queue-list {
@@ -527,10 +566,6 @@ button:not(:disabled),
 @media (max-width: 700px) {
   :root {
     --player-height: 142px;
-  }
-
-  body {
-    background-attachment: scroll;
   }
 
   .functional-page {

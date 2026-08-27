@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { usePlayerStore } from '../stores/player'
 import { useUserStore } from '../stores/user'
 import { showNotice } from '../utils/notice'
@@ -7,6 +7,7 @@ import { showNotice } from '../utils/notice'
 const playerStore = usePlayerStore()
 const userStore = useUserStore()
 const showQueue = ref(false)
+const playerHovered = ref(false)
 const volumePercent = computed(() => Math.round(playerStore.volume * 100))
 
 const modeLabel = computed(() => {
@@ -44,10 +45,58 @@ function toggleFavorite() {
 
   userStore.toggleFavoriteSong(playerStore.currentSong.id)
 }
+
+function handleKeydown(event) {
+  const target = event.target
+  const interactive = target?.closest?.('input, textarea, select, [contenteditable="true"]')
+  if (interactive) return
+
+  if (event.key === ' ') {
+    if (target?.closest?.('button, [role="button"], a[href]')) return
+    event.preventDefault()
+    playerStore.togglePlay()
+    return
+  }
+
+  if (event.key === 'ArrowLeft') {
+    event.preventDefault()
+    playerStore.seekBy(-5)
+    return
+  }
+
+  if (event.key === 'ArrowRight') {
+    event.preventDefault()
+    playerStore.seekBy(5)
+    return
+  }
+
+  if ((event.key === 'ArrowUp' || event.key === 'ArrowDown') && playerHovered.value) {
+    event.preventDefault()
+    playerStore.adjustVolume(event.key === 'ArrowUp' ? 0.05 : -0.05)
+  }
+}
+
+function onDocumentClick(event) {
+  if (!showQueue.value) return
+  const inside =
+    event.target?.closest?.('.vue-player-queue') ||
+    event.target?.closest?.('[aria-label="播放队列"]')
+  if (!inside) showQueue.value = false
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleKeydown)
+  document.addEventListener('click', onDocumentClick)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown)
+  document.removeEventListener('click', onDocumentClick)
+})
 </script>
 
 <template>
-  <footer class="vue-player">
+  <footer class="vue-player" @mouseenter="playerHovered = true" @mouseleave="playerHovered = false">
     <div class="vue-player-inner">
       <div class="vue-player-now">
         <div class="vue-player-cover">
@@ -91,6 +140,7 @@ function toggleFavorite() {
             class="vue-player-button"
             type="button"
             title="上一首"
+            aria-label="上一首"
             @click="playerStore.previous"
           >
             <Icon name="previous" />
@@ -99,11 +149,19 @@ function toggleFavorite() {
             class="vue-player-button"
             type="button"
             title="播放/暂停"
+            aria-label="播放/暂停"
             @click="playerStore.togglePlay"
           >
-            <Icon :name="playerStore.isPlaying ? 'pause' : 'play'" />
+            <span v-if="playerStore.isBuffering" class="player-loading" aria-hidden="true"></span>
+            <Icon v-else :name="playerStore.isPlaying ? 'pause' : 'play'" />
           </button>
-          <button class="vue-player-button" type="button" title="下一首" @click="playerStore.next">
+          <button
+            class="vue-player-button"
+            type="button"
+            title="下一首"
+            aria-label="下一首"
+            @click="playerStore.next"
+          >
             <Icon name="next" />
           </button>
           <button
@@ -164,7 +222,17 @@ function toggleFavorite() {
       <div v-if="showQueue && playerStore.queue.length" class="vue-player-queue">
         <div class="vue-player-queue-head">
           <strong>播放队列</strong>
-          <span>{{ playerStore.queue.length }} 首</span>
+          <div class="vue-player-queue-actions">
+            <span>{{ playerStore.queue.length }} 首</span>
+            <button
+              type="button"
+              class="vue-player-queue-close"
+              aria-label="关闭播放队列"
+              @click="showQueue = false"
+            >
+              <Icon name="close" :size="16" />
+            </button>
+          </div>
         </div>
         <ul class="vue-player-queue-list">
           <li

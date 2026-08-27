@@ -102,7 +102,7 @@ a{
     width: 32px;
     height: 32px;
     border: 0;
-    background-image: url(../imgs/search/搜索1.png);
+    background-image: url(/assets/imgs/search/搜索1.png);
     background-size: 60%;
     background-color: transparent;
     background-repeat: no-repeat;
@@ -110,7 +110,7 @@ a{
     cursor: pointer;
 }
 .header-button:hover{
-    background-image: url(../imgs/search/搜索2.png);
+    background-image: url(/assets/imgs/search/搜索2.png);
     background-repeat: no-repeat;
     background-position: center;
 }
@@ -407,7 +407,7 @@ a{
     width: 64px;
     height: 64px;
     border-radius: 100%;
-    background-image: url(../imgs/media/play.png);
+    background-image: url(/assets/imgs/media/play.png);
     background-position: center;
     background-repeat: no-repeat;
     background-color: rgba(255,255,255,0.8);

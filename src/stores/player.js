@@ -1,8 +1,7 @@
 import { computed, ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 import { useUserStore } from './user'
-
-const audio = new Audio()
+import { showNotice } from '../utils/notice'
 
 function formatTime(seconds) {
   if (!Number.isFinite(seconds) || seconds < 0) return '00:00'
@@ -13,6 +12,8 @@ function formatTime(seconds) {
 }
 
 export const usePlayerStore = defineStore('player', () => {
+  const audio = new Audio()
+  const isBuffering = ref(false)
   const queue = ref([])
   const currentIndex = ref(-1)
   const isPlaying = ref(false)
@@ -33,6 +34,14 @@ export const usePlayerStore = defineStore('player', () => {
   watch(currentSong, (song) => {
     if (!song?.id) return
     useUserStore().recordPlay(song.id)
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: song.title,
+        artist: song.artist,
+        album: song.album,
+        artwork: [{ src: song.cover, sizes: '512x512', type: 'image/webp' }]
+      })
+    }
   })
 
   function syncVolume() {
@@ -171,9 +180,18 @@ export const usePlayerStore = defineStore('player', () => {
     audio.currentTime = Math.min(Math.max(ratio, 0), 1) * duration.value
   }
 
+  function seekBy(seconds) {
+    if (!duration.value) return
+    audio.currentTime = Math.min(Math.max(audio.currentTime + seconds, 0), duration.value)
+  }
+
   function setVolume(value) {
     volume.value = Math.min(Math.max(value, 0), 1)
     syncVolume()
+  }
+
+  function adjustVolume(delta) {
+    setVolume(volume.value + delta)
   }
 
   function toggleMute() {
@@ -222,19 +240,47 @@ export const usePlayerStore = defineStore('player', () => {
   })
   audio.addEventListener('play', () => {
     isPlaying.value = true
+    isBuffering.value = false
   })
   audio.addEventListener('pause', () => {
     isPlaying.value = false
   })
+  audio.addEventListener('waiting', () => {
+    isBuffering.value = true
+  })
+  audio.addEventListener('canplay', () => {
+    isBuffering.value = false
+  })
+  audio.addEventListener('playing', () => {
+    isBuffering.value = false
+  })
   audio.addEventListener('ended', handleEnded)
   audio.addEventListener('error', () => {
     isPlaying.value = false
+    isBuffering.value = false
+    showNotice('音频加载失败，请稍后重试', 'error')
+  })
+
+  if ('mediaSession' in navigator) {
+    navigator.mediaSession.setActionHandler('play', () => play())
+    navigator.mediaSession.setActionHandler('pause', () => pause())
+    navigator.mediaSession.setActionHandler('previoustrack', () => previous())
+    navigator.mediaSession.setActionHandler('nexttrack', () => next())
+    navigator.mediaSession.setActionHandler('seekbackward', () => seekBy(-10))
+    navigator.mediaSession.setActionHandler('seekforward', () => seekBy(10))
+  }
+
+  watch(isPlaying, (value) => {
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.playbackState = value ? 'playing' : 'paused'
+    }
   })
 
   return {
     queue,
     currentIndex,
     isPlaying,
+    isBuffering,
     currentTime,
     duration,
     volume,
@@ -252,7 +298,9 @@ export const usePlayerStore = defineStore('player', () => {
     previous,
     playAt,
     seekRatio,
+    seekBy,
     setVolume,
+    adjustVolume,
     toggleMute,
     cycleMode,
     formatTime

@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import { showNotice } from '../utils/notice'
@@ -46,7 +46,10 @@ function handleGlobalKey(event) {
   const tag = document.activeElement?.tagName
   if (tag === 'INPUT' || tag === 'TEXTAREA') return
   event.preventDefault()
-  searchInput.value?.focus()
+  if (window.innerWidth <= 700) {
+    menuOpen.value = true
+  }
+  nextTick(() => searchInput.value?.focus())
 }
 
 watch(

@@ -1,13 +1,13 @@
 import { ref } from 'vue'
 
-const notice = ref('')
+const notice = ref(null)
 let timer = null
 
-export function showNotice(message) {
-  notice.value = message
+export function showNotice(message, type = 'info') {
+  notice.value = { message, type }
   window.clearTimeout(timer)
   timer = window.setTimeout(() => {
-    notice.value = ''
+    notice.value = null
   }, 2200)
 }
 

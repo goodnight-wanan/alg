@@ -2,9 +2,7 @@
 import { reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
-import { usePageCss } from '../utils/pageCss'
-
-usePageCss(['/assets/css/login.css'])
+import '../styles/login.css'
 
 const route = useRoute()
 const router = useRouter()
