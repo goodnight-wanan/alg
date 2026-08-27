@@ -398,6 +398,10 @@ a{
     inset: 0;
     display: grid;
     place-items: center;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    cursor: pointer;
 }
 .cont2-play{
     width: 64px;
@@ -642,6 +646,7 @@ a{
     position: relative;
     top: 0px;
     transition: 0.4s;
+    background-color: rgba(255, 255, 255, 0.18);
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
@@ -744,7 +749,7 @@ a{
     text-align: center;
     font-size: 35px;
     line-height: 70px;
-    color: white;
+    color: rgba(25, 25, 25, 0.9);
     transition: 0.3s;
 }
 .cont4-chart_song_meg{
@@ -810,4 +815,14 @@ a{
 }
 .ft-download{
     color: white;
+}
+.footer-links a{
+    color: white;
+}
+.footer-links a:hover{
+    color: var(--brand-strong);
+}
+.footer-sep{
+    margin: 0 10px;
+    color: rgba(255, 255, 255, 0.5);
 }

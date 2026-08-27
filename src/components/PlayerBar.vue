@@ -111,6 +111,7 @@ function toggleFavorite() {
             :value="playerStore.progress"
             :disabled="!playerStore.currentSong"
             aria-label="播放进度"
+            :aria-valuetext="`${playerStore.currentTimeText} / ${playerStore.durationText}`"
             @input="onSeek"
           />
           <span class="vue-player-time">{{ playerStore.durationText }}</span>
@@ -129,6 +130,7 @@ function toggleFavorite() {
           step="0.01"
           :value="playerStore.volume"
           aria-label="音量"
+          :aria-valuetext="`${volumePercent}%`"
           @input="onVolume"
         />
         <span class="vue-player-volume-value">{{ volumePercent }}%</span>

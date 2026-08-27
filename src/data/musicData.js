@@ -45,7 +45,7 @@ export const songs = [
     genre: '流行',
     mood: '伤感',
     era: '20年代',
-    region: '日韩',
+    region: '日本',
     isNew: true,
     chart: '新歌榜'
   },
@@ -269,7 +269,7 @@ export const songs = [
     genre: '流行',
     mood: '欢快',
     era: '10年代',
-    region: '日韩',
+    region: '韩国',
     isNew: false,
     chart: '热歌榜'
   },
@@ -530,7 +530,7 @@ export const categories = {
   genres: ['流行', '蓝调', '轻音乐', '说唱', '电子音乐', 'R&B', '民谣', '古典音乐', '乡村', '重金属'],
   moods: ['欢快', '伤感', '安静', '励志', '思念', '甜蜜', '治愈', '青春'],
   eras: ['70年代', '80年代', '90年代', '00年代', '10年代', '20年代'],
-  regions: ['内地', '港台', '欧美', '日韩']
+  regions: ['内地', '港台', '欧美', '韩国', '日本']
 }
 
 // 追加模拟歌曲数据（文案借鉴 QQ音乐/网易云，接入后端前为占位数据）
@@ -556,13 +556,18 @@ const newSongSeeds = {
     ['Let Her Go', 'Passenger'], ['Photograph', 'Ed Sheeran'], ['7 Years', 'Lukas Graham'],
     ['Halo', 'Beyoncé'], ['Closer', 'The Chainsmokers'], ['Shallow', 'Lady Gaga'], ['Yellow', 'Coldplay']
   ],
-  日韩: [
+  韩国: [
     ['Dynamite', 'BTS'], ['Butter', 'BTS'], ['DNA', 'BTS'], ['How You Like That', 'BLACKPINK'],
     ['Kill This Love', 'BLACKPINK'], ['DDU-DU DDU-DU', 'BLACKPINK'], ['LOVE SCENARIO', 'iKON'],
     ['BANG BANG BANG', 'BIGBANG'], ['FANTASTIC BABY', 'BIGBANG'], ['Gee', '少女时代'],
     ['I GOT A BOY', '少女时代'], ['Boy With Luv', 'BTS'], ['Psycho', 'Red Velvet'], ['TT', 'TWICE'],
-    ['Cheer Up', 'TWICE'], ['FANCY', 'TWICE'], ['Lemon', '米津玄師'], ['打上花火', 'DAOKO'],
-    ['Pretender', 'Official髭男dism'], ['恋', '星野源'], ['Lovesick Girls', 'BLACKPINK'], ['Spring Day', 'BTS']
+    ['Cheer Up', 'TWICE'], ['FANCY', 'TWICE'], ['Lovesick Girls', 'BLACKPINK'], ['Spring Day', 'BTS']
+  ],
+  日本: [
+    ['Lemon', '米津玄師'], ['打上花火', 'DAOKO'], ['Pretender', 'Official髭男dism'], ['恋', '星野源'],
+    ['前前前世', 'RADWIMPS'], ['夜に駆ける', 'YOASOBI'], ['群青', 'YOASOBI'], ['アイドル', 'YOASOBI'],
+    ['紅蓮華', 'LiSA'], ['炎', 'LiSA'], ['廻廻奇譚', 'Eve'], ['unravel', 'TK from 凛として時雨'],
+    ['シルエット', 'KANA-BOON'], ['ドライフラワー', '優里']
   ]
 }
 
@@ -606,7 +611,7 @@ Object.entries(newSongSeeds).forEach(([region, pairs]) => {
       mood: moodCycle[songSeq % moodCycle.length],
       era: eraCycle[songSeq % eraCycle.length],
       region,
-      isNew: index % 4 === 0,
+      isNew: index % 2 === 0,
       chart: chartCycle[songSeq % chartCycle.length]
     })
   })

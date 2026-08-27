@@ -31,12 +31,10 @@ const regionTabs = [
   { key: '韩国', label: '韩国' },
   { key: '日本', label: '日本' }
 ]
-const regionAlias = { 韩国: '日韩', 日本: '日韩' }
 
 const activePlaylistTab = ref(homePlaylistTabs[0].key)
 const playlistPage = ref(0)
 const songPage = ref(0)
-const chartPage = ref(0)
 const activeNewRegion = ref('all')
 const activeChartRegion = ref('all')
 
@@ -70,8 +68,7 @@ const visiblePlaylists = computed(() => playlistPages.value[playlistPage.value] 
 
 const newRegionSongs = computed(() => {
   if (activeNewRegion.value === 'all') return songs.filter((song) => song.isNew)
-  const target = regionAlias[activeNewRegion.value] || activeNewRegion.value
-  return songs.filter((song) => song.region === target)
+  return songs.filter((song) => song.isNew && song.region === activeNewRegion.value)
 })
 
 const newSongPages = computed(() => makePages(newRegionSongs.value, 6))
@@ -81,14 +78,13 @@ const chartNames = ['飙升榜', '热歌榜', '新歌榜']
 
 const chartSongsByRegion = computed(() => {
   if (activeChartRegion.value === 'all') return songs
-  const target = regionAlias[activeChartRegion.value] || activeChartRegion.value
-  return songs.filter((song) => song.region === target)
+  return songs.filter((song) => song.region === activeChartRegion.value)
 })
 
 const chartGroups = computed(() =>
   chartNames.map((name) => {
     const list = chartSongsByRegion.value.filter((song) => song.chart === name)
-    return { name, pages: makePages(list, 3) }
+    return { name, songs: list.slice(0, 3) }
   })
 )
 
@@ -150,7 +146,6 @@ function setRegion(region, target) {
     songPage.value = 0
   } else {
     activeChartRegion.value = region
-    chartPage.value = 0
   }
 }
 
@@ -165,10 +160,6 @@ function goRank(chart) {
 function playPlaylist(playlist) {
   const list = songs.filter((song) => playlist.songIds.includes(song.id))
   playerStore.playAll(list)
-}
-
-function playSong(song, list = [song]) {
-  playerStore.playSong(song, list)
 }
 
 function playNewSong(song) {
@@ -271,9 +262,9 @@ onUnmounted(() => {
             <div class="cont2-shell" @click="goPlaylist(playlist.id)">
               <img class="cont2-img" :src="playlist.cover" :alt="playlist.title" loading="lazy" decoding="async" />
               <div class="cont2-shadow"></div>
-              <a class="cont2-play_list" href="javascript:;" @click.stop.prevent="playPlaylist(playlist)">
+              <button type="button" class="cont2-play_list" @click.stop="playPlaylist(playlist)">
                 <div class="cont2-play" title="播放"></div>
-              </a>
+              </button>
             </div>
             <div class="cont2-word" @click="goPlaylist(playlist.id)">
               <p>{{ playlist.title }}</p>
@@ -377,7 +368,7 @@ onUnmounted(() => {
       </RouterLink>
 
       <Transition name="section-fade" mode="out-in">
-        <div :key="`${activeChartRegion}-${chartPage}`" class="cont4-charts">
+        <div :key="activeChartRegion" class="cont4-charts">
           <div
             v-for="(group, index) in chartGroups"
             :key="group.name"
@@ -386,12 +377,12 @@ onUnmounted(() => {
           >
             <div class="cont4-chart_title" style="cursor:pointer" title="查看完整榜单" @click="goRank(group.name)">{{ group.name }}</div>
             <div class="cont4-chart_line"></div>
-            <div class="cont4-chart_play_back" @click="(group.pages[chartPage] || []).length && playChartSong(group.pages[chartPage][0], group)">
+            <div class="cont4-chart_play_back" @click="group.songs.length && playChartSong(group.songs[0], group)">
               <img src="/assets/imgs/media/play.png" class="cont4-chart_play" alt="播放" />
             </div>
             <div class="cont4-chart_list">
               <div
-                v-for="(song, songIndex) in group.pages[chartPage] || []"
+                v-for="(song, songIndex) in group.songs"
                 :key="song.id"
                 class="cont4-chart_song"
                 @click="playChartSong(song, group)"
@@ -421,7 +412,17 @@ onUnmounted(() => {
         <p>软件工程北华前端开发小组 · Vue 3 重构版</p>
         <p>违法和不良信息举报电话：6666-88888</p>
         <p>举报邮箱：xxx@qg.com</p>
-        <p>音乐网站 | 服务条款 | 隐私政策 | 版权投诉指引 | 意见反馈</p>
+        <p class="footer-links">
+          <span>音乐网站</span>
+          <span class="footer-sep" aria-hidden="true">|</span>
+          <a href="#" @click.prevent="showNotice('服务条款为演示内容，暂未开放')">服务条款</a>
+          <span class="footer-sep" aria-hidden="true">|</span>
+          <a href="#" @click.prevent="showNotice('隐私政策为演示内容，暂未开放')">隐私政策</a>
+          <span class="footer-sep" aria-hidden="true">|</span>
+          <a href="#" @click.prevent="showNotice('版权投诉指引为演示内容，暂未开放')">版权投诉指引</a>
+          <span class="footer-sep" aria-hidden="true">|</span>
+          <a href="#" @click.prevent="showNotice('意见反馈为演示功能，暂未开放')">意见反馈</a>
+        </p>
       </div>
     </div>
   </div>

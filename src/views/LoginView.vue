@@ -51,8 +51,14 @@ function socialLogin(name) {
     <div class="login-container">
       <h2>登录</h2>
       <form @submit.prevent="submit">
-        <input v-model="form.account" type="text" placeholder="请输入你的用户名或邮箱" name="account" aria-label="用户名或邮箱" autocomplete="username" required />
-        <input v-model="form.password" type="password" placeholder="请输入你的密码" name="password" aria-label="密码" autocomplete="current-password" required />
+        <div class="form-field">
+          <label for="login-account">账号</label>
+          <input id="login-account" v-model="form.account" type="text" placeholder="请输入用户名或邮箱" name="account" autocomplete="username" required />
+        </div>
+        <div class="form-field">
+          <label for="login-password">密码</label>
+          <input id="login-password" v-model="form.password" type="password" placeholder="请输入密码" name="password" autocomplete="current-password" required />
+        </div>
 
         <div class="social-login">
           <button type="button" class="social-button QQ" @click="socialLogin('QQ')">使用 QQ 登录</button>
@@ -64,8 +70,8 @@ function socialLogin(name) {
           <label for="terms">我已阅读并同意 <a href="#" @click.prevent>用户协议</a></label>
         </div>
 
-        <p v-if="error" class="form-error">{{ error }}</p>
-        <p v-if="notice" class="form-notice">{{ notice }}</p>
+        <p v-if="error" class="form-error"><Icon name="alert" :size="16" />{{ error }}</p>
+        <p v-if="notice" class="form-notice"><Icon name="alert" :size="16" />{{ notice }}</p>
 
         <button type="submit">登录</button>
         <a href="#" @click.prevent>忘记密码？</a>

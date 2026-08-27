@@ -399,12 +399,17 @@ body {
 }
 
 .form-notice {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   margin: 0;
   padding: 10px 12px;
   border-radius: 10px;
   background: #fff4d6;
   color: #8a651c;
   font-size: 13px;
+  font-weight: 700;
+  text-align: left;
 }
 
 .no-result {

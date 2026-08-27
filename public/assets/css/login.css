@@ -26,6 +26,23 @@
     font-family: var(--font-sans);
 }
 
+.form-field {
+    text-align: left;
+    margin: 12px 0;
+}
+
+.form-field label {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.form-field input {
+    margin: 0;
+}
+
 .login-container button[type="submit"] {
     width: 100%;
     padding: 11px;
@@ -80,9 +97,17 @@
 }
 
 .form-error {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 10px 0 0;
+    padding: 9px 12px;
+    border-radius: 8px;
+    background: rgba(233, 78, 119, 0.12);
     color: var(--brand-strong);
     font-size: 13px;
-    margin: 10px 0 0;
+    font-weight: 700;
+    text-align: left;
 }
 
 .login-container a {
