@@ -16,10 +16,10 @@ const carouselPaused = ref(false)
 let slideTimer = null
 
 const slides = [
-  { src: '/assets/imgs/homepage/carousel/carousel1.jpg', alt: '悦音音乐推荐横幅一' },
-  { src: '/assets/imgs/homepage/carousel/carousel2.jpg', alt: '悦音音乐推荐横幅二' },
-  { src: '/assets/imgs/homepage/carousel/carousel3.jpg', alt: '悦音音乐推荐横幅三' },
-  { src: '/assets/imgs/homepage/carousel/carousel4.jpg', alt: '悦音音乐推荐横幅四' }
+  { src: '/assets/imgs/homepage/carousel/carousel1.webp', alt: '悦音音乐推荐横幅一' },
+  { src: '/assets/imgs/homepage/carousel/carousel2.webp', alt: '悦音音乐推荐横幅二' },
+  { src: '/assets/imgs/homepage/carousel/carousel3.webp', alt: '悦音音乐推荐横幅三' },
+  { src: '/assets/imgs/homepage/carousel/carousel4.webp', alt: '悦音音乐推荐横幅四' }
 ]
 
 const regionTabs = [

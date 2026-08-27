@@ -21,7 +21,7 @@
 body {
   margin: 0;
   font-family: var(--font-sans);
-  background-image: url('/assets/imgs/homepage/homepage.jpg');
+  background-image: url('/assets/imgs/homepage/homepage.webp');
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;

@@ -10,9 +10,9 @@ const playerStore = usePlayerStore()
 
 const chartNames = ['飙升榜', '热歌榜', '新歌榜']
 const chartCovers = {
-  飙升榜: '/assets/imgs/homepage/chart_back/chart_b1.png',
-  热歌榜: '/assets/imgs/homepage/chart_back/chart_b2.png',
-  新歌榜: '/assets/imgs/homepage/chart_back/chart_b3.png'
+  飙升榜: '/assets/imgs/homepage/chart_back/chart_b1.webp',
+  热歌榜: '/assets/imgs/homepage/chart_back/chart_b2.webp',
+  新歌榜: '/assets/imgs/homepage/chart_back/chart_b3.webp'
 }
 
 const charts = chartNames.map((name) => ({
