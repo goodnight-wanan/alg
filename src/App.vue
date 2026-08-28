@@ -35,7 +35,8 @@ function handleStorage(event) {
 }
 
 function handleAuthMessage(event) {
-  if (event.origin !== window.location.origin || event.data?.type !== 'music-site:auth-success') return
+  if (event.origin !== window.location.origin || event.data?.type !== 'music-site:auth-success')
+    return
   userStore.syncSession()
   showNotice('登录成功', 'success')
   const redirect = String(event.data.redirect || '/')
@@ -127,7 +128,7 @@ onBeforeUnmount(() => {
   position: fixed;
   top: calc(var(--header-height, 0px) + 18px);
   left: 50%;
-  z-index: 2000;
+  z-index: 4000;
   display: flex;
   align-items: center;
   gap: 8px;

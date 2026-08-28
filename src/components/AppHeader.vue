@@ -24,7 +24,7 @@ const isCategory = computed(() => route.path.startsWith('/category'))
 const isRank = computed(() => route.path === '/rank')
 const isAlbum = computed(() => route.path === '/album')
 const isArtist = computed(() => route.path === '/artist')
-const isMine = computed(() => route.name === 'mine' || route.name === 'profile')
+const isMine = computed(() => route.name === 'mine')
 const searchSuggestions = computed(() => {
   const word = keyword.value.trim().toLowerCase()
   if (!word) return []
@@ -32,15 +32,35 @@ const searchSuggestions = computed(() => {
   const songItems = songs
     .filter((song) => [song.title, song.artist, song.album].join(' ').toLowerCase().includes(word))
     .slice(0, 4)
-    .map((song) => ({ type: '歌曲', title: song.title, subtitle: song.artist, query: song.title, cover: song.cover }))
+    .map((song) => ({
+      type: '歌曲',
+      title: song.title,
+      subtitle: song.artist,
+      query: song.title,
+      cover: song.cover
+    }))
   const playlistItems = playlists
-    .filter((playlist) => [playlist.title, playlist.description].join(' ').toLowerCase().includes(word))
+    .filter((playlist) =>
+      [playlist.title, playlist.description].join(' ').toLowerCase().includes(word)
+    )
     .slice(0, 2)
-    .map((playlist) => ({ type: '歌单', title: playlist.title, subtitle: playlist.description, query: playlist.title, cover: playlist.cover }))
+    .map((playlist) => ({
+      type: '歌单',
+      title: playlist.title,
+      subtitle: playlist.description,
+      query: playlist.title,
+      cover: playlist.cover
+    }))
   const artistItems = getArtists()
     .filter((artist) => artist.name.toLowerCase().includes(word))
     .slice(0, 2)
-    .map((artist) => ({ type: '歌手', title: artist.name, subtitle: `${artist.region} · ${artist.songCount} 首`, query: artist.name, cover: artist.cover }))
+    .map((artist) => ({
+      type: '歌手',
+      title: artist.name,
+      subtitle: `${artist.region} · ${artist.songCount} 首`,
+      query: artist.name,
+      cover: artist.cover
+    }))
 
   return [...songItems, ...playlistItems, ...artistItems].slice(0, 8)
 })
@@ -198,7 +218,10 @@ onUnmounted(() => {
                 @mousedown.prevent="chooseSearch(item.query)"
               >
                 <img :src="item.cover" :alt="item.title" />
-                <span><strong>{{ item.title }}</strong><small>{{ item.subtitle }}</small></span>
+                <span
+                  ><strong>{{ item.title }}</strong
+                  ><small>{{ item.subtitle }}</small></span
+                >
                 <em>{{ item.type }}</em>
               </button>
               <button
@@ -232,8 +255,9 @@ onUnmounted(() => {
         <RouterLink
           v-if="userStore.isLoggedIn"
           class="user-avatar"
-          to="/profile"
-          :title="userStore.currentUser.username"
+          :to="{ name: 'profile' }"
+          title="进入个人中心"
+          aria-label="进入个人中心"
         >
           <img :src="userStore.currentUser.avatarUrl" alt="用户头像" />
         </RouterLink>
@@ -526,7 +550,9 @@ onUnmounted(() => {
 
 .search-panel-enter-active,
 .search-panel-leave-active {
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
 }
 
 .search-panel-enter-from,

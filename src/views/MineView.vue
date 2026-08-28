@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { getPlaylistById, getPlaylistSongs, getSongById } from '../data/musicData'
 import { usePlayerStore } from '../stores/player'
 import { useUserStore } from '../stores/user'
+import { showNotice } from '../utils/notice'
 import UserCard from '../components/UserCard.vue'
 
 const route = useRoute()
@@ -45,6 +46,11 @@ function playPlaylist(playlist) {
   playerStore.playAll(getPlaylistSongs(playlist))
 }
 
+function isPlaylistPlaying(playlist) {
+  const playlistSongs = getPlaylistSongs(playlist)
+  return playerStore.isListActive(playlistSongs) && playerStore.isPlaying
+}
+
 function openPlaylist(id) {
   router.push({ name: 'playlist', params: { id } })
 }
@@ -63,6 +69,7 @@ function clearHistory() {
 
 function createPlaylist() {
   const result = userStore.createCustomPlaylist(newPlaylistName.value)
+  showNotice(result.message, result.ok ? 'success' : 'error')
   if (!result.ok) return
   newPlaylistName.value = ''
 }
@@ -200,10 +207,11 @@ function formatTimeAgo(time) {
               <button
                 type="button"
                 class="mine-card-play"
-                title="播放"
+                :title="isPlaylistPlaying(playlist) ? '暂停' : '播放'"
+                :aria-label="`${isPlaylistPlaying(playlist) ? '暂停' : '播放'}歌单 ${playlist.title}`"
                 @click.stop="playPlaylist(playlist)"
               >
-                <Icon name="play" :size="18" />
+                <Icon :name="isPlaylistPlaying(playlist) ? 'pause' : 'play'" :size="18" />
               </button>
               <button
                 type="button"
@@ -225,41 +233,67 @@ function formatTimeAgo(time) {
       </div>
 
       <div v-else-if="activeTab === 'custom'" key="custom">
-        <form class="custom-playlist-create" @submit.prevent="createPlaylist">
-          <input v-model.trim="newPlaylistName" type="text" maxlength="30" placeholder="给新歌单起个名字" />
-          <button type="submit">创建歌单</button>
-        </form>
-        <div v-if="customPlaylists.length" class="functional-grid custom-playlist-grid">
-          <article
-            v-for="playlist in customPlaylists"
-            :key="playlist.id"
-            class="mine-card custom-playlist-card"
-            @click="openPlaylist(playlist.id)"
-          >
-            <div class="mine-card-cover">
-              <img :src="playlist.cover" :alt="playlist.name" loading="lazy" decoding="async" />
-              <button
-                type="button"
-                class="mine-card-play"
-                title="播放歌单"
-                @click.stop="playCustomPlaylist(playlist)"
-              >
-                <Icon name="play" :size="18" />
-              </button>
-              <button
-                type="button"
-                class="mine-card-remove"
-                title="删除歌单"
-                @click.stop="deleteCustomPlaylist(playlist.id)"
-              >
-                <Icon name="close" :size="16" />
-              </button>
+        <template v-if="customPlaylists.length">
+          <div class="custom-playlist-toolbar">
+            <div>
+              <strong>我的歌单</strong>
+              <span>共 {{ customPlaylists.length }} 个自建歌单</span>
             </div>
-            <p class="mine-card-title">{{ playlist.name }}</p>
-            <small>{{ playlist.songs.length }} 首歌曲</small>
-          </article>
+            <form class="custom-playlist-create is-compact" @submit.prevent="createPlaylist">
+              <input
+                v-model.trim="newPlaylistName"
+                type="text"
+                maxlength="30"
+                placeholder="歌单名称"
+              />
+              <button type="submit">新建</button>
+            </form>
+          </div>
+          <div class="functional-grid custom-playlist-grid">
+            <article
+              v-for="playlist in customPlaylists"
+              :key="playlist.id"
+              class="mine-card custom-playlist-card"
+              @click="openPlaylist(playlist.id)"
+            >
+              <div class="mine-card-cover">
+                <img :src="playlist.cover" :alt="playlist.name" loading="lazy" decoding="async" />
+                <button
+                  type="button"
+                  class="mine-card-play"
+                  title="播放歌单"
+                  @click.stop="playCustomPlaylist(playlist)"
+                >
+                  <Icon name="play" :size="18" />
+                </button>
+                <button
+                  type="button"
+                  class="mine-card-remove"
+                  title="删除歌单"
+                  @click.stop="deleteCustomPlaylist(playlist.id)"
+                >
+                  <Icon name="close" :size="16" />
+                </button>
+              </div>
+              <p class="mine-card-title">{{ playlist.name }}</p>
+              <small>{{ playlist.songs.length }} 首歌曲</small>
+            </article>
+          </div>
+        </template>
+        <div v-else class="custom-playlist-empty">
+          <span class="custom-playlist-empty-icon"><Icon name="list" :size="38" /></span>
+          <h2>暂无创建的歌单</h2>
+          <p>创建一个专属歌单，把喜欢的歌曲慢慢收集起来。</p>
+          <form class="custom-playlist-create is-empty" @submit.prevent="createPlaylist">
+            <input
+              v-model.trim="newPlaylistName"
+              type="text"
+              maxlength="30"
+              placeholder="输入简短歌单名称"
+            />
+            <button type="submit">立即创建歌单</button>
+          </form>
         </div>
-        <div v-else class="mine-empty"><Icon name="list" :size="48" /><p>还没有自己的歌单</p></div>
       </div>
 
       <div v-else key="history">
@@ -288,7 +322,10 @@ function formatTimeAgo(time) {
               </div>
               <span>{{ song.album }}</span>
               <span>{{ formatTimeAgo(song.playedAt) }}</span>
-              <AddToPlaylistButton :song="song" />
+              <div class="song-action-group">
+                <FavoriteSongButton :song="song" />
+                <AddToPlaylistButton :song="song" />
+              </div>
             </div>
           </div>
         </template>
@@ -313,11 +350,93 @@ function formatTimeAgo(time) {
   background: var(--surface);
 }
 
-.custom-playlist-create { display: flex; gap: 10px; margin-bottom: 22px; }
-.custom-playlist-create input { min-width: 0; height: 42px; flex: 1; padding: 0 14px; border: 1px solid rgba(25, 25, 25, .14); border-radius: 9px; outline: none; }
-.custom-playlist-create input:focus { border-color: var(--brand-strong); box-shadow: 0 0 0 3px rgba(233, 78, 119, .12); }
-.custom-playlist-create button { padding: 0 20px; border-radius: 9px; background: var(--brand-strong); color: #fff; font-weight: 800; }
-.custom-playlist-card small { color: var(--text-secondary); }
+.custom-playlist-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 22px;
+  padding: 16px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 14px;
+  background: var(--surface);
+}
+.custom-playlist-toolbar > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.custom-playlist-toolbar strong {
+  font-size: 17px;
+}
+.custom-playlist-toolbar span {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+.custom-playlist-create {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.custom-playlist-create input {
+  width: 220px;
+  height: 42px;
+  padding: 0 14px;
+  border: 1px solid rgba(25, 25, 25, 0.14);
+  border-radius: 9px;
+  outline: none;
+  background: rgba(255, 255, 255, 0.78);
+}
+.custom-playlist-create input:focus {
+  border-color: var(--brand-strong);
+  box-shadow: 0 0 0 3px rgba(233, 78, 119, 0.12);
+}
+.custom-playlist-create button {
+  min-height: 42px;
+  padding: 0 20px;
+  border-radius: 9px;
+  background: var(--brand-strong);
+  color: #fff;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.custom-playlist-empty {
+  display: flex;
+  min-height: 300px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 42px 24px;
+  border: 1px dashed rgba(233, 78, 119, 0.32);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.62);
+  text-align: center;
+}
+.custom-playlist-empty-icon {
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  margin-bottom: 16px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(255, 126, 179, 0.22), rgba(255, 214, 214, 0.6));
+  color: var(--brand-strong);
+}
+.custom-playlist-empty h2 {
+  margin: 0;
+  font-size: 22px;
+}
+.custom-playlist-empty > p {
+  margin: 8px 0 22px;
+  color: var(--text-secondary);
+}
+.custom-playlist-create.is-empty input {
+  width: min(240px, 55vw);
+}
+.custom-playlist-card small {
+  color: var(--text-secondary);
+}
 
 .mine-tab {
   display: inline-flex;
@@ -661,11 +780,32 @@ function formatTimeAgo(time) {
   }
 
   .mine-row.has-add-action {
-    grid-template-columns: 38px 48px minmax(0, 1fr) 40px;
+    grid-template-columns: 38px 48px minmax(0, 1fr) 80px;
   }
 
   .mine-row.has-add-action.has-remove-action {
     grid-template-columns: 38px 48px minmax(0, 1fr) 40px 36px;
+  }
+
+  .custom-playlist-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .custom-playlist-create.is-compact {
+    width: 100%;
+  }
+  .custom-playlist-create.is-compact input {
+    width: auto;
+    min-width: 0;
+    flex: 1;
+  }
+  .custom-playlist-create.is-empty {
+    width: 100%;
+    flex-direction: column;
+  }
+  .custom-playlist-create.is-empty input,
+  .custom-playlist-create.is-empty button {
+    width: min(280px, 100%);
   }
 }
 </style>

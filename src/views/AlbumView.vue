@@ -74,8 +74,10 @@ function playAlbum(album) {
           {{ album.album }}
         </h3>
         <p class="album-artist">{{ album.artist }}</p>
-        <p class="album-meta">{{ album.genre }} · {{ album.duration }}</p>
-        <AddToPlaylistButton :song="album" />
+        <div class="album-footer">
+          <p class="album-meta">{{ album.genre }} · {{ album.duration }}</p>
+          <FavoriteSongButton :song="album" />
+        </div>
       </article>
     </div>
     <div v-else class="functional-empty">暂时没有新碟上架</div>
@@ -294,6 +296,13 @@ function playAlbum(album) {
   color: var(--text-muted);
   font-size: 12px;
   font-weight: 600;
+}
+
+.album-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 @media (max-width: 700px) {

@@ -67,8 +67,14 @@ body.modal-open {
   border-color: var(--brand-strong);
 }
 
-.user-avatar { overflow: hidden; }
-.user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.user-avatar {
+  overflow: hidden;
+}
+.user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 
 .auth-text-button {
   display: block;
@@ -81,7 +87,10 @@ body.modal-open {
   text-align: center;
 }
 
-.auth-text-button:hover { color: var(--brand-strong); text-decoration: underline; }
+.auth-text-button:hover {
+  color: var(--brand-strong);
+  text-decoration: underline;
+}
 
 .vue-player-inner {
   width: min(1500px, calc(100% - 48px));
@@ -304,7 +313,7 @@ body.modal-open {
 
 .vue-player-queue-item {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 40px;
+  grid-template-columns: minmax(0, 1fr) 80px;
   align-items: center;
   gap: 4px;
   padding: 7px;
@@ -445,6 +454,13 @@ body.modal-open {
 
 .functional-row.has-add-action {
   grid-template-columns: 42px 56px minmax(0, 1fr) 110px 90px 90px;
+}
+
+.song-action-group {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
 }
 
 .functional-row.playing {
@@ -618,7 +634,7 @@ button:not(:disabled),
 
 @media (max-width: 700px) {
   .functional-row.has-add-action {
-    grid-template-columns: 36px 48px minmax(0, 1fr) 40px;
+    grid-template-columns: 36px 48px minmax(0, 1fr) 80px;
   }
 }
 

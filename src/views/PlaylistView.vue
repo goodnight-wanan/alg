@@ -128,7 +128,10 @@ function deletePlaylist() {
           <strong>{{ song.title }} - {{ song.artist }}</strong>
           <span>{{ song.album }}</span>
           <span>{{ song.duration }}</span>
-          <AddToPlaylistButton :song="song" />
+          <div class="song-action-group">
+            <FavoriteSongButton :song="song" />
+            <AddToPlaylistButton :song="song" />
+          </div>
           <button
             v-if="isCustom"
             type="button"
@@ -298,7 +301,7 @@ function deletePlaylist() {
 
 @media (max-width: 700px) {
   .playlist-row.has-remove-action {
-    grid-template-columns: 36px 48px minmax(0, 1fr) 40px 36px;
+    grid-template-columns: 36px 48px minmax(0, 1fr) 80px 36px;
   }
 
   .playlist-hero {

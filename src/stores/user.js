@@ -7,7 +7,11 @@ export const DEFAULT_AVATAR = '/assets/imgs/default-avatar.svg'
 function sanitizeUser(user) {
   if (!user) return null
   const { passwordHash, ...safeUser } = user
-  return { ...safeUser, avatarUrl: safeUser.avatarUrl || DEFAULT_AVATAR }
+  return {
+    ...safeUser,
+    avatarUrl: safeUser.avatarUrl || DEFAULT_AVATAR,
+    authProvider: safeUser.authProvider || 'password'
+  }
 }
 
 function dataKey(base, userId) {
@@ -145,6 +149,7 @@ export const useUserStore = defineStore('user', () => {
       email: mail,
       passwordHash: hashPassword(password),
       avatarUrl: DEFAULT_AVATAR,
+      authProvider: 'password',
       createdAt: new Date().toISOString()
     }
 
@@ -227,7 +232,9 @@ export const useUserStore = defineStore('user', () => {
     const title = String(name || '').trim()
     if (!title) return { ok: false, message: '请输入歌单名称' }
     if (title.length > 30) return { ok: false, message: '歌单名称不能超过 30 个字符' }
-    if (customPlaylists.value.some((playlist) => playlist.name.toLowerCase() === title.toLowerCase())) {
+    if (
+      customPlaylists.value.some((playlist) => playlist.name.toLowerCase() === title.toLowerCase())
+    ) {
       return { ok: false, message: '已存在同名歌单' }
     }
 
@@ -250,13 +257,67 @@ export const useUserStore = defineStore('user', () => {
     if (!playlist) return { ok: false, message: '歌单不存在' }
 
     const existed = playlist.songIds.includes(songId)
-    playlist.songIds = [...playlist.songIds.filter((id) => id !== songId), songId]
+    if (existed) {
+      return {
+        ok: false,
+        duplicate: true,
+        message: `歌曲已在「${playlist.name}」歌单中`
+      }
+    }
+
+    playlist.songIds = [...playlist.songIds, songId]
     playlist.updatedAt = Date.now()
     return {
       ok: true,
-      added: !existed,
-      message: existed ? `已将歌曲移到「${playlist.name}」末尾` : `已添加到「${playlist.name}」`
+      added: true,
+      message: `已添加到「${playlist.name}」`
     }
+  }
+
+  function updateAvatar(avatarUrl) {
+    if (!isLoggedIn.value) return { ok: false, message: '请先登录后修改头像' }
+    if (currentUser.value.authProvider !== 'password') {
+      return { ok: false, message: '第三方登录账号暂不支持修改头像' }
+    }
+    if (!String(avatarUrl || '').startsWith('data:image/webp;base64,')) {
+      return { ok: false, message: '头像仅支持 WebP 图片' }
+    }
+
+    const userIndex = users.value.findIndex((user) => user.id === currentUser.value.id)
+    if (userIndex < 0) return { ok: false, message: '未找到当前用户信息' }
+
+    const updatedUser = { ...users.value[userIndex], avatarUrl }
+    users.value[userIndex] = updatedUser
+    currentUser.value = sanitizeUser(updatedUser)
+    return { ok: true, message: '头像修改成功' }
+  }
+
+  function changePassword({ currentPassword, newPassword, confirmPassword }) {
+    if (!isLoggedIn.value) return { ok: false, message: '请先登录后修改密码' }
+    if (currentUser.value.authProvider !== 'password') {
+      return { ok: false, message: '第三方登录账号暂不支持修改密码' }
+    }
+
+    const userIndex = users.value.findIndex((user) => user.id === currentUser.value.id)
+    if (userIndex < 0) return { ok: false, message: '未找到当前用户信息' }
+    if (users.value[userIndex].passwordHash !== hashPassword(currentPassword)) {
+      return { ok: false, message: '当前密码不正确' }
+    }
+    if (newPassword.length < 6) {
+      return { ok: false, message: '新密码长度不能少于 6 位' }
+    }
+    if (newPassword === currentPassword) {
+      return { ok: false, message: '新密码不能与当前密码相同' }
+    }
+    if (newPassword !== confirmPassword) {
+      return { ok: false, message: '两次输入的新密码不一致' }
+    }
+
+    users.value[userIndex] = {
+      ...users.value[userIndex],
+      passwordHash: hashPassword(newPassword)
+    }
+    return { ok: true, message: '密码修改成功' }
   }
 
   function removeSongFromCustomPlaylist(playlistId, songId) {
@@ -297,6 +358,8 @@ export const useUserStore = defineStore('user', () => {
     clearPlayHistory,
     createCustomPlaylist,
     addSongToCustomPlaylist,
+    updateAvatar,
+    changePassword,
     removeSongFromCustomPlaylist,
     deleteCustomPlaylist,
     syncSession

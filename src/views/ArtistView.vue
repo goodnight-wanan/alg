@@ -164,7 +164,10 @@ function playSong(song) {
           <strong>{{ song.title }} - {{ song.artist }}</strong>
           <span>{{ song.album }}</span>
           <span>{{ song.duration }}</span>
-          <AddToPlaylistButton :song="song" />
+          <div class="song-action-group">
+            <FavoriteSongButton :song="song" />
+            <AddToPlaylistButton :song="song" />
+          </div>
         </div>
       </div>
     </section>

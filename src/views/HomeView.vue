@@ -162,6 +162,11 @@ function playPlaylist(playlist) {
   playerStore.playAll(list)
 }
 
+function isPlaylistPlaying(playlist) {
+  const list = songs.filter((song) => playlist.songIds.includes(song.id))
+  return playerStore.isListActive(list) && playerStore.isPlaying
+}
+
 function playNewSong(song) {
   playerStore.playSong(song, newRegionSongs.value)
 }
@@ -169,6 +174,11 @@ function playNewSong(song) {
 function playChartSong(song, group) {
   const list = chartSongsByRegion.value.filter((item) => item.chart === group.name)
   playerStore.playSong(song, list)
+}
+
+function isChartPlaying(group) {
+  const list = chartSongsByRegion.value.filter((item) => item.chart === group.name)
+  return playerStore.isListActive(list) && playerStore.isPlaying
 }
 
 onMounted(() => {
@@ -276,7 +286,12 @@ onUnmounted(() => {
 
       <Transition name="section-fade" mode="out-in">
         <div :key="`${activePlaylistTab}-${playlistPage}`" class="cont2-areas">
-          <div v-for="playlist in visiblePlaylists" :key="playlist.id" class="cont2-area">
+          <div
+            v-for="playlist in visiblePlaylists"
+            :key="playlist.id"
+            class="cont2-area"
+            @click="goPlaylist(playlist.id)"
+          >
             <div class="cont2-shell">
               <img
                 class="cont2-img"
@@ -286,15 +301,23 @@ onUnmounted(() => {
                 decoding="async"
               />
               <div class="cont2-shadow"></div>
-              <button type="button" class="cont2-play_list" @click.stop="playPlaylist(playlist)">
-                <div class="cont2-play" title="播放"></div>
+              <button
+                type="button"
+                class="cont2-play_list"
+                :title="isPlaylistPlaying(playlist) ? '暂停' : '播放'"
+                :aria-label="`${isPlaylistPlaying(playlist) ? '暂停' : '播放'}歌单 ${playlist.title}`"
+                @click.stop="playPlaylist(playlist)"
+              >
+                <span class="cont2-play">
+                  <Icon :name="isPlaylistPlaying(playlist) ? 'pause' : 'play'" :size="30" />
+                </span>
               </button>
             </div>
             <div
               class="cont2-word"
               role="button"
               tabindex="0"
-              @click="goPlaylist(playlist.id)"
+              @click.stop="goPlaylist(playlist.id)"
               @keydown.enter.space.prevent="goPlaylist(playlist.id)"
             >
               <p :title="playlist.title">{{ playlist.title }}</p>
@@ -382,7 +405,6 @@ onUnmounted(() => {
               <div class="cont3-song_singer">{{ song.artist }}</div>
             </div>
             <div class="cont3-song_time">{{ song.duration }}</div>
-            <AddToPlaylistButton :song="song" compact />
           </div>
         </div>
       </Transition>
@@ -456,14 +478,18 @@ onUnmounted(() => {
                 group.songs.length && playChartSong(group.songs[0], group)
               "
             >
-              <img src="/assets/imgs/media/play.png" class="cont4-chart_play" alt="播放" />
+              <img
+                :src="
+                  isChartPlaying(group)
+                    ? '/assets/imgs/media/pause.png'
+                    : '/assets/imgs/media/play.png'
+                "
+                class="cont4-chart_play"
+                :alt="isChartPlaying(group) ? '暂停' : '播放'"
+              />
             </div>
             <div class="cont4-chart_list">
-              <div
-                v-for="(song, songIndex) in group.songs"
-                :key="song.id"
-                class="cont4-chart_song"
-              >
+              <div v-for="(song, songIndex) in group.songs" :key="song.id" class="cont4-chart_song">
                 <button
                   type="button"
                   class="cont4-chart_song_main"
@@ -476,7 +502,6 @@ onUnmounted(() => {
                     <span class="cont4-chart_song_singer">{{ song.artist }}</span>
                   </span>
                 </button>
-                <AddToPlaylistButton :song="song" compact />
               </div>
             </div>
           </div>

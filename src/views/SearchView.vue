@@ -338,7 +338,10 @@ function openArtist(artist) {
             </div>
             <span>{{ song.album }}</span>
             <span>{{ song.duration }}</span>
-            <AddToPlaylistButton :song="song" />
+            <div class="song-action-group">
+              <FavoriteSongButton :song="song" />
+              <AddToPlaylistButton :song="song" />
+            </div>
           </div>
         </div>
         <div v-else class="functional-empty">没有找到相关歌曲</div>

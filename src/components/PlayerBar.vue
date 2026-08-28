@@ -123,7 +123,11 @@ onUnmounted(() => {
             :name="userStore.isFavoriteSong(playerStore.currentSong.id) ? 'heart' : 'heart-outline'"
           />
         </button>
-        <AddToPlaylistButton v-if="playerStore.currentSong" :song="playerStore.currentSong" compact />
+        <AddToPlaylistButton
+          v-if="playerStore.currentSong"
+          :song="playerStore.currentSong"
+          compact
+        />
       </div>
 
       <div>
@@ -256,7 +260,10 @@ onUnmounted(() => {
                 <span>{{ song.artist }}</span>
               </span>
             </button>
-            <AddToPlaylistButton :song="song" compact />
+            <div class="song-action-group">
+              <FavoriteSongButton :song="song" compact />
+              <AddToPlaylistButton :song="song" compact />
+            </div>
           </li>
         </ul>
       </div>
