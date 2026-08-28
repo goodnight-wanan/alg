@@ -5,7 +5,7 @@ import globals from 'globals'
 
 export default [
   {
-    ignores: ['dist/**', 'node_modules/**', 'public/**']
+    ignores: ['dist/**', 'node_modules/**', 'public/**', 'server/**', '.npm-cache/**']
   },
   js.configs.recommended,
   ...pluginVue.configs['flat/essential'],

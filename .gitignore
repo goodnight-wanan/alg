@@ -11,8 +11,16 @@ node_modules
 dist
 dist-ssr
 *.local
+*.tsbuildinfo
 .playwright-cli/
+.npm-cache/
 output/
+
+# Local environment and backend generated files
+.env
+server/.env
+server/coverage/
+server/uploads/
 
 # Editor directories and files
 .vscode/*

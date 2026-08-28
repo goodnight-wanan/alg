@@ -1,0 +1,50 @@
+services:
+  database:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-music_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-music_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-music_site}
+    ports:
+      - '127.0.0.1:5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-music_admin} -d ${POSTGRES_DB:-music_site}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ./server
+    environment:
+      PORT: 3000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-music_admin}:${POSTGRES_PASSWORD:-music_dev_password}@database:5432/${POSTGRES_DB:-music_site}?schema=public
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173,http://localhost:5174}
+      MEDIA_ROOT: /app/uploads
+      MAX_AUDIO_UPLOAD_MB: ${MAX_AUDIO_UPLOAD_MB:-50}
+    ports:
+      - '127.0.0.1:3000:3000'
+    volumes:
+      - media_data:/app/uploads
+    depends_on:
+      database:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:3000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+volumes:
+  postgres_data:
+  media_data:

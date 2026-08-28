@@ -8,7 +8,13 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint .",
-    "format": "prettier --write \"src/**/*.{vue,js,css}\" index.html eslint.config.js"
+    "format": "prettier --write \"src/**/*.{vue,js,css}\" index.html eslint.config.js",
+    "server:dev": "npm --prefix server run start:dev",
+    "server:build": "npm --prefix server run build",
+    "server:test": "npm --prefix server run test",
+    "docker:up": "docker compose up -d --build",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f api"
   },
   "dependencies": {
     "pinia": "^4.0.3",
