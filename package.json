@@ -1,12 +1,12 @@
 {
-  "name": "new-music-website",
+  "name": "yueyin-admin-dashboard",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --port 5174",
     "build": "vite build",
-    "preview": "vite preview",
+    "preview": "vite preview --port 4174",
     "lint": "eslint .",
     "format": "prettier --write \"src/**/*.{vue,js,css}\" index.html eslint.config.js",
     "server:dev": "npm --prefix server run start:dev",

@@ -1,101 +1,40 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
-import { useUserStore } from '../stores/user'
+import { createRouter, createWebHistory } from 'vue-router'
 
-const routes = [
-  {
-    path: '/',
-    name: 'home',
-    component: () => import('../views/HomeView.vue'),
-    meta: { title: '悦音音乐 - 发现好音乐' }
-  },
-  {
-    path: '/category',
-    name: 'category',
-    component: () => import('../views/CategoryView.vue'),
-    meta: { title: '分类歌单' }
-  },
-  {
-    path: '/rank',
-    name: 'rank',
-    component: () => import('../views/RankView.vue'),
-    meta: { title: '排行榜' }
-  },
-  {
-    path: '/album',
-    name: 'album',
-    component: () => import('../views/AlbumView.vue'),
-    meta: { title: '新碟' }
-  },
-  {
-    path: '/artist',
-    name: 'artist',
-    component: () => import('../views/ArtistView.vue'),
-    meta: { title: '歌手' }
-  },
-  {
-    path: '/playlist/:id',
-    name: 'playlist',
-    component: () => import('../views/PlaylistView.vue'),
-    meta: { title: '歌单详情' }
-  },
-  {
-    path: '/search',
-    name: 'search',
-    component: () => import('../views/SearchView.vue'),
-    meta: { title: '搜索' }
-  },
-  {
-    path: '/login',
-    name: 'login',
-    component: () => import('../views/LoginView.vue'),
-    meta: { title: '登录' }
-  },
-  {
-    path: '/register',
-    name: 'register',
-    component: () => import('../views/RegisterView.vue'),
-    meta: { title: '注册' }
-  },
-  {
-    path: '/mine',
-    name: 'mine',
-    component: () => import('../views/MineView.vue'),
-    meta: { title: '我的音乐', requiresAuth: true }
-  },
-  {
-    path: '/profile',
-    name: 'profile',
-    component: () => import('../views/ProfileView.vue'),
-    meta: { title: '个人中心', requiresAuth: true }
-  },
-  {
-    path: '/404',
-    name: 'not-found',
-    component: () => import('../views/NotFoundView.vue'),
-    meta: { title: '页面不存在' }
-  },
-  {
-    path: '/:pathMatch(.*)*',
-    redirect: '/404'
+const SESSION_KEY = 'music-admin-session'
+
+function hasAdminSession() {
+  try {
+    const session = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null')
+    return session?.user?.role === 'ADMIN' && Boolean(session?.accessToken)
+  } catch {
+    return false
   }
-]
+}
 
 const router = createRouter({
-  history: createWebHashHistory(),
-  routes,
-  scrollBehavior() {
-    return { top: 0 }
-  }
+  history: createWebHistory(),
+  routes: [
+    {
+      path: '/login',
+      name: 'login',
+      component: () => import('../admin/views/AdminLoginView.vue'),
+      meta: { title: '管理员登录' }
+    },
+    {
+      path: '/',
+      name: 'songs',
+      component: () => import('../admin/views/AdminSongsView.vue'),
+      meta: { title: '曲库管理', requiresAdmin: true }
+    },
+    { path: '/:pathMatch(.*)*', redirect: '/' }
+  ]
 })
 
 router.beforeEach((to) => {
-  const userStore = useUserStore()
-
-  if (to.meta.requiresAuth && !userStore.isLoggedIn) {
-    return { name: 'login' }
-  }
-
-  document.title = to.meta.title || '悦音音乐'
+  const isAdmin = hasAdminSession()
+  if (to.meta.requiresAdmin && !isAdmin) return { name: 'login' }
+  if (to.name === 'login' && isAdmin) return { name: 'songs' }
+  document.title = `${to.meta.title || '管理后台'} - 悦音音乐`
   return true
 })
 

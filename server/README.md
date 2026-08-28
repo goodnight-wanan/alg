@@ -24,7 +24,7 @@ http://localhost:3000/api/health
 npm run docker:down
 ```
 
-## Navicat 连接参数
+## DBX 连接参数
 
 ```text
 连接类型：PostgreSQL
@@ -36,6 +36,7 @@ npm run docker:down
 ```
 
 这些是本地开发参数，正式部署时必须通过环境变量更换密码。
+DBX 0.5.97 位于 `E:\DBX\dbx.exe`，仅用于查看数据和辅助排查；数据库结构变更统一使用 Prisma migration。
 
 ## 音频目录
 
