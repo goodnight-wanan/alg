@@ -1,18 +1,38 @@
 <script setup>
 import { computed } from 'vue'
-import { useRoute } from 'vue-router'
-import { getPlaylistById, getPlaylistSongs } from '../data/musicData'
+import { useRoute, useRouter } from 'vue-router'
+import { getPlaylistById, getPlaylistSongs, getSongById } from '../data/musicData'
 import { usePlayerStore } from '../stores/player'
 import { useUserStore } from '../stores/user'
 import { showNotice } from '../utils/notice'
 
 const route = useRoute()
+const router = useRouter()
 const playerStore = usePlayerStore()
 const userStore = useUserStore()
 
-const playlist = computed(() => getPlaylistById(route.params.id))
+const playlist = computed(() => {
+  const catalogPlaylist = getPlaylistById(route.params.id)
+  if (catalogPlaylist) return { ...catalogPlaylist, isCustom: false }
+
+  const customPlaylist = userStore.customPlaylists.find((item) => item.id === route.params.id)
+  if (!customPlaylist) return null
+
+  const playlistSongs = customPlaylist.songIds.map(getSongById).filter(Boolean)
+  return {
+    ...customPlaylist,
+    title: customPlaylist.name,
+    description: `由 ${userStore.currentUser?.username || '用户'} 创建的自建歌单。`,
+    cover: playlistSongs.at(-1)?.cover || '/assets/imgs/homepage/song_list/list1.webp',
+    genre: '自建歌单',
+    mood: `${playlistSongs.length} 首歌曲`,
+    era: new Date(customPlaylist.createdAt).toLocaleDateString(),
+    isCustom: true
+  }
+})
 const songs = computed(() => getPlaylistSongs(playlist.value))
 const currentSong = computed(() => playerStore.currentSong)
+const isCustom = computed(() => Boolean(playlist.value?.isCustom))
 
 const isFavorite = computed(() =>
   playlist.value ? userStore.isFavoritePlaylist(playlist.value.id) : false
@@ -30,7 +50,7 @@ function playSong(song) {
 }
 
 function toggleFavorite() {
-  if (!playlist.value) return
+  if (!playlist.value || isCustom.value) return
 
   if (!userStore.isLoggedIn) {
     showNotice('请先登录后再收藏歌单')
@@ -38,6 +58,22 @@ function toggleFavorite() {
   }
 
   userStore.toggleFavoritePlaylist(playlist.value.id)
+}
+
+function removeSong(songId) {
+  if (!playlist.value || !isCustom.value) return
+  if (userStore.removeSongFromCustomPlaylist(playlist.value.id, songId)) {
+    showNotice('已从歌单移除', 'success')
+  }
+}
+
+function deletePlaylist() {
+  if (!playlist.value || !isCustom.value) return
+  if (!window.confirm('确定删除这个歌单吗？')) return
+  if (userStore.deleteCustomPlaylist(playlist.value.id)) {
+    showNotice('歌单已删除', 'success')
+    router.replace({ name: 'mine', query: { tab: 'custom' } })
+  }
 }
 </script>
 
@@ -58,6 +94,7 @@ function toggleFavorite() {
             {{ isPlayingList ? '暂停' : '播放全部' }}
           </button>
           <button
+            v-if="!isCustom"
             type="button"
             class="playlist-favorite"
             :class="{ active: isFavorite }"
@@ -65,6 +102,10 @@ function toggleFavorite() {
           >
             <Icon :name="isFavorite ? 'heart' : 'heart-outline'" />
             {{ isFavorite ? '已收藏' : '收藏歌单' }}
+          </button>
+          <button v-else type="button" class="playlist-delete" @click="deletePlaylist">
+            <Icon name="close" />
+            删除歌单
           </button>
         </div>
       </div>
@@ -78,7 +119,7 @@ function toggleFavorite() {
           v-for="song in songs"
           :key="song.id"
           class="functional-row playlist-row has-add-action"
-          :class="{ playing: currentSong?.id === song.id }"
+          :class="{ playing: currentSong?.id === song.id, 'has-remove-action': isCustom }"
         >
           <button type="button" class="row-play" @click="playSong(song)">
             <Icon :name="currentSong?.id === song.id && playerStore.isPlaying ? 'pause' : 'play'" />
@@ -88,6 +129,16 @@ function toggleFavorite() {
           <span>{{ song.album }}</span>
           <span>{{ song.duration }}</span>
           <AddToPlaylistButton :song="song" />
+          <button
+            v-if="isCustom"
+            type="button"
+            class="playlist-remove"
+            title="从歌单移除"
+            aria-label="从歌单移除"
+            @click="removeSong(song.id)"
+          >
+            <Icon name="close" :size="18" />
+          </button>
         </div>
       </div>
       <div v-else class="functional-empty">该歌单暂时没有歌曲</div>
@@ -165,7 +216,8 @@ function toggleFavorite() {
 }
 
 .playlist-play,
-.playlist-favorite {
+.playlist-favorite,
+.playlist-delete {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -198,6 +250,41 @@ function toggleFavorite() {
   color: var(--brand-strong);
 }
 
+.playlist-delete {
+  min-width: 132px;
+  justify-content: center;
+  background: rgba(197, 53, 78, 0.1);
+  color: #c5354e;
+}
+
+.playlist-delete:hover {
+  background: rgba(197, 53, 78, 0.18);
+}
+
+.playlist-row.has-remove-action {
+  grid-template-columns: 42px 56px minmax(0, 1fr) 110px 90px 90px 40px;
+}
+
+.playlist-remove {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--brand-strong);
+}
+
+.playlist-remove:hover {
+  background: rgba(255, 105, 157, 0.14);
+}
+
+@media (max-width: 960px) {
+  .playlist-row.has-remove-action {
+    grid-template-columns: 42px 52px minmax(0, 1fr) 90px 90px 40px;
+  }
+}
+
 .playlist-section-title {
   margin: 0 0 18px;
   font-size: 20px;
@@ -210,6 +297,10 @@ function toggleFavorite() {
 }
 
 @media (max-width: 700px) {
+  .playlist-row.has-remove-action {
+    grid-template-columns: 36px 48px minmax(0, 1fr) 40px 36px;
+  }
+
   .playlist-hero {
     flex-direction: column;
     align-items: flex-start;

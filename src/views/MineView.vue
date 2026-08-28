@@ -1,17 +1,18 @@
 <script setup>
 import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { getPlaylistById, getPlaylistSongs, getSongById } from '../data/musicData'
 import { usePlayerStore } from '../stores/player'
 import { useUserStore } from '../stores/user'
 import UserCard from '../components/UserCard.vue'
 
+const route = useRoute()
 const router = useRouter()
 const playerStore = usePlayerStore()
 const userStore = useUserStore()
-const activeTab = ref('favorite')
+const availableTabs = ['favorite', 'playlist', 'custom', 'history']
+const activeTab = ref(availableTabs.includes(route.query.tab) ? route.query.tab : 'favorite')
 const newPlaylistName = ref('')
-const selectedCustomId = ref('')
 const currentSong = computed(() => playerStore.currentSong)
 
 const favoriteSongs = computed(() => userStore.favoriteSongs.map(getSongById).filter(Boolean))
@@ -36,10 +37,6 @@ const customPlaylists = computed(() =>
     }
   })
 )
-const selectedCustomPlaylist = computed(() =>
-  customPlaylists.value.find((playlist) => playlist.id === selectedCustomId.value)
-)
-
 function playSong(song, list) {
   playerStore.playSong(song, list)
 }
@@ -68,25 +65,15 @@ function createPlaylist() {
   const result = userStore.createCustomPlaylist(newPlaylistName.value)
   if (!result.ok) return
   newPlaylistName.value = ''
-  selectedCustomId.value = result.playlist.id
 }
 
 function playCustomPlaylist(playlist) {
   if (playlist.songs.length) playerStore.playAll(playlist.songs)
 }
 
-function selectCustomPlaylist(playlist) {
-  selectedCustomId.value = selectedCustomId.value === playlist.id ? '' : playlist.id
-}
-
-function removeCustomSong(playlistId, songId) {
-  userStore.removeSongFromCustomPlaylist(playlistId, songId)
-}
-
 function deleteCustomPlaylist(playlistId) {
   if (!window.confirm('确定删除这个歌单吗？')) return
   userStore.deleteCustomPlaylist(playlistId)
-  if (selectedCustomId.value === playlistId) selectedCustomId.value = ''
 }
 
 function formatTimeAgo(time) {
@@ -243,31 +230,36 @@ function formatTimeAgo(time) {
           <button type="submit">创建歌单</button>
         </form>
         <div v-if="customPlaylists.length" class="functional-grid custom-playlist-grid">
-          <article v-for="playlist in customPlaylists" :key="playlist.id" class="mine-card custom-playlist-card">
-            <button type="button" class="custom-playlist-open" @click="selectCustomPlaylist(playlist)">
-              <span class="mine-card-cover"><img :src="playlist.cover" :alt="playlist.name" /></span>
-              <strong class="mine-card-title">{{ playlist.name }}</strong>
-              <small>{{ playlist.songs.length }} 首歌曲</small>
-            </button>
-            <button type="button" class="mine-card-play" title="播放歌单" @click="playCustomPlaylist(playlist)"><Icon name="play" :size="18" /></button>
-            <button type="button" class="mine-card-remove" title="删除歌单" @click="deleteCustomPlaylist(playlist.id)"><Icon name="close" :size="16" /></button>
+          <article
+            v-for="playlist in customPlaylists"
+            :key="playlist.id"
+            class="mine-card custom-playlist-card"
+            @click="openPlaylist(playlist.id)"
+          >
+            <div class="mine-card-cover">
+              <img :src="playlist.cover" :alt="playlist.name" loading="lazy" decoding="async" />
+              <button
+                type="button"
+                class="mine-card-play"
+                title="播放歌单"
+                @click.stop="playCustomPlaylist(playlist)"
+              >
+                <Icon name="play" :size="18" />
+              </button>
+              <button
+                type="button"
+                class="mine-card-remove"
+                title="删除歌单"
+                @click.stop="deleteCustomPlaylist(playlist.id)"
+              >
+                <Icon name="close" :size="16" />
+              </button>
+            </div>
+            <p class="mine-card-title">{{ playlist.name }}</p>
+            <small>{{ playlist.songs.length }} 首歌曲</small>
           </article>
         </div>
         <div v-else class="mine-empty"><Icon name="list" :size="48" /><p>还没有自己的歌单</p></div>
-        <section v-if="selectedCustomPlaylist" class="custom-playlist-detail">
-          <h2>{{ selectedCustomPlaylist.name }}</h2>
-          <div v-if="selectedCustomPlaylist.songs.length" class="functional-list">
-            <div v-for="song in selectedCustomPlaylist.songs" :key="song.id" class="mine-row has-add-action has-remove-action" @click="playSong(song, selectedCustomPlaylist.songs)">
-              <button type="button" class="row-play" @click.stop="playSong(song, selectedCustomPlaylist.songs)"><Icon name="play" /></button>
-              <img :src="song.cover" :alt="song.title" />
-              <div class="song-meta"><strong>{{ song.title }}</strong><span class="song-artist">{{ song.artist }}</span></div>
-              <span>{{ song.album }}</span><span>{{ song.duration }}</span>
-              <AddToPlaylistButton :song="song" />
-              <button type="button" class="row-remove" title="从歌单移除" @click.stop="removeCustomSong(selectedCustomPlaylist.id, song.id)"><Icon name="close" :size="18" /></button>
-            </div>
-          </div>
-          <div v-else class="mine-empty"><p>这个歌单还没有歌曲</p></div>
-        </section>
       </div>
 
       <div v-else key="history">
@@ -321,16 +313,11 @@ function formatTimeAgo(time) {
   background: var(--surface);
 }
 
-.mine-page :deep(.user-card-logout) { display: none; }
 .custom-playlist-create { display: flex; gap: 10px; margin-bottom: 22px; }
 .custom-playlist-create input { min-width: 0; height: 42px; flex: 1; padding: 0 14px; border: 1px solid rgba(25, 25, 25, .14); border-radius: 9px; outline: none; }
 .custom-playlist-create input:focus { border-color: var(--brand-strong); box-shadow: 0 0 0 3px rgba(233, 78, 119, .12); }
 .custom-playlist-create button { padding: 0 20px; border-radius: 9px; background: var(--brand-strong); color: #fff; font-weight: 800; }
-.custom-playlist-card { position: relative; }
-.custom-playlist-open { width: 100%; padding: 0; background: transparent; color: inherit; text-align: left; }
-.custom-playlist-open .mine-card-cover { display: block; }
-.custom-playlist-open small { color: var(--text-secondary); }
-.custom-playlist-detail { margin-top: 28px; padding-top: 22px; border-top: 1px solid rgba(25, 25, 25, .08); }
+.custom-playlist-card small { color: var(--text-secondary); }
 
 .mine-tab {
   display: inline-flex;
