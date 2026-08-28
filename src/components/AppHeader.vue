@@ -1,7 +1,7 @@
 <script setup>
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getArtists, playlists, songs } from '../data/musicData'
+import { getArtists, playlists, songs } from '../data/catalogData'
 import { useUserStore } from '../stores/user'
 import { openAuthWindow } from '../utils/authWindow'
 import { showNotice } from '../utils/notice'

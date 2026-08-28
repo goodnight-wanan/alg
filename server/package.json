@@ -18,25 +18,35 @@
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage",
     "test:debug": "vitest --inspect-brk --no-file-parallelism",
-    "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
+    "test:e2e": "cross-env DATABASE_URL=postgresql://music_admin:music_dev_password@localhost:5432/music_site?schema=public vitest run --config ./vitest.config.e2e.ts",
+    "admin:promote": "node ./scripts/promote-admin.mjs",
+    "catalog:seed": "node ./scripts/seed-catalog.mjs",
     "prisma:generate": "cross-env DATABASE_URL=postgresql://music_admin:music_dev_password@localhost:5432/music_site?schema=public prisma generate",
     "prisma:format": "prisma format",
-    "prisma:validate": "cross-env DATABASE_URL=postgresql://music_admin:music_dev_password@localhost:5432/music_site?schema=public prisma validate"
+    "prisma:validate": "cross-env DATABASE_URL=postgresql://music_admin:music_dev_password@localhost:5432/music_site?schema=public prisma validate",
+    "prisma:migrate:deploy": "prisma migrate deploy"
   },
   "dependencies": {
     "@nestjs/common": "11.1.29",
     "@nestjs/config": "4.0.4",
     "@nestjs/core": "11.1.29",
+    "@nestjs/jwt": "^11.0.1",
     "@nestjs/platform-express": "11.1.29",
     "@prisma/client": "6.12.0",
+    "bcryptjs": "^3.0.2",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.2",
+    "multer": "^2.2.0",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "sharp": "^0.35.4"
   },
   "devDependencies": {
     "@nestjs/cli": "11.0.24",
     "@nestjs/schematics": "11.1.0",
     "@nestjs/testing": "11.1.29",
     "@types/express": "^5.0.0",
+    "@types/multer": "^2.0.0",
     "@types/node": "^22.0.0",
     "@types/supertest": "^7.0.0",
     "@vitest/coverage-v8": "^4.1.2",

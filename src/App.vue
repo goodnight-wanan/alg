@@ -3,12 +3,14 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import PlayerBar from './components/PlayerBar.vue'
 import AppHeader from './components/AppHeader.vue'
+import { useCatalogStore } from './stores/catalog'
 import { useUserStore } from './stores/user'
 import { showNotice, useNotice } from './utils/notice'
 
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
+const catalogStore = useCatalogStore()
 const notice = useNotice()
 const noticeIcon = computed(() => {
   const type = notice.value?.type
@@ -18,6 +20,7 @@ const noticeIcon = computed(() => {
 })
 const showPlayer = computed(() => !['login', 'register'].includes(route.name))
 const showHeader = computed(() => !['login', 'register'].includes(route.name))
+const needsCatalog = computed(() => !['login', 'register', 'profile'].includes(route.name))
 const showBackTop = ref(false)
 
 function handleScroll() {
@@ -44,6 +47,7 @@ function handleAuthMessage(event) {
 }
 
 onMounted(() => {
+  catalogStore.loadCatalog()
   window.addEventListener('scroll', handleScroll, { passive: true })
   window.addEventListener('storage', handleStorage)
   window.addEventListener('message', handleAuthMessage)
@@ -60,7 +64,36 @@ onBeforeUnmount(() => {
 <template>
   <div class="app-shell" :class="{ 'has-player': showPlayer }">
     <AppHeader v-if="showHeader" />
-    <RouterView />
+    <main
+      v-if="needsCatalog && catalogStore.loading && !catalogStore.hasData"
+      class="catalog-state"
+      aria-live="polite"
+    >
+      <span class="catalog-state-spinner" aria-hidden="true"></span>
+      <h1>正在加载悦音曲库</h1>
+      <p>正在连接后端并准备歌曲、歌单与歌手数据…</p>
+    </main>
+    <main
+      v-else-if="needsCatalog && catalogStore.error && !catalogStore.hasData"
+      class="catalog-state is-error"
+      role="alert"
+    >
+      <Icon name="alert" :size="28" />
+      <h1>曲库暂时无法加载</h1>
+      <p>{{ catalogStore.error }}</p>
+      <button type="button" @click="catalogStore.retry">重新加载</button>
+    </main>
+    <main
+      v-else-if="needsCatalog && catalogStore.initialized && !catalogStore.hasData"
+      class="catalog-state"
+      aria-live="polite"
+    >
+      <Icon name="music-note" :size="30" />
+      <h1>曲库暂时为空</h1>
+      <p>还没有已上架歌曲，请稍后再来看看。</p>
+      <button type="button" @click="catalogStore.retry">重新检查</button>
+    </main>
+    <RouterView v-else />
     <PlayerBar v-if="showPlayer" />
 
     <Transition name="notice">
@@ -93,6 +126,58 @@ onBeforeUnmount(() => {
 
 .app-shell.has-player {
   padding-bottom: 0;
+}
+
+.catalog-state {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  width: min(680px, calc(100% - 32px));
+  margin: 72px auto;
+  padding: 52px 28px;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.68);
+  color: var(--text);
+  text-align: center;
+  box-shadow: 0 20px 46px rgba(93, 54, 70, 0.12);
+  backdrop-filter: blur(18px);
+}
+
+.catalog-state h1,
+.catalog-state p {
+  margin: 0;
+}
+
+.catalog-state p {
+  color: var(--text-secondary);
+}
+
+.catalog-state button {
+  margin-top: 8px;
+  padding: 11px 24px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--brand-strong);
+  color: #fff;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.catalog-state-spinner {
+  width: 34px;
+  height: 34px;
+  border: 4px solid rgba(233, 78, 119, 0.18);
+  border-top-color: var(--brand-strong);
+  border-radius: 50%;
+  animation: catalog-spin 0.85s linear infinite;
+}
+
+@keyframes catalog-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .back-top-button {

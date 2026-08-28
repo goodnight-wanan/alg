@@ -1,7 +1,7 @@
 <script setup>
 import { computed, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { categories, getPlaylistSongs, playlists } from '../data/musicData'
+import { categories, getPlaylistSongs, playlists } from '../data/catalogData'
 import { usePlayerStore } from '../stores/player'
 
 const route = useRoute()

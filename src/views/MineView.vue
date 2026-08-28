@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getPlaylistById, getPlaylistSongs, getSongById } from '../data/musicData'
+import { getPlaylistById, getPlaylistSongs, getSongById } from '../data/catalogData'
 import { usePlayerStore } from '../stores/player'
 import { useUserStore } from '../stores/user'
 import { showNotice } from '../utils/notice'

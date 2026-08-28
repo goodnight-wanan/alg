@@ -6,3 +6,209 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  DISABLED
+}
+
+enum SongSourceType {
+  LOCAL
+  REMOTE
+}
+
+enum SongStatus {
+  DRAFT
+  PUBLISHED
+  UNPUBLISHED
+}
+
+enum FileAssetKind {
+  AUDIO
+  COVER
+  ARTIST_AVATAR
+}
+
+model User {
+  id                 String         @id @default(uuid()) @db.Uuid
+  username           String         @db.VarChar(32)
+  usernameNormalized String         @unique @map("username_normalized") @db.VarChar(32)
+  email              String         @unique @db.VarChar(254)
+  passwordHash       String         @map("password_hash") @db.VarChar(255)
+  nickname           String?        @db.VarChar(50)
+  avatarUrl          String?        @map("avatar_url") @db.VarChar(2048)
+  role               UserRole       @default(USER)
+  status             UserStatus     @default(ACTIVE)
+  lastLoginAt        DateTime?      @map("last_login_at")
+  createdAt          DateTime       @default(now()) @map("created_at")
+  updatedAt          DateTime       @updatedAt @map("updated_at")
+  refreshTokens      RefreshToken[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  tokenHash  String    @unique @map("token_hash") @db.Char(64)
+  expiresAt  DateTime  @map("expires_at")
+  revokedAt  DateTime? @map("revoked_at")
+  deviceInfo String?   @map("device_info") @db.VarChar(255)
+  ipAddress  String?   @map("ip_address") @db.VarChar(45)
+  createdAt  DateTime  @default(now()) @map("created_at")
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+model Artist {
+  id            String     @id @default(uuid()) @db.Uuid
+  publicId      String     @unique @map("public_id") @db.VarChar(64)
+  name          String     @db.VarChar(100)
+  biography     String?    @db.Text
+  avatarAssetId String?    @unique @map("avatar_asset_id") @db.Uuid
+  createdAt     DateTime   @default(now()) @map("created_at")
+  updatedAt     DateTime   @updatedAt @map("updated_at")
+  avatarAsset   FileAsset? @relation("ArtistAvatar", fields: [avatarAssetId], references: [id], onDelete: SetNull)
+  albums        Album[]
+  songs         Song[]
+
+  @@index([name])
+  @@map("artists")
+}
+
+model Album {
+  id           String     @id @default(uuid()) @db.Uuid
+  publicId     String     @unique @map("public_id") @db.VarChar(64)
+  title        String     @db.VarChar(160)
+  artistId     String     @map("artist_id") @db.Uuid
+  coverAssetId String?    @unique @map("cover_asset_id") @db.Uuid
+  releaseDate  DateTime?  @map("release_date") @db.Date
+  description  String?    @db.Text
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+  artist       Artist     @relation(fields: [artistId], references: [id], onDelete: Restrict)
+  coverAsset   FileAsset? @relation("AlbumCover", fields: [coverAssetId], references: [id], onDelete: SetNull)
+  songs        Song[]
+
+  @@index([artistId])
+  @@index([title])
+  @@map("albums")
+}
+
+model Category {
+  id          String         @id @default(uuid()) @db.Uuid
+  name        String         @unique @db.VarChar(60)
+  slug        String         @unique @db.VarChar(60)
+  description String?        @db.VarChar(255)
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+  songs       SongCategory[]
+
+  @@map("categories")
+}
+
+model Song {
+  id              String         @id @default(uuid()) @db.Uuid
+  publicId        String         @unique @map("public_id") @db.VarChar(64)
+  title           String         @db.VarChar(160)
+  artistId        String         @map("artist_id") @db.Uuid
+  albumId         String?        @map("album_id") @db.Uuid
+  sourceType      SongSourceType @map("source_type")
+  remoteUrl       String?        @map("remote_url") @db.VarChar(2048)
+  audioAssetId    String?        @unique @map("audio_asset_id") @db.Uuid
+  coverAssetId    String?        @map("cover_asset_id") @db.Uuid
+  durationSeconds Int?           @map("duration_seconds")
+  bitrateKbps     Int?           @map("bitrate_kbps")
+  status          SongStatus     @default(DRAFT)
+  publishedAt     DateTime?      @map("published_at")
+  playCount       Int            @default(0) @map("play_count")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+  artist          Artist         @relation(fields: [artistId], references: [id], onDelete: Restrict)
+  album           Album?         @relation(fields: [albumId], references: [id], onDelete: SetNull)
+  audioAsset      FileAsset?     @relation("SongAudio", fields: [audioAssetId], references: [id], onDelete: SetNull)
+  coverAsset      FileAsset?     @relation("SongCover", fields: [coverAssetId], references: [id], onDelete: SetNull)
+  categories      SongCategory[]
+  playlists       PlaylistSong[]
+
+  @@index([artistId])
+  @@index([albumId])
+  @@index([status, createdAt])
+  @@index([title])
+  @@map("songs")
+}
+
+model Playlist {
+  id           String         @id @default(uuid()) @db.Uuid
+  publicId     String         @unique @map("public_id") @db.VarChar(64)
+  title        String         @db.VarChar(160)
+  description  String?        @db.Text
+  coverAssetId String?        @unique @map("cover_asset_id") @db.Uuid
+  genre        String?        @db.VarChar(60)
+  mood         String?        @db.VarChar(60)
+  era          String?        @db.VarChar(60)
+  isPublished  Boolean        @default(false) @map("is_published")
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+  coverAsset   FileAsset?     @relation("PlaylistCover", fields: [coverAssetId], references: [id], onDelete: SetNull)
+  songs        PlaylistSong[]
+
+  @@index([isPublished, createdAt])
+  @@index([title])
+  @@map("playlists")
+}
+
+model PlaylistSong {
+  playlistId String   @map("playlist_id") @db.Uuid
+  songId     String   @map("song_id") @db.Uuid
+  position   Int
+  createdAt  DateTime @default(now()) @map("created_at")
+  playlist   Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  song       Song     @relation(fields: [songId], references: [id], onDelete: Cascade)
+
+  @@id([playlistId, songId])
+  @@unique([playlistId, position])
+  @@index([songId])
+  @@map("playlist_songs")
+}
+
+model SongCategory {
+  songId     String   @map("song_id") @db.Uuid
+  categoryId String   @map("category_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at")
+  song       Song     @relation(fields: [songId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([songId, categoryId])
+  @@index([categoryId])
+  @@map("song_categories")
+}
+
+model FileAsset {
+  id            String        @id @default(uuid()) @db.Uuid
+  kind          FileAssetKind
+  storagePath   String        @unique @map("storage_path") @db.VarChar(512)
+  originalName  String        @map("original_name") @db.VarChar(255)
+  mimeType      String        @map("mime_type") @db.VarChar(100)
+  sizeBytes     Int           @map("size_bytes")
+  checksum      String        @db.Char(64)
+  width         Int?
+  height        Int?
+  createdAt     DateTime      @default(now()) @map("created_at")
+  artistAvatar  Artist?       @relation("ArtistAvatar")
+  albumCover    Album?        @relation("AlbumCover")
+  songAudio     Song?         @relation("SongAudio")
+  songCovers    Song[]        @relation("SongCover")
+  playlistCover Playlist?     @relation("PlaylistCover")
+
+  @@index([kind])
+  @@map("file_assets")
+}

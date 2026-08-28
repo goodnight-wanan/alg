@@ -1,7 +1,7 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getSongById } from '../data/musicData'
+import { getSongById } from '../data/catalogData'
 import { useUserStore } from '../stores/user'
 import { openAuthWindow } from '../utils/authWindow'
 import { showNotice } from '../utils/notice'

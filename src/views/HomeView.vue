@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { homePlaylistTabs, playlists, songs } from '../data/musicData'
+import { homePlaylistTabs, playlists, songs } from '../data/catalogData'
 import { usePlayerStore } from '../stores/player'
 import { showNotice } from '../utils/notice'
 import '../styles/style.css'

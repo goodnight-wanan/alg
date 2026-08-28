@@ -1,23 +1,42 @@
 <script setup>
 import { computed } from 'vue'
-import { songs } from '../data/musicData'
+import { albums } from '../data/catalogData'
 import { usePlayerStore } from '../stores/player'
 
 const playerStore = usePlayerStore()
 
-const newAlbums = computed(() => songs.filter((song) => song.isNew))
-const currentSong = computed(() => playerStore.currentSong)
+const newAlbums = computed(() => albums.filter((album) => album.songs.length))
+const newAlbumSongs = computed(() => {
+  const seen = new Set()
+  return newAlbums.value
+    .flatMap((album) => album.songs)
+    .filter((song) => {
+      if (seen.has(song.id)) return false
+      seen.add(song.id)
+      return true
+    })
+})
 const isPlayingList = computed(
-  () => playerStore.isListActive(newAlbums.value) && playerStore.isPlaying
+  () => playerStore.isListActive(newAlbumSongs.value) && playerStore.isPlaying
 )
 
 function playAll() {
-  if (!newAlbums.value.length) return
-  playerStore.playAll(newAlbums.value)
+  playerStore.playAll(newAlbumSongs.value)
 }
 
 function playAlbum(album) {
-  playerStore.playSong(album, newAlbums.value)
+  playerStore.playAll(album.songs)
+}
+
+function isAlbumPlaying(album) {
+  return playerStore.isListActive(album.songs) && playerStore.isPlaying
+}
+
+function albumMeta(album) {
+  const releaseYear = album.releaseDate
+    ? new Intl.DateTimeFormat('zh-CN', { year: 'numeric' }).format(new Date(album.releaseDate))
+    : '日期待定'
+  return `${releaseYear} · ${album.songs.length} 首`
 }
 </script>
 
@@ -50,33 +69,30 @@ function playAlbum(album) {
     <div v-if="newAlbums.length" class="album-grid">
       <article v-for="album in newAlbums" :key="album.id" class="album-card">
         <div class="album-cover" @click="playAlbum(album)">
-          <img :src="album.cover" :alt="album.album" loading="lazy" decoding="async" />
+          <img :src="album.cover" :alt="album.title" loading="lazy" decoding="async" />
           <span class="album-badge">新碟</span>
           <button
             type="button"
             class="album-play"
-            :title="currentSong?.id === album.id && playerStore.isPlaying ? '暂停' : '播放'"
+            :title="isAlbumPlaying(album) ? '暂停' : '播放'"
             @click.stop="playAlbum(album)"
           >
-            <Icon
-              :name="currentSong?.id === album.id && playerStore.isPlaying ? 'pause' : 'play'"
-            />
+            <Icon :name="isAlbumPlaying(album) ? 'pause' : 'play'" />
           </button>
         </div>
         <h3
           class="album-title"
           role="button"
           tabindex="0"
-          :aria-label="`播放新碟 ${album.album}`"
+          :aria-label="`播放新碟 ${album.title}`"
           @click="playAlbum(album)"
           @keydown.enter.space.prevent="playAlbum(album)"
         >
-          {{ album.album }}
+          {{ album.title }}
         </h3>
         <p class="album-artist">{{ album.artist }}</p>
         <div class="album-footer">
-          <p class="album-meta">{{ album.genre }} · {{ album.duration }}</p>
-          <FavoriteSongButton :song="album" />
+          <p class="album-meta">{{ albumMeta(album) }}</p>
         </div>
       </article>
     </div>

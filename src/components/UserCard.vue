@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useUserStore } from '../stores/user'
-import { getSongById } from '../data/musicData'
+import { getSongById } from '../data/catalogData'
 
 defineProps({
   showStats: { type: Boolean, default: false }

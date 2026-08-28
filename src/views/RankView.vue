@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { songs } from '../data/musicData'
+import { songs } from '../data/catalogData'
 import { usePlayerStore } from '../stores/player'
 
 const route = useRoute()

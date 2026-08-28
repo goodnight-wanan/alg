@@ -12,9 +12,12 @@
     "server:dev": "npm --prefix server run start:dev",
     "server:build": "npm --prefix server run build",
     "server:test": "npm --prefix server run test",
+    "server:test:e2e": "npm --prefix server run test:e2e",
+    "server:migrate": "npm --prefix server run prisma:migrate:deploy",
     "docker:up": "docker compose up -d --build",
     "docker:down": "docker compose down",
-    "docker:logs": "docker compose logs -f api"
+    "docker:logs": "docker compose logs -f api",
+    "docker:seed": "docker compose run --rm seed"
   },
   "dependencies": {
     "pinia": "^4.0.3",

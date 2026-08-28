@@ -16,6 +16,18 @@ services:
       timeout: 5s
       retries: 10
 
+  migrate:
+    build:
+      context: ./server
+      target: build
+    command: ['npx', 'prisma', 'migrate', 'deploy']
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-music_admin}:${POSTGRES_PASSWORD:-music_dev_password}@database:5432/${POSTGRES_DB:-music_site}?schema=public
+    depends_on:
+      database:
+        condition: service_healthy
+    restart: 'no'
+
   api:
     build:
       context: ./server
@@ -25,13 +37,19 @@ services:
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173,http://localhost:5174}
       MEDIA_ROOT: /app/uploads
       MAX_AUDIO_UPLOAD_MB: ${MAX_AUDIO_UPLOAD_MB:-50}
+      MAX_COVER_UPLOAD_MB: ${MAX_COVER_UPLOAD_MB:-10}
+      REMOTE_AUDIO_HOSTS: ${REMOTE_AUDIO_HOSTS:-}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-local-development-access-secret-change-me}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-local-development-refresh-secret-change-me}
+      JWT_ACCESS_TTL_SECONDS: ${JWT_ACCESS_TTL_SECONDS:-900}
+      JWT_REFRESH_TTL_SECONDS: ${JWT_REFRESH_TTL_SECONDS:-604800}
     ports:
       - '127.0.0.1:3000:3000'
     volumes:
       - media_data:/app/uploads
     depends_on:
-      database:
-        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     healthcheck:
       test:
         [
@@ -44,6 +62,21 @@ services:
       timeout: 5s
       retries: 10
       start_period: 10s
+
+  seed:
+    profiles: ['tools']
+    build:
+      context: ./server
+      target: seed
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-music_admin}:${POSTGRES_PASSWORD:-music_dev_password}@database:5432/${POSTGRES_DB:-music_site}?schema=public
+      MEDIA_ROOT: /app/uploads
+      SEED_FORCE: ${SEED_FORCE:-0}
+    volumes:
+      - media_data:/app/uploads
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
 
 volumes:
   postgres_data:
