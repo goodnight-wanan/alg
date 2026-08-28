@@ -77,7 +77,7 @@ function toggleFavorite() {
         <div
           v-for="song in songs"
           :key="song.id"
-          class="functional-row playlist-row"
+          class="functional-row playlist-row has-add-action"
           :class="{ playing: currentSong?.id === song.id }"
         >
           <button type="button" class="row-play" @click="playSong(song)">
@@ -87,6 +87,7 @@ function toggleFavorite() {
           <strong>{{ song.title }} - {{ song.artist }}</strong>
           <span>{{ song.album }}</span>
           <span>{{ song.duration }}</span>
+          <AddToPlaylistButton :song="song" />
         </div>
       </div>
       <div v-else class="functional-empty">该歌单暂时没有歌曲</div>

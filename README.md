@@ -10,11 +10,11 @@
 - 新碟：新碟首发 banner + 新碟卡片网格（新歌上架、悬浮播放）
 - 歌手：歌手聚合列表（多歌手拆分）、地区筛选、页内歌手详情、播放全部
 - 排行榜：榜单卡片切换（飙升榜 / 热歌榜 / 新歌榜）、完整排名列表、播放全部
-- 全局播放器：播放/暂停、上一首/下一首、进度条、音量、播放队列、顺序/列表循环/单曲循环/随机播放、收藏
-- 搜索：热门搜索 / 历史搜索、歌曲 / 歌单 / 歌手三分类、关键词高亮、相关性排序、整行播放、`/` 快捷键聚焦
-- 用户系统：注册、站内登录、退出、收藏歌曲、收藏歌单、最近播放（含时间戳）
-- 我的音乐：个人中心（头像 / 统计 / 退出登录）、收藏歌曲、收藏歌单、最近播放
-- 响应式布局：适配桌面端、平板和移动端（导航移动端汉堡菜单）
+- 全局播放器：播放/暂停、上一首/下一首、进度条、音量、播放队列、顺序/列表循环/单曲循环/随机播放、收藏和添加到自建歌单
+- 搜索：顶部联想面板、热门搜索 / 历史搜索、歌曲 / 歌单 / 歌手三分类、关键词高亮、相关性排序、整行播放、`/` 快捷键聚焦
+- 用户系统：注册、独立窗口登录、收藏歌曲、收藏歌单、最近播放（含时间戳），用户数据按账号隔离
+- 我的音乐：图片头像与统计、收藏歌曲、收藏歌单、最近播放、自建歌单创建 / 播放 / 删除 / 移除歌曲
+- 响应式布局：适配桌面端、平板和移动端，900px 以下使用汉堡导航
 
 ## 技术栈
 
@@ -47,12 +47,12 @@ npm run format  # Prettier 格式化（仅 src、index.html、eslint.config.js�
 ```text
 ├── public/           静态资源（图片已统一 WebP、音频、favicon）
 ├── src/
-│   ├── components/   通用组件（AppHeader / PlayerBar / UserCard / Icon）
+│   ├── components/   通用组件（AppHeader / PlayerBar / UserCard / Icon / AddToPlaylistButton）
 │   ├── data/         歌曲、歌单、分类 mock 数据
 │   ├── router/       路由配置
 │   ├── stores/       Pinia 状态管理（player / user）
 │   ├── styles/       全局样式（app.css，含设计 token）
-│   ├── utils/        工具（notice / pageCss / storage）
+│   ├── utils/        工具（notice / authWindow / searchHistory / storage）
 │   ├── views/        页面组件
 │   ├── App.vue
 │   └── main.js
@@ -68,7 +68,8 @@ npm run format  # Prettier 格式化（仅 src、index.html、eslint.config.js�
 - 开发分支为 `vue-rewrite`，改动完成后提交并推送到该分支备份。
 - 全站图标统一使用 `Icon.vue` 的 SVG。
 - 图片已统一转为 WebP；后续新增图片可用 `node convert-images.mjs` 转换。
-- 首页、登录、注册的旧静态 CSS（`public/assets/css/`）仍通过 `pageCss.js` 动态加载，未纳入 Prettier 格式化。
+- 首页、登录、注册样式已迁入 `src/styles/` 并由 Vite 静态打包，运行时 CSS 注入工具已移除。
+- 当前 106 首歌曲仍共用演示音频；接入后端时需要替换为真实授权音频和封面 URL。
 
 ## 后端接入计划
 

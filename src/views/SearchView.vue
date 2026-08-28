@@ -3,7 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getArtists, getPlaylistSongs, playlists, songs } from '../data/musicData'
 import { usePlayerStore } from '../stores/player'
-import { loadJSON, saveJSON } from '../utils/storage'
+import { addSearchHistory, clearSearchHistory, useSearchHistory } from '../utils/searchHistory'
 
 const route = useRoute()
 const router = useRouter()
@@ -11,11 +11,9 @@ const playerStore = usePlayerStore()
 const currentSong = computed(() => playerStore.currentSong)
 
 const allArtists = getArtists()
-const HISTORY_KEY = 'search-history'
-
 const keyword = ref(String(route.query.q || ''))
 const searchInput = ref(null)
-const searchHistory = ref(loadJSON(HISTORY_KEY, []))
+const searchHistory = useSearchHistory()
 const TAB_NAMES = ['song', 'playlist', 'artist']
 
 function normalizeTab(value) {
@@ -120,18 +118,11 @@ const hotSearches = computed(() => {
 })
 
 function addHistory(term) {
-  const value = term.trim()
-  if (!value) return
-  searchHistory.value = [value, ...searchHistory.value.filter((item) => item !== value)].slice(
-    0,
-    10
-  )
-  saveJSON(HISTORY_KEY, searchHistory.value)
+  addSearchHistory(term)
 }
 
 function clearHistory() {
-  searchHistory.value = []
-  saveJSON(HISTORY_KEY, [])
+  clearSearchHistory()
 }
 
 function commitSearch(term) {
@@ -320,7 +311,7 @@ function openArtist(artist) {
           <div
             v-for="song in songResults"
             :key="song.id"
-            class="functional-row search-row"
+            class="functional-row search-row has-add-action"
             :class="{ playing: currentSong?.id === song.id }"
             @click="playSong(song, songResults)"
           >
@@ -347,6 +338,7 @@ function openArtist(artist) {
             </div>
             <span>{{ song.album }}</span>
             <span>{{ song.duration }}</span>
+            <AddToPlaylistButton :song="song" />
           </div>
         </div>
         <div v-else class="functional-empty">没有找到相关歌曲</div>

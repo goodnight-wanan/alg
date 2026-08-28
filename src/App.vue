@@ -1,12 +1,13 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import PlayerBar from './components/PlayerBar.vue'
 import AppHeader from './components/AppHeader.vue'
 import { useUserStore } from './stores/user'
-import { useNotice } from './utils/notice'
+import { showNotice, useNotice } from './utils/notice'
 
 const route = useRoute()
+const router = useRouter()
 const userStore = useUserStore()
 const notice = useNotice()
 const noticeIcon = computed(() => {
@@ -33,15 +34,25 @@ function handleStorage(event) {
   }
 }
 
+function handleAuthMessage(event) {
+  if (event.origin !== window.location.origin || event.data?.type !== 'music-site:auth-success') return
+  userStore.syncSession()
+  showNotice('登录成功', 'success')
+  const redirect = String(event.data.redirect || '/')
+  if (redirect.startsWith('/') && !redirect.startsWith('//')) router.push(redirect)
+}
+
 onMounted(() => {
   window.addEventListener('scroll', handleScroll, { passive: true })
   window.addEventListener('storage', handleStorage)
+  window.addEventListener('message', handleAuthMessage)
   handleScroll()
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', handleScroll)
   window.removeEventListener('storage', handleStorage)
+  window.removeEventListener('message', handleAuthMessage)
 })
 </script>
 

@@ -382,6 +382,7 @@ onUnmounted(() => {
               <div class="cont3-song_singer">{{ song.artist }}</div>
             </div>
             <div class="cont3-song_time">{{ song.duration }}</div>
+            <AddToPlaylistButton :song="song" compact />
           </div>
         </div>
       </Transition>
@@ -462,16 +463,20 @@ onUnmounted(() => {
                 v-for="(song, songIndex) in group.songs"
                 :key="song.id"
                 class="cont4-chart_song"
-                role="button"
-                tabindex="0"
-                @click="playChartSong(song, group)"
-                @keydown.enter.space.prevent="playChartSong(song, group)"
               >
-                <div class="cont4-chart_song_num">{{ pad(songIndex) }}</div>
-                <div class="cont4-chart_song_meg">
-                  <div class="cont4-chart_song_name">{{ song.title }}</div>
-                  <div class="cont4-chart_song_singer">{{ song.artist }}</div>
-                </div>
+                <button
+                  type="button"
+                  class="cont4-chart_song_main"
+                  :aria-label="`播放 ${song.title} - ${song.artist}`"
+                  @click="playChartSong(song, group)"
+                >
+                  <span class="cont4-chart_song_num">{{ pad(songIndex) }}</span>
+                  <span class="cont4-chart_song_meg">
+                    <span class="cont4-chart_song_name">{{ song.title }}</span>
+                    <span class="cont4-chart_song_singer">{{ song.artist }}</span>
+                  </span>
+                </button>
+                <AddToPlaylistButton :song="song" compact />
               </div>
             </div>
           </div>

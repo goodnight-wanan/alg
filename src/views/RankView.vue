@@ -94,6 +94,7 @@ function playSong(song, list) {
           <strong>{{ song.title }} - {{ song.artist }}</strong>
           <span>{{ song.album }}</span>
           <span>{{ song.duration }}</span>
+          <AddToPlaylistButton :song="song" />
         </div>
       </div>
     </section>
@@ -236,7 +237,7 @@ function playSong(song, list) {
 
 .rank-row {
   display: grid;
-  grid-template-columns: 48px 42px 56px minmax(0, 1fr) 120px 84px;
+  grid-template-columns: 48px 42px 56px minmax(0, 1fr) 120px 84px 90px;
   align-items: center;
   gap: 12px;
   min-height: 70px;
@@ -298,7 +299,7 @@ function playSong(song, list) {
   }
 
   .rank-row {
-    grid-template-columns: 44px 40px 48px minmax(0, 1fr) 90px;
+    grid-template-columns: 44px 40px 48px minmax(0, 1fr) 90px 90px;
   }
 
   .rank-row span:last-child {
@@ -308,7 +309,7 @@ function playSong(song, list) {
 
 @media (max-width: 700px) {
   .rank-row {
-    grid-template-columns: 36px 38px 44px minmax(0, 1fr);
+    grid-template-columns: 36px 38px 44px minmax(0, 1fr) 40px;
   }
 
   .rank-row span {

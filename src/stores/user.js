@@ -2,10 +2,12 @@ import { computed, ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 import { loadJSON, saveJSON, removeStorage, hashPassword } from '../utils/storage'
 
+export const DEFAULT_AVATAR = '/assets/imgs/default-avatar.svg'
+
 function sanitizeUser(user) {
   if (!user) return null
   const { passwordHash, ...safeUser } = user
-  return safeUser
+  return { ...safeUser, avatarUrl: safeUser.avatarUrl || DEFAULT_AVATAR }
 }
 
 function dataKey(base, userId) {
@@ -21,15 +23,28 @@ function normalizeHistory(history) {
     .filter((item) => item.id)
 }
 
+function normalizeCustomPlaylists(playlists) {
+  return (Array.isArray(playlists) ? playlists : [])
+    .map((playlist) => ({
+      id: String(playlist?.id || ''),
+      name: String(playlist?.name || '').trim(),
+      songIds: [...new Set(Array.isArray(playlist?.songIds) ? playlist.songIds : [])],
+      createdAt: playlist?.createdAt || Date.now(),
+      updatedAt: playlist?.updatedAt || playlist?.createdAt || Date.now()
+    }))
+    .filter((playlist) => playlist.id && playlist.name)
+}
+
 function loadUserData(userId) {
   if (!userId) {
-    return { favoriteSongs: [], favoritePlaylists: [], playHistory: [] }
+    return { favoriteSongs: [], favoritePlaylists: [], playHistory: [], customPlaylists: [] }
   }
 
   return {
     favoriteSongs: loadJSON(dataKey('favorite-songs', userId), []),
     favoritePlaylists: loadJSON(dataKey('favorite-playlists', userId), []),
-    playHistory: normalizeHistory(loadJSON(dataKey('play-history', userId), []))
+    playHistory: normalizeHistory(loadJSON(dataKey('play-history', userId), [])),
+    customPlaylists: normalizeCustomPlaylists(loadJSON(dataKey('custom-playlists', userId), []))
   }
 }
 
@@ -41,6 +56,7 @@ export const useUserStore = defineStore('user', () => {
   const favoriteSongs = ref(initialData.favoriteSongs)
   const favoritePlaylists = ref(initialData.favoritePlaylists)
   const playHistory = ref(initialData.playHistory)
+  const customPlaylists = ref(initialData.customPlaylists)
 
   const isLoggedIn = computed(() => Boolean(currentUser.value))
 
@@ -52,6 +68,7 @@ export const useUserStore = defineStore('user', () => {
     favoriteSongs.value = data.favoriteSongs
     favoritePlaylists.value = data.favoritePlaylists
     playHistory.value = data.playHistory
+    customPlaylists.value = data.customPlaylists
   })
 
   watch(
@@ -76,6 +93,15 @@ export const useUserStore = defineStore('user', () => {
     playHistory,
     (value) => {
       const key = dataKey('play-history', currentUser.value?.id)
+      if (key) saveJSON(key, value)
+    },
+    { deep: true }
+  )
+
+  watch(
+    customPlaylists,
+    (value) => {
+      const key = dataKey('custom-playlists', currentUser.value?.id)
       if (key) saveJSON(key, value)
     },
     { deep: true }
@@ -118,6 +144,7 @@ export const useUserStore = defineStore('user', () => {
       username: name,
       email: mail,
       passwordHash: hashPassword(password),
+      avatarUrl: DEFAULT_AVATAR,
       createdAt: new Date().toISOString()
     }
 
@@ -194,6 +221,59 @@ export const useUserStore = defineStore('user', () => {
     playHistory.value = []
   }
 
+  function createCustomPlaylist(name, songId = null) {
+    if (!isLoggedIn.value) return { ok: false, message: '请先登录后创建歌单' }
+
+    const title = String(name || '').trim()
+    if (!title) return { ok: false, message: '请输入歌单名称' }
+    if (title.length > 30) return { ok: false, message: '歌单名称不能超过 30 个字符' }
+    if (customPlaylists.value.some((playlist) => playlist.name.toLowerCase() === title.toLowerCase())) {
+      return { ok: false, message: '已存在同名歌单' }
+    }
+
+    const now = Date.now()
+    const playlist = {
+      id: `custom-${now}-${Math.random().toString(36).slice(2, 8)}`,
+      name: title,
+      songIds: songId ? [songId] : [],
+      createdAt: now,
+      updatedAt: now
+    }
+    customPlaylists.value.unshift(playlist)
+    return { ok: true, playlist, message: songId ? '歌单已创建并添加歌曲' : '歌单创建成功' }
+  }
+
+  function addSongToCustomPlaylist(playlistId, songId) {
+    if (!isLoggedIn.value) return { ok: false, message: '请先登录后添加歌曲' }
+
+    const playlist = customPlaylists.value.find((item) => item.id === playlistId)
+    if (!playlist) return { ok: false, message: '歌单不存在' }
+
+    const existed = playlist.songIds.includes(songId)
+    playlist.songIds = [...playlist.songIds.filter((id) => id !== songId), songId]
+    playlist.updatedAt = Date.now()
+    return {
+      ok: true,
+      added: !existed,
+      message: existed ? `已将歌曲移到「${playlist.name}」末尾` : `已添加到「${playlist.name}」`
+    }
+  }
+
+  function removeSongFromCustomPlaylist(playlistId, songId) {
+    const playlist = customPlaylists.value.find((item) => item.id === playlistId)
+    if (!playlist) return false
+    playlist.songIds = playlist.songIds.filter((id) => id !== songId)
+    playlist.updatedAt = Date.now()
+    return true
+  }
+
+  function deleteCustomPlaylist(playlistId) {
+    const index = customPlaylists.value.findIndex((item) => item.id === playlistId)
+    if (index < 0) return false
+    customPlaylists.value.splice(index, 1)
+    return true
+  }
+
   function syncSession() {
     currentUser.value = sanitizeUser(loadJSON('session', null))
   }
@@ -204,6 +284,7 @@ export const useUserStore = defineStore('user', () => {
     favoriteSongs,
     favoritePlaylists,
     playHistory,
+    customPlaylists,
     isLoggedIn,
     register,
     login,
@@ -214,6 +295,10 @@ export const useUserStore = defineStore('user', () => {
     toggleFavoritePlaylist,
     recordPlay,
     clearPlayHistory,
+    createCustomPlaylist,
+    addSongToCustomPlaylist,
+    removeSongFromCustomPlaylist,
+    deleteCustomPlaylist,
     syncSession
   }
 })

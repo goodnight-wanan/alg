@@ -1,8 +1,11 @@
 <script setup>
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { getArtists, playlists, songs } from '../data/musicData'
 import { useUserStore } from '../stores/user'
+import { openAuthWindow } from '../utils/authWindow'
 import { showNotice } from '../utils/notice'
+import { addSearchHistory, useSearchHistory } from '../utils/searchHistory'
 
 const route = useRoute()
 const router = useRouter()
@@ -12,6 +15,8 @@ const keyword = ref('')
 const headerEl = ref(null)
 const searchInput = ref(null)
 const menuOpen = ref(false)
+const searchFocused = ref(false)
+const searchHistory = useSearchHistory()
 let resizeObserver = null
 
 const isHome = computed(() => route.path === '/')
@@ -20,12 +25,52 @@ const isRank = computed(() => route.path === '/rank')
 const isAlbum = computed(() => route.path === '/album')
 const isArtist = computed(() => route.path === '/artist')
 const isMine = computed(() => route.name === 'mine' || route.name === 'profile')
+const searchSuggestions = computed(() => {
+  const word = keyword.value.trim().toLowerCase()
+  if (!word) return []
+
+  const songItems = songs
+    .filter((song) => [song.title, song.artist, song.album].join(' ').toLowerCase().includes(word))
+    .slice(0, 4)
+    .map((song) => ({ type: '歌曲', title: song.title, subtitle: song.artist, query: song.title, cover: song.cover }))
+  const playlistItems = playlists
+    .filter((playlist) => [playlist.title, playlist.description].join(' ').toLowerCase().includes(word))
+    .slice(0, 2)
+    .map((playlist) => ({ type: '歌单', title: playlist.title, subtitle: playlist.description, query: playlist.title, cover: playlist.cover }))
+  const artistItems = getArtists()
+    .filter((artist) => artist.name.toLowerCase().includes(word))
+    .slice(0, 2)
+    .map((artist) => ({ type: '歌手', title: artist.name, subtitle: `${artist.region} · ${artist.songCount} 首`, query: artist.name, cover: artist.cover }))
+
+  return [...songItems, ...playlistItems, ...artistItems].slice(0, 8)
+})
+const showSearchPanel = computed(() => searchFocused.value)
 
 function submitSearch() {
   const value = keyword.value.trim()
   if (!value) return
+  addSearchHistory(value)
   router.push({ name: 'search', query: { q: value } })
   keyword.value = ''
+  searchFocused.value = false
+}
+
+function chooseSearch(value) {
+  keyword.value = value
+  addSearchHistory(value)
+  router.push({ name: 'search', query: { q: value } })
+  keyword.value = ''
+  searchFocused.value = false
+}
+
+function handleSearchFocus() {
+  searchFocused.value = true
+}
+
+function handleSearchBlur() {
+  window.setTimeout(() => {
+    searchFocused.value = false
+  }, 140)
 }
 
 function updateHeaderHeight() {
@@ -38,7 +83,7 @@ function updateHeaderHeight() {
 }
 
 function goLogin(redirect = route.fullPath) {
-  router.push({ name: 'login', query: { redirect } })
+  openAuthWindow(router, 'login', redirect)
 }
 
 function handleGlobalKey(event) {
@@ -46,7 +91,7 @@ function handleGlobalKey(event) {
   const tag = document.activeElement?.tagName
   if (tag === 'INPUT' || tag === 'TEXTAREA') return
   event.preventDefault()
-  if (window.innerWidth <= 700) {
+  if (window.innerWidth <= 900) {
     menuOpen.value = true
   }
   nextTick(() => searchInput.value?.focus())
@@ -67,12 +112,16 @@ onMounted(() => {
   }
   window.addEventListener('resize', updateHeaderHeight)
   window.addEventListener('keydown', handleGlobalKey)
+  searchInput.value?.addEventListener('focus', handleSearchFocus)
+  searchInput.value?.addEventListener('blur', handleSearchBlur)
 })
 
 onUnmounted(() => {
   if (resizeObserver) resizeObserver.disconnect()
   window.removeEventListener('resize', updateHeaderHeight)
   window.removeEventListener('keydown', handleGlobalKey)
+  searchInput.value?.removeEventListener('focus', handleSearchFocus)
+  searchInput.value?.removeEventListener('blur', handleSearchBlur)
   document.documentElement.style.removeProperty('--header-height')
 })
 </script>
@@ -137,6 +186,46 @@ onUnmounted(() => {
         <button class="app-header-search-btn" type="submit" title="搜索" aria-label="搜索">
           <Icon name="search" :size="18" />
         </button>
+        <Transition name="search-panel">
+          <div v-if="showSearchPanel" class="header-search-panel">
+            <template v-if="keyword.trim()">
+              <div class="header-search-panel-title">搜索建议</div>
+              <button
+                v-for="item in searchSuggestions"
+                :key="`${item.type}-${item.title}`"
+                type="button"
+                class="header-search-suggestion"
+                @mousedown.prevent="chooseSearch(item.query)"
+              >
+                <img :src="item.cover" :alt="item.title" />
+                <span><strong>{{ item.title }}</strong><small>{{ item.subtitle }}</small></span>
+                <em>{{ item.type }}</em>
+              </button>
+              <button
+                v-if="!searchSuggestions.length"
+                type="button"
+                class="header-search-empty"
+                @mousedown.prevent="chooseSearch(keyword)"
+              >
+                搜索“{{ keyword }}”
+              </button>
+            </template>
+            <template v-else>
+              <div class="header-search-panel-title">最近搜索</div>
+              <button
+                v-for="item in searchHistory"
+                :key="item"
+                type="button"
+                class="header-search-history"
+                @mousedown.prevent="chooseSearch(item)"
+              >
+                <Icon name="clock" :size="15" />
+                <span>{{ item }}</span>
+              </button>
+              <div v-if="!searchHistory.length" class="header-search-empty">暂无最近搜索</div>
+            </template>
+          </div>
+        </Transition>
       </form>
 
       <div class="app-header-login">
@@ -146,7 +235,7 @@ onUnmounted(() => {
           to="/profile"
           :title="userStore.currentUser.username"
         >
-          {{ userStore.currentUser.username?.charAt(0).toUpperCase() || '?' }}
+          <img :src="userStore.currentUser.avatarUrl" alt="用户头像" />
         </RouterLink>
         <button v-else type="button" class="app-header-login-link" @click="goLogin()">登录</button>
       </div>
@@ -349,6 +438,103 @@ onUnmounted(() => {
   color: var(--brand-strong);
 }
 
+.header-search-panel {
+  position: absolute;
+  top: 44px;
+  left: 0;
+  z-index: 130;
+  width: 100%;
+  max-height: 420px;
+  overflow: auto;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 12px;
+  background: rgba(255, 250, 252, 0.98);
+  box-shadow: 0 18px 40px rgba(93, 54, 70, 0.2);
+}
+
+.header-search-panel-title {
+  padding: 7px 9px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.header-search-suggestion,
+.header-search-history,
+.header-search-empty {
+  width: 100%;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+}
+
+.header-search-suggestion {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  padding: 7px;
+}
+
+.header-search-suggestion:hover,
+.header-search-history:hover {
+  background: rgba(255, 126, 179, 0.12);
+}
+
+.header-search-suggestion img {
+  width: 38px;
+  height: 38px;
+  border-radius: 7px;
+  object-fit: cover;
+}
+
+.header-search-suggestion span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.header-search-suggestion strong,
+.header-search-suggestion small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header-search-suggestion small,
+.header-search-suggestion em {
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-style: normal;
+}
+
+.header-search-history {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px;
+}
+
+.header-search-empty {
+  display: block;
+  padding: 14px 9px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.search-panel-enter-active,
+.search-panel-leave-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.search-panel-enter-from,
+.search-panel-leave-to {
+  opacity: 0;
+  transform: translateY(-5px);
+}
+
 .app-header-login {
   flex: 0 0 auto;
   display: flex;
@@ -459,7 +645,7 @@ onUnmounted(() => {
   }
 }
 
-@media (max-width: 700px) {
+@media (max-width: 900px) {
   .app-header-top {
     height: 60px;
     flex-wrap: nowrap;
@@ -514,7 +700,14 @@ onUnmounted(() => {
     display: flex;
   }
 
+  .app-header.menu-open .app-header-top {
+    height: auto;
+    flex-wrap: wrap;
+    padding-bottom: 12px;
+  }
+
   .app-header.menu-open .app-header-search {
+    order: 4;
     width: 100%;
     height: 42px;
     margin: 10px 0 0;
@@ -525,6 +718,8 @@ onUnmounted(() => {
   }
 
   .app-header.menu-open .app-header-column {
+    order: 5;
+    width: 100%;
     flex-wrap: wrap;
     gap: 4px;
     margin-top: 10px;

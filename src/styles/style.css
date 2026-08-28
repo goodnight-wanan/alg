@@ -619,6 +619,8 @@ a{
     border: 0;
     margin-bottom: 60px;
 }
+
+.cont3-song > .add-to-playlist-trigger { flex: 0 0 auto; margin: 0 12px; }
 .cont4-L{
     line-height: 50px;
     font-weight: 900;
@@ -741,6 +743,17 @@ a{
     position: relative;
     top: 0px;
     transition: 0.3s;
+}
+.cont4-chart_song_main{
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font-family: inherit;
+    text-align: left;
     cursor: pointer;
 }
 .cont4-chart_song:hover{
@@ -824,6 +837,8 @@ a{
 .ft-download{
     color: white;
 }
+
+.cont4-chart_song > .add-to-playlist-trigger { align-self: center; margin-right: 10px; }
 .footer-links a{
     color: white;
 }

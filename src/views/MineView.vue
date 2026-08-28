@@ -10,6 +10,8 @@ const router = useRouter()
 const playerStore = usePlayerStore()
 const userStore = useUserStore()
 const activeTab = ref('favorite')
+const newPlaylistName = ref('')
+const selectedCustomId = ref('')
 const currentSong = computed(() => playerStore.currentSong)
 
 const favoriteSongs = computed(() => userStore.favoriteSongs.map(getSongById).filter(Boolean))
@@ -23,6 +25,19 @@ const historySongs = computed(() =>
       return song ? { ...song, playedAt: item.time } : null
     })
     .filter(Boolean)
+)
+const customPlaylists = computed(() =>
+  userStore.customPlaylists.map((playlist) => {
+    const playlistSongs = playlist.songIds.map(getSongById).filter(Boolean)
+    return {
+      ...playlist,
+      songs: playlistSongs,
+      cover: playlistSongs.at(-1)?.cover || '/assets/imgs/homepage/song_list/list1.webp'
+    }
+  })
+)
+const selectedCustomPlaylist = computed(() =>
+  customPlaylists.value.find((playlist) => playlist.id === selectedCustomId.value)
 )
 
 function playSong(song, list) {
@@ -47,6 +62,31 @@ function removeFavoritePlaylist(playlistId) {
 
 function clearHistory() {
   userStore.clearPlayHistory()
+}
+
+function createPlaylist() {
+  const result = userStore.createCustomPlaylist(newPlaylistName.value)
+  if (!result.ok) return
+  newPlaylistName.value = ''
+  selectedCustomId.value = result.playlist.id
+}
+
+function playCustomPlaylist(playlist) {
+  if (playlist.songs.length) playerStore.playAll(playlist.songs)
+}
+
+function selectCustomPlaylist(playlist) {
+  selectedCustomId.value = selectedCustomId.value === playlist.id ? '' : playlist.id
+}
+
+function removeCustomSong(playlistId, songId) {
+  userStore.removeSongFromCustomPlaylist(playlistId, songId)
+}
+
+function deleteCustomPlaylist(playlistId) {
+  if (!window.confirm('确定删除这个歌单吗？')) return
+  userStore.deleteCustomPlaylist(playlistId)
+  if (selectedCustomId.value === playlistId) selectedCustomId.value = ''
 }
 
 function formatTimeAgo(time) {
@@ -98,6 +138,18 @@ function formatTimeAgo(time) {
         type="button"
         class="mine-tab"
         role="tab"
+        :aria-selected="activeTab === 'custom'"
+        :class="{ active: activeTab === 'custom' }"
+        @click="activeTab = 'custom'"
+      >
+        <Icon name="list" :size="16" />
+        <span>我的歌单</span>
+        <span class="tab-badge">{{ customPlaylists.length }}</span>
+      </button>
+      <button
+        type="button"
+        class="mine-tab"
+        role="tab"
         :aria-selected="activeTab === 'history'"
         :class="{ active: activeTab === 'history' }"
         @click="activeTab = 'history'"
@@ -114,7 +166,7 @@ function formatTimeAgo(time) {
           <div
             v-for="song in favoriteSongs"
             :key="song.id"
-            class="mine-row"
+            class="mine-row has-add-action has-remove-action"
             :class="{ playing: currentSong?.id === song.id }"
             @click="playSong(song, favoriteSongs)"
           >
@@ -130,6 +182,7 @@ function formatTimeAgo(time) {
             </div>
             <span>{{ song.album }}</span>
             <span>{{ song.duration }}</span>
+            <AddToPlaylistButton :song="song" />
             <button
               type="button"
               class="row-remove"
@@ -184,6 +237,39 @@ function formatTimeAgo(time) {
         </div>
       </div>
 
+      <div v-else-if="activeTab === 'custom'" key="custom">
+        <form class="custom-playlist-create" @submit.prevent="createPlaylist">
+          <input v-model.trim="newPlaylistName" type="text" maxlength="30" placeholder="给新歌单起个名字" />
+          <button type="submit">创建歌单</button>
+        </form>
+        <div v-if="customPlaylists.length" class="functional-grid custom-playlist-grid">
+          <article v-for="playlist in customPlaylists" :key="playlist.id" class="mine-card custom-playlist-card">
+            <button type="button" class="custom-playlist-open" @click="selectCustomPlaylist(playlist)">
+              <span class="mine-card-cover"><img :src="playlist.cover" :alt="playlist.name" /></span>
+              <strong class="mine-card-title">{{ playlist.name }}</strong>
+              <small>{{ playlist.songs.length }} 首歌曲</small>
+            </button>
+            <button type="button" class="mine-card-play" title="播放歌单" @click="playCustomPlaylist(playlist)"><Icon name="play" :size="18" /></button>
+            <button type="button" class="mine-card-remove" title="删除歌单" @click="deleteCustomPlaylist(playlist.id)"><Icon name="close" :size="16" /></button>
+          </article>
+        </div>
+        <div v-else class="mine-empty"><Icon name="list" :size="48" /><p>还没有自己的歌单</p></div>
+        <section v-if="selectedCustomPlaylist" class="custom-playlist-detail">
+          <h2>{{ selectedCustomPlaylist.name }}</h2>
+          <div v-if="selectedCustomPlaylist.songs.length" class="functional-list">
+            <div v-for="song in selectedCustomPlaylist.songs" :key="song.id" class="mine-row has-add-action has-remove-action" @click="playSong(song, selectedCustomPlaylist.songs)">
+              <button type="button" class="row-play" @click.stop="playSong(song, selectedCustomPlaylist.songs)"><Icon name="play" /></button>
+              <img :src="song.cover" :alt="song.title" />
+              <div class="song-meta"><strong>{{ song.title }}</strong><span class="song-artist">{{ song.artist }}</span></div>
+              <span>{{ song.album }}</span><span>{{ song.duration }}</span>
+              <AddToPlaylistButton :song="song" />
+              <button type="button" class="row-remove" title="从歌单移除" @click.stop="removeCustomSong(selectedCustomPlaylist.id, song.id)"><Icon name="close" :size="18" /></button>
+            </div>
+          </div>
+          <div v-else class="mine-empty"><p>这个歌单还没有歌曲</p></div>
+        </section>
+      </div>
+
       <div v-else key="history">
         <template v-if="historySongs.length">
           <div class="history-head">
@@ -194,7 +280,7 @@ function formatTimeAgo(time) {
             <div
               v-for="song in historySongs"
               :key="song.id"
-              class="mine-row"
+              class="mine-row has-add-action"
               :class="{ playing: currentSong?.id === song.id }"
               @click="playSong(song, historySongs)"
             >
@@ -210,6 +296,7 @@ function formatTimeAgo(time) {
               </div>
               <span>{{ song.album }}</span>
               <span>{{ formatTimeAgo(song.playedAt) }}</span>
+              <AddToPlaylistButton :song="song" />
             </div>
           </div>
         </template>
@@ -233,6 +320,17 @@ function formatTimeAgo(time) {
   border-radius: 999px;
   background: var(--surface);
 }
+
+.mine-page :deep(.user-card-logout) { display: none; }
+.custom-playlist-create { display: flex; gap: 10px; margin-bottom: 22px; }
+.custom-playlist-create input { min-width: 0; height: 42px; flex: 1; padding: 0 14px; border: 1px solid rgba(25, 25, 25, .14); border-radius: 9px; outline: none; }
+.custom-playlist-create input:focus { border-color: var(--brand-strong); box-shadow: 0 0 0 3px rgba(233, 78, 119, .12); }
+.custom-playlist-create button { padding: 0 20px; border-radius: 9px; background: var(--brand-strong); color: #fff; font-weight: 800; }
+.custom-playlist-card { position: relative; }
+.custom-playlist-open { width: 100%; padding: 0; background: transparent; color: inherit; text-align: left; }
+.custom-playlist-open .mine-card-cover { display: block; }
+.custom-playlist-open small { color: var(--text-secondary); }
+.custom-playlist-detail { margin-top: 28px; padding-top: 22px; border-top: 1px solid rgba(25, 25, 25, .08); }
 
 .mine-tab {
   display: inline-flex;
@@ -319,6 +417,14 @@ function formatTimeAgo(time) {
   transition:
     border-color 0.18s ease,
     background 0.18s ease;
+}
+
+.mine-row.has-add-action {
+  grid-template-columns: 42px 56px minmax(0, 1fr) minmax(90px, auto) minmax(80px, auto) 90px;
+}
+
+.mine-row.has-add-action.has-remove-action {
+  grid-template-columns: 42px 56px minmax(0, 1fr) minmax(90px, auto) minmax(80px, auto) 90px 40px;
 }
 
 .mine-row:hover {
@@ -537,6 +643,14 @@ function formatTimeAgo(time) {
   .mine-row > span {
     display: none;
   }
+
+  .mine-row.has-add-action {
+    grid-template-columns: 42px 52px minmax(0, 1fr) 90px;
+  }
+
+  .mine-row.has-add-action.has-remove-action {
+    grid-template-columns: 42px 52px minmax(0, 1fr) 90px 40px;
+  }
 }
 
 @media (max-width: 700px) {
@@ -557,6 +671,14 @@ function formatTimeAgo(time) {
     grid-template-columns: 38px 48px minmax(0, 1fr) 36px;
     gap: 8px;
     padding: 10px;
+  }
+
+  .mine-row.has-add-action {
+    grid-template-columns: 38px 48px minmax(0, 1fr) 40px;
+  }
+
+  .mine-row.has-add-action.has-remove-action {
+    grid-template-columns: 38px 48px minmax(0, 1fr) 40px 36px;
   }
 }
 </style>

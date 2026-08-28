@@ -25,7 +25,11 @@ body {
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
-  background-attachment: scroll;
+  background-attachment: fixed;
+}
+
+body.modal-open {
+  overflow: hidden;
 }
 
 #app {
@@ -62,6 +66,22 @@ body {
 .user-avatar:hover {
   border-color: var(--brand-strong);
 }
+
+.user-avatar { overflow: hidden; }
+.user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.auth-text-button {
+  display: block;
+  width: 100%;
+  margin-top: 18px;
+  padding: 0;
+  background: transparent;
+  color: #666;
+  font-size: 14px;
+  text-align: center;
+}
+
+.auth-text-button:hover { color: var(--brand-strong); text-decoration: underline; }
 
 .vue-player-inner {
   width: min(1500px, calc(100% - 48px));
@@ -284,12 +304,31 @@ body {
 
 .vue-player-queue-item {
   display: grid;
+  grid-template-columns: minmax(0, 1fr) 40px;
+  align-items: center;
+  gap: 4px;
+  padding: 7px;
+  border-radius: 8px;
+}
+
+.vue-player-queue-main {
+  display: grid;
   grid-template-columns: 30px 42px minmax(0, 1fr);
   align-items: center;
   gap: 10px;
-  padding: 7px;
-  border-radius: 8px;
-  cursor: pointer;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+}
+
+.vue-player-queue-meta {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
 }
 
 .vue-player-queue-item:hover,
@@ -402,6 +441,10 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.7);
   border-radius: 10px;
   background: var(--surface);
+}
+
+.functional-row.has-add-action {
+  grid-template-columns: 42px 56px minmax(0, 1fr) 110px 90px 90px;
 }
 
 .functional-row.playing {
@@ -560,6 +603,22 @@ button:not(:disabled),
 
   .vue-player-volume {
     display: none;
+  }
+}
+
+@media (max-width: 960px) {
+  .functional-row.has-add-action {
+    grid-template-columns: 42px 52px minmax(0, 1fr) 90px 90px;
+  }
+
+  .functional-row.has-add-action > span:last-of-type {
+    display: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .functional-row.has-add-action {
+    grid-template-columns: 36px 48px minmax(0, 1fr) 40px;
   }
 }
 

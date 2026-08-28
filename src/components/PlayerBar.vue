@@ -123,6 +123,7 @@ onUnmounted(() => {
             :name="userStore.isFavoriteSong(playerStore.currentSong.id) ? 'heart' : 'heart-outline'"
           />
         </button>
+        <AddToPlaylistButton v-if="playerStore.currentSong" :song="playerStore.currentSong" compact />
       </div>
 
       <div>
@@ -240,19 +241,22 @@ onUnmounted(() => {
             :key="`${song.id}-${index}`"
             class="vue-player-queue-item"
             :class="{ active: playerStore.currentIndex === index }"
-            role="button"
-            tabindex="0"
-            :aria-current="playerStore.currentIndex === index ? 'true' : undefined"
-            :aria-label="`播放 ${song.title} - ${song.artist}`"
-            @click="playAt(index)"
-            @keydown.enter.space.prevent="playAt(index)"
           >
-            <span>{{ index + 1 }}</span>
-            <img :src="song.cover" :alt="song.title" />
-            <div>
-              <strong>{{ song.title }}</strong>
-              <span>{{ song.artist }}</span>
-            </div>
+            <button
+              type="button"
+              class="vue-player-queue-main"
+              :aria-current="playerStore.currentIndex === index ? 'true' : undefined"
+              :aria-label="`播放 ${song.title} - ${song.artist}`"
+              @click="playAt(index)"
+            >
+              <span>{{ index + 1 }}</span>
+              <img :src="song.cover" :alt="song.title" />
+              <span class="vue-player-queue-meta">
+                <strong>{{ song.title }}</strong>
+                <span>{{ song.artist }}</span>
+              </span>
+            </button>
+            <AddToPlaylistButton :song="song" compact />
           </li>
         </ul>
       </div>

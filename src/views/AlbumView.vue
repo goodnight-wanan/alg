@@ -75,6 +75,7 @@ function playAlbum(album) {
         </h3>
         <p class="album-artist">{{ album.artist }}</p>
         <p class="album-meta">{{ album.genre }} · {{ album.duration }}</p>
+        <AddToPlaylistButton :song="album" />
       </article>
     </div>
     <div v-else class="functional-empty">暂时没有新碟上架</div>
@@ -172,7 +173,7 @@ function playAlbum(album) {
 }
 
 .album-section-meta {
-  margin: 0;
+  margin: 0 0 10px;
   color: var(--text-secondary);
   font-size: 13px;
   font-weight: 700;

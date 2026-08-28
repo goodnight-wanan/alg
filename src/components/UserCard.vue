@@ -1,6 +1,5 @@
 <script setup>
 import { computed } from 'vue'
-import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import { getSongById } from '../data/musicData'
 
@@ -8,10 +7,9 @@ defineProps({
   showStats: { type: Boolean, default: false }
 })
 
-const router = useRouter()
 const userStore = useUserStore()
 
-const initial = computed(() => userStore.currentUser?.username?.charAt(0).toUpperCase() || '?')
+const avatarUrl = computed(() => userStore.currentUser?.avatarUrl)
 
 const listeningSeconds = computed(() =>
   userStore.playHistory.reduce((sum, item) => {
@@ -34,15 +32,13 @@ const stats = computed(() => [
   { label: '听歌时长', value: formatListening(listeningSeconds.value) }
 ])
 
-function logout() {
-  userStore.logout()
-  router.push('/')
-}
 </script>
 
 <template>
   <div class="user-card">
-    <div class="user-card-avatar">{{ initial }}</div>
+    <div class="user-card-avatar">
+      <img :src="avatarUrl" alt="用户头像" />
+    </div>
     <div class="user-card-main">
       <div class="user-card-name">{{ userStore.currentUser?.username || '' }}</div>
       <div class="user-card-email">{{ userStore.currentUser?.email || '' }}</div>
@@ -52,7 +48,6 @@ function logout() {
         </span>
       </div>
     </div>
-    <button type="button" class="user-card-logout" @click="logout">退出登录</button>
   </div>
 </template>
 
@@ -77,11 +72,11 @@ function logout() {
   flex: 0 0 auto;
   border: 2px solid rgba(255, 255, 255, 0.85);
   border-radius: 50%;
+  overflow: hidden;
   background: rgba(255, 255, 255, 0.55);
-  color: var(--brand-strong);
-  font-size: 28px;
-  font-weight: 900;
 }
+
+.user-card-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
 .user-card-main {
   min-width: 0;
@@ -115,20 +110,6 @@ function logout() {
   font-weight: 900;
 }
 
-.user-card-logout {
-  flex: 0 0 auto;
-  padding: 8px 16px;
-  border-radius: 999px;
-  background: rgba(25, 25, 25, 0.06);
-  color: var(--text-secondary);
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.user-card-logout:hover {
-  color: var(--brand-strong);
-}
-
 @media (max-width: 700px) {
   .user-card {
     flex-wrap: wrap;
@@ -136,10 +117,6 @@ function logout() {
 
   .user-card-main {
     flex: 1 1 auto;
-  }
-
-  .user-card-logout {
-    width: 100%;
   }
 }
 </style>

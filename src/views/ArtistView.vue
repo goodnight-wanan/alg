@@ -154,7 +154,7 @@ function playSong(song) {
         <div
           v-for="song in selectedArtist.songs"
           :key="song.id"
-          class="functional-row"
+          class="functional-row has-add-action"
           :class="{ playing: currentSong?.id === song.id }"
         >
           <button type="button" class="row-play" @click="playSong(song)">
@@ -164,6 +164,7 @@ function playSong(song) {
           <strong>{{ song.title }} - {{ song.artist }}</strong>
           <span>{{ song.album }}</span>
           <span>{{ song.duration }}</span>
+          <AddToPlaylistButton :song="song" />
         </div>
       </div>
     </section>
