@@ -2,9 +2,11 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { API_BASE_URL } from '../api'
 import { useAdminAuthStore } from '../auth'
+import { useAdminStatsStore } from '../stats'
 import CategoryTagPicker from '../components/CategoryTagPicker.vue'
 
 const auth = useAdminAuthStore()
+const statsStore = useAdminStatsStore()
 const songs = ref([])
 const artists = ref([])
 const albums = ref([])
@@ -12,8 +14,8 @@ const categories = ref([])
 const selectedIds = ref([])
 const loading = ref(false)
 const saving = ref(false)
-const error = ref('')
-const notice = ref('')
+const toast = ref(null)
+let toastTimer = null
 const search = ref('')
 const statusFilter = ref('')
 const page = ref(1)
@@ -21,10 +23,19 @@ const totalPages = ref(1)
 const metadataTab = ref('artists')
 const editingArtistId = ref('')
 const editingCategoryId = ref('')
+const editingAlbumId = ref('')
+const activeCategoryGroup = ref('GENRE')
+const editingCategoryGroup = ref('')
 
 const artistForm = reactive({ name: '', region: '', biography: '', avatar: null })
-const categoryForm = reactive({ name: '', slug: '', type: '', description: '' })
-const albumForm = reactive({ title: '', artistId: '', releaseDate: '', description: '' })
+const categoryForm = reactive({ name: '', slug: '', description: '' })
+const albumForm = reactive({
+  title: '',
+  artistId: '',
+  releaseDate: '',
+  description: '',
+  cover: null
+})
 const remoteForm = reactive({
   title: '',
   artistId: '',
@@ -44,6 +55,7 @@ const uploadForm = reactive({
 })
 
 const artistAvatarPreview = ref('')
+const albumCoverPreview = ref('')
 const apiOrigin = new URL(API_BASE_URL, window.location.origin).origin
 const allSelected = computed(
   () => songs.value.length > 0 && selectedIds.value.length === songs.value.length
@@ -57,6 +69,14 @@ const CATEGORY_TYPE_LABELS = {
   CHART: '榜单',
   FEATURE: '特色'
 }
+const CATEGORY_GROUPS = [
+  { key: 'GENRE', label: '类型' },
+  { key: 'MOOD', label: '心情' },
+  { key: 'ERA', label: '年代' },
+  { key: 'REGION', label: '地区' },
+  { key: 'CHART', label: '榜单' },
+  { key: 'FEATURE', label: '特色' }
+]
 const SLUG_GROUP_PREFIXES = ['genre', 'mood', 'era', 'region', 'chart', 'feature']
 
 function categoryGroup(category) {
@@ -73,6 +93,40 @@ function categoryGroupLabel(group) {
 function typePrefix(type) {
   return String(type || '').toLowerCase()
 }
+
+function normalizeCategorySlug(slug, group) {
+  const prefix = typePrefix(group)
+  if (!prefix) return slug.trim()
+  const base = slug
+    .trim()
+    .replace(/^(genre|mood|era|region|chart|feature)-/, '')
+  return base ? `${prefix}-${base}` : prefix
+}
+
+const categoryGroups = computed(() =>
+  CATEGORY_GROUPS.map((group) => ({
+    ...group,
+    items: categories.value.filter((category) => categoryGroup(category) === group.key)
+  }))
+)
+
+const activeGroupCategories = computed(() =>
+  categories.value.filter((category) => categoryGroup(category) === activeCategoryGroup.value)
+)
+
+const activeCategoryGroupLabel = computed(
+  () => CATEGORY_TYPE_LABELS[activeCategoryGroup.value] || '未分组'
+)
+
+const editingCategoryGroupLabel = computed(
+  () => CATEGORY_TYPE_LABELS[editingCategoryGroup.value] || '未分组'
+)
+
+const categorySlugPreview = computed(() => {
+  const group = editingCategoryGroup.value || activeCategoryGroup.value
+  const slug = categoryForm.slug.trim()
+  return slug ? normalizeCategorySlug(slug, group) : ''
+})
 
 const regionOptions = computed(() =>
   categories.value
@@ -93,13 +147,22 @@ function formatDate(value) {
 }
 
 function showNotice(message) {
-  notice.value = message
-  error.value = ''
+  pushToast(message, 'success')
 }
 
 function showError(requestError) {
-  error.value = requestError.message || '操作失败'
-  notice.value = ''
+  pushToast(requestError.message || '操作失败', 'error')
+}
+
+function pushToast(message, type) {
+  toast.value = { message, type }
+  window.clearTimeout(toastTimer)
+  toastTimer = window.setTimeout(
+    () => {
+      toast.value = null
+    },
+    type === 'error' ? 4500 : 2600
+  )
 }
 
 async function loadReferenceData() {
@@ -115,7 +178,6 @@ async function loadReferenceData() {
 
 async function loadSongs() {
   loading.value = true
-  error.value = ''
   try {
     const params = new URLSearchParams({ page: String(page.value), pageSize: '20' })
     if (search.value.trim()) params.set('search', search.value.trim())
@@ -133,9 +195,9 @@ async function loadSongs() {
 
 async function runSave(action) {
   saving.value = true
-  error.value = ''
   try {
     await action()
+    void statsStore.refresh()
   } catch (requestError) {
     showError(requestError)
   } finally {
@@ -213,27 +275,23 @@ async function deleteArtist(artist) {
   })
 }
 
-function onCategoryTypeChange() {
-  const prefix = typePrefix(categoryForm.type)
-  if (!prefix) return
-  const slug = categoryForm.slug.trim()
-  if (!slug) return
-  if (slug.startsWith(`${prefix}-`)) return
-  const base = slug.replace(/^(genre|mood|era|region|chart|feature)-/, '')
-  categoryForm.slug = `${prefix}-${base}`
+function selectCategoryGroup(group) {
+  if (editingCategoryId.value) cancelCategoryEdit()
+  activeCategoryGroup.value = group
 }
 
 function resetCategoryForm() {
-  Object.assign(categoryForm, { name: '', slug: '', type: '', description: '' })
+  Object.assign(categoryForm, { name: '', slug: '', description: '' })
 }
 
 async function submitCategory() {
   const isEditing = Boolean(editingCategoryId.value)
+  const group = editingCategoryGroup.value || activeCategoryGroup.value
   await runSave(async () => {
     const payload = {
       name: categoryForm.name,
-      slug: categoryForm.slug,
-      type: categoryForm.type,
+      slug: normalizeCategorySlug(categoryForm.slug, group),
+      type: group,
       description: categoryForm.description.trim()
     }
     const path = isEditing
@@ -252,16 +310,17 @@ async function submitCategory() {
 
 function startCategoryEdit(category) {
   editingCategoryId.value = category.id
+  editingCategoryGroup.value = categoryGroup(category)
   Object.assign(categoryForm, {
     name: category.name,
     slug: category.slug,
-    type: categoryGroup(category),
     description: category.description || ''
   })
 }
 
 function cancelCategoryEdit() {
   editingCategoryId.value = ''
+  editingCategoryGroup.value = ''
   resetCategoryForm()
 }
 
@@ -282,25 +341,81 @@ async function deleteCategory(category) {
   })
 }
 
-async function createAlbum() {
-  await runSave(async () => {
-    const payload = { ...albumForm }
-    if (!payload.releaseDate) delete payload.releaseDate
-    if (!payload.description) delete payload.description
-    await auth.request('/admin/albums', {
-      method: 'POST',
-      body: JSON.stringify(payload)
-    })
-    Object.assign(albumForm, { title: '', artistId: '', releaseDate: '', description: '' })
-    await loadReferenceData()
-    showNotice('专辑创建成功')
+function clearAlbumCoverPreview() {
+  if (albumCoverPreview.value) URL.revokeObjectURL(albumCoverPreview.value)
+  albumCoverPreview.value = ''
+}
+
+function resetAlbumForm() {
+  Object.assign(albumForm, {
+    title: '',
+    artistId: '',
+    releaseDate: '',
+    description: '',
+    cover: null
   })
+  clearAlbumCoverPreview()
+  const coverInput = document.querySelector('#album-cover-file')
+  if (coverInput) coverInput.value = ''
+}
+
+function setAlbumCover(event) {
+  const file = event.target.files?.[0] || null
+  albumForm.cover = file
+  if (albumCoverPreview.value) URL.revokeObjectURL(albumCoverPreview.value)
+  albumCoverPreview.value = file ? URL.createObjectURL(file) : ''
+}
+
+async function submitAlbum() {
+  const isEditing = Boolean(editingAlbumId.value)
+  await runSave(async () => {
+    const formData = new FormData()
+    formData.set('title', albumForm.title)
+    formData.set('artistId', albumForm.artistId)
+    if (albumForm.releaseDate || isEditing) {
+      formData.set('releaseDate', albumForm.releaseDate)
+    }
+    if (albumForm.description.trim() || isEditing) {
+      formData.set('description', albumForm.description.trim())
+    }
+    if (albumForm.cover) formData.set('cover', albumForm.cover)
+
+    const path = isEditing ? `/admin/albums/${editingAlbumId.value}` : '/admin/albums'
+    await auth.request(path, {
+      method: isEditing ? 'PATCH' : 'POST',
+      body: formData
+    })
+    editingAlbumId.value = ''
+    resetAlbumForm()
+    await loadReferenceData()
+    showNotice(isEditing ? '专辑已更新' : '专辑创建成功')
+  })
+}
+
+function startAlbumEdit(album) {
+  editingAlbumId.value = album.id
+  Object.assign(albumForm, {
+    title: album.title,
+    artistId: album.artist.id,
+    releaseDate: formatDate(album.releaseDate),
+    description: album.description || '',
+    cover: null
+  })
+  clearAlbumCoverPreview()
+  const coverInput = document.querySelector('#album-cover-file')
+  if (coverInput) coverInput.value = ''
+}
+
+function cancelAlbumEdit() {
+  editingAlbumId.value = ''
+  resetAlbumForm()
 }
 
 async function deleteAlbum(album) {
   if (!window.confirm(`确定删除专辑「${album.title}」吗？`)) return
   await runSave(async () => {
     await auth.request(`/admin/albums/${album.id}`, { method: 'DELETE' })
+    if (editingAlbumId.value === album.id) cancelAlbumEdit()
     await loadReferenceData()
     showNotice('专辑已删除')
   })
@@ -479,8 +594,17 @@ onMounted(async () => {
       </div>
     </section>
 
-    <p v-if="notice" class="form-message success-message">{{ notice }}</p>
-    <p v-if="error" class="form-message error-message">{{ error }}</p>
+    <Transition name="toast">
+      <div
+        v-if="toast"
+        class="toast"
+        :class="`is-${toast.type}`"
+        role="status"
+        aria-live="polite"
+      >
+        <span>{{ toast.message }}</span>
+      </div>
+    </Transition>
 
     <section class="glass-panel metadata-panel">
       <div class="metadata-tabs" role="tablist" aria-label="曲库元数据管理">
@@ -583,58 +707,76 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div v-show="metadataTab === 'categories'" class="metadata-pane" role="tabpanel">
-        <form class="compact-form" @submit.prevent="submitCategory">
-          <h3>{{ editingCategoryId ? '编辑分类' : '新建分类' }}</h3>
-          <input v-model.trim="categoryForm.name" placeholder="分类名称" required />
-          <select v-model="categoryForm.type" required @change="onCategoryTypeChange">
-            <option value="">选择分组</option>
-            <option value="GENRE">类型</option>
-            <option value="MOOD">心情</option>
-            <option value="ERA">年代</option>
-            <option value="REGION">地区</option>
-            <option value="CHART">榜单</option>
-            <option value="FEATURE">特色</option>
-          </select>
-          <input v-model.trim="categoryForm.slug" placeholder="英文别名，如 genre-rock" required />
-          <input v-model.trim="categoryForm.description" placeholder="描述（可选）" />
-          <div class="form-actions">
-            <button class="secondary-button" :disabled="saving">
-              {{ editingCategoryId ? '保存修改' : '保存分类' }}
-            </button>
-            <button
-              v-if="editingCategoryId"
-              type="button"
-              class="text-button"
-              @click="cancelCategoryEdit"
-            >
-              取消
-            </button>
-          </div>
-        </form>
+      <div v-show="metadataTab === 'categories'" class="metadata-pane category-pane" role="tabpanel">
+        <div class="category-groups" role="tablist" aria-label="分类分组">
+          <button
+            v-for="group in categoryGroups"
+            :key="group.key"
+            type="button"
+            role="tab"
+            :aria-selected="activeCategoryGroup === group.key"
+            :class="{ active: activeCategoryGroup === group.key }"
+            @click="selectCategoryGroup(group.key)"
+          >
+            {{ group.label }}
+            <span class="group-count">{{ group.items.length }}</span>
+          </button>
+        </div>
 
-        <div class="metadata-list" aria-label="分类列表">
-          <article v-for="category in categories" :key="category.id" class="metadata-item">
-            <div class="metadata-item-main">
-              <strong>{{ category.name }}</strong>
-              <small>
-                <span class="tag">{{ categoryGroupLabel(categoryGroup(category)) }}</span>
-                {{ category.slug }}
-              </small>
-              <p v-if="category.description">{{ category.description }}</p>
+        <div class="category-pane-body">
+          <form class="compact-form" @submit.prevent="submitCategory">
+            <h3>
+              {{
+                editingCategoryId
+                  ? `编辑标签（${editingCategoryGroupLabel}）`
+                  : `在「${activeCategoryGroupLabel}」下新建标签`
+              }}
+            </h3>
+            <div class="form-row">
+              <input v-model.trim="categoryForm.name" placeholder="标签名称，如 摇滚" required />
+              <input v-model.trim="categoryForm.slug" placeholder="英文别名，如 rock" required />
             </div>
-            <div class="item-actions">
-              <button type="button" @click="startCategoryEdit(category)">编辑</button>
-              <button type="button" class="danger-text" @click="deleteCategory(category)">删除</button>
+            <p v-if="categorySlugPreview" class="slug-preview">
+              将保存为 <code>{{ categorySlugPreview }}</code>
+            </p>
+            <input v-model.trim="categoryForm.description" placeholder="描述（可选）" />
+            <div class="form-actions">
+              <button class="secondary-button" :disabled="saving">
+                {{ editingCategoryId ? '保存修改' : '保存标签' }}
+              </button>
+              <button
+                v-if="editingCategoryId"
+                type="button"
+                class="text-button"
+                @click="cancelCategoryEdit"
+              >
+                取消
+              </button>
             </div>
-          </article>
-          <p v-if="!categories.length" class="empty-state">暂无分类，先在上方创建一条分类。</p>
+          </form>
+
+          <div class="tag-card-list" aria-label="分类标签列表">
+            <article v-for="category in activeGroupCategories" :key="category.id" class="tag-card">
+              <div class="tag-card-main">
+                <strong>{{ category.name }}</strong>
+                <small>{{ category.slug }}</small>
+                <p v-if="category.description">{{ category.description }}</p>
+              </div>
+              <div class="item-actions">
+                <button type="button" @click="startCategoryEdit(category)">编辑</button>
+                <button type="button" class="danger-text" @click="deleteCategory(category)">删除</button>
+              </div>
+            </article>
+            <p v-if="!activeGroupCategories.length" class="empty-state">
+              该分组下暂无标签，使用上方表单新建一个。
+            </p>
+          </div>
         </div>
       </div>
 
       <div v-show="metadataTab === 'albums'" class="metadata-pane" role="tabpanel">
-        <form class="compact-form" @submit.prevent="createAlbum">
-          <h3>新建专辑</h3>
+        <form class="compact-form" @submit.prevent="submitAlbum">
+          <h3>{{ editingAlbumId ? '编辑专辑' : '新建专辑' }}</h3>
           <input v-model.trim="albumForm.title" placeholder="专辑名称" required />
           <select v-model="albumForm.artistId" required>
             <option value="">选择歌手</option>
@@ -644,7 +786,34 @@ onMounted(async () => {
           </select>
           <input v-model="albumForm.releaseDate" type="date" />
           <input v-model.trim="albumForm.description" placeholder="描述（可选）" />
-          <button class="secondary-button" :disabled="saving">保存专辑</button>
+          <div class="album-cover-field">
+            <img
+              v-if="albumCoverPreview"
+              class="album-cover-preview"
+              :src="albumCoverPreview"
+              alt="专辑封面预览"
+            />
+            <label
+              >封面（可选）<input
+                id="album-cover-file"
+                type="file"
+                accept="image/*"
+                @change="setAlbumCover"
+            /></label>
+          </div>
+          <div class="form-actions">
+            <button class="secondary-button" :disabled="saving">
+              {{ editingAlbumId ? '保存修改' : '保存专辑' }}
+            </button>
+            <button
+              v-if="editingAlbumId"
+              type="button"
+              class="text-button"
+              @click="cancelAlbumEdit"
+            >
+              取消
+            </button>
+          </div>
         </form>
 
         <div class="metadata-list" aria-label="专辑列表">
@@ -665,6 +834,7 @@ onMounted(async () => {
               <p v-if="album.description">{{ album.description }}</p>
             </div>
             <div class="item-actions">
+              <button type="button" @click="startAlbumEdit(album)">编辑</button>
               <button type="button" class="danger-text" @click="deleteAlbum(album)">删除</button>
             </div>
           </article>
@@ -1019,8 +1189,191 @@ onMounted(async () => {
   box-shadow: 0 6px 16px rgba(93, 54, 70, 0.16);
 }
 
+.category-pane {
+  display: block;
+}
+
+.category-groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.category-groups button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 15px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: rgba(25, 25, 25, 0.06);
+  color: var(--text-secondary, #6b7280);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.category-groups button:hover {
+  color: var(--brand-strong, #e94e77);
+}
+
+.category-groups button.active {
+  background: var(--brand, #ff699d);
+  border-color: var(--brand, #ff699d);
+  color: #fff;
+}
+
+.group-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary, #6b7280);
+  font-size: 11px;
+}
+
+.category-groups button.active .group-count {
+  background: rgba(255, 255, 255, 0.24);
+  color: #fff;
+}
+
+.category-pane-body {
+  display: grid;
+  grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
+  gap: 18px;
+  padding-top: 16px;
+}
+
+.tag-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 460px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.tag-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.tag-card-main {
+  min-width: 0;
+}
+
+.tag-card-main strong {
+  display: block;
+}
+
+.tag-card-main small {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-muted, #9ca3af);
+  font-size: 12px;
+}
+
+.tag-card-main p {
+  margin: 6px 0 0;
+  color: var(--text-secondary, #6b7280);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.slug-preview {
+  margin: 0 0 10px;
+  color: var(--text-muted, #9ca3af);
+  font-size: 12px;
+}
+
+.slug-preview code {
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(255, 105, 157, 0.12);
+  color: var(--brand-strong, #e94e77);
+}
+
+.album-cover-field {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.album-cover-field label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary, #6b7280);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.album-cover-field input[type='file'] {
+  max-width: 170px;
+  font-size: 12px;
+}
+
+.album-cover-preview {
+  width: 64px;
+  height: 64px;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 10px;
+  object-fit: cover;
+  background: rgba(255, 255, 255, 0.55);
+  box-shadow: 0 6px 16px rgba(93, 54, 70, 0.16);
+}
+
+.toast {
+  position: fixed;
+  top: 18px;
+  right: 24px;
+  z-index: 4000;
+  max-width: 360px;
+  padding: 12px 18px;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.22);
+}
+
+.toast.is-success {
+  background: rgba(46, 160, 67, 0.94);
+}
+
+.toast.is-error {
+  background: rgba(220, 53, 69, 0.94);
+}
+
+.toast-enter-active,
+.toast-leave-active {
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease;
+}
+
+.toast-enter-from,
+.toast-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
 @media (max-width: 900px) {
   .metadata-pane {
+    grid-template-columns: 1fr;
+  }
+
+  .category-pane-body {
     grid-template-columns: 1fr;
   }
 }
