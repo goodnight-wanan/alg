@@ -48,13 +48,49 @@ VITE_API_BASE_URL=http://localhost:3000/api
 > 该账号仅用于本地开发测试，密码为弱密码，切勿用于生产环境。
 > 账号是手动写入本地数据库的，新 clone 的环境不会自动创建。
 
-如需自行创建管理员，先通过 `POST /api/auth/register` 注册普通账号，然后在 `vue-rewrite` 分支的 `server/` 目录执行：
+如需自行创建管理员（例如新 clone 仓库、没有预设账号时），按下面步骤操作。
+
+**第 1 步：启动服务**
+
+先在 `vue-rewrite` 分支对应目录启动 API 和数据库：
 
 ```bash
-npm run admin:promote -- your-account@example.com
+npm run docker:up
 ```
 
-该命令需要 `server/.env` 中存在可用的 `DATABASE_URL`。提升角色后即可登录本后台。
+**第 2 步：注册一个普通账号**
+
+打开用户音乐前台 `http://localhost:5173`，点击注册，填写用户名、邮箱和密码完成注册。
+
+> 管理后台只有登录入口、没有注册入口，所以必须先在用户前台注册。
+
+**第 3 步：把账号提升为管理员**
+
+打开终端，进入 `vue-rewrite` 分支的 `server/` 目录，执行下面的命令（把 `你的用户名` 换成第 2 步注册的用户名；用注册邮箱也可以）：
+
+```bash
+npm run admin:promote -- 你的用户名
+```
+
+例如注册的用户名是 `zhangsan`，就执行：
+
+```bash
+npm run admin:promote -- zhangsan
+```
+
+**第 4 步：确认成功**
+
+看到下面这样的提示，就说明提升成功了：
+
+```text
+Promoted zhangsan (zhangsan@example.com) to ADMIN.
+```
+
+如果看到 `User not found: xxx`，说明第 3 步填写的用户名/邮箱和第 2 步注册的不一致，检查后重试。
+
+**第 5 步：登录本后台**
+
+回到管理后台 `http://localhost:5174`，用第 2 步注册的账号和密码登录即可。
 
 ## 生产构建
 
