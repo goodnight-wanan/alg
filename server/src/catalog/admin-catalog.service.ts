@@ -10,6 +10,7 @@ import { PrismaService } from '../database/prisma.service.js';
 import { presentSong } from './catalog.presenter.js';
 import {
   songRelations,
+  UploadedAlbumFiles,
   UploadedArtistFiles,
   UploadedSongFiles,
 } from './catalog.types.js';
@@ -20,6 +21,7 @@ import {
   CreateArtistDto,
   CreateCategoryDto,
   CreateRemoteSongDto,
+  UpdateAlbumDto,
   UpdateSongDto,
   UpdateSongStatusDto,
   UploadSongDto,
@@ -81,6 +83,41 @@ export class AdminCatalogService {
         total,
         totalPages: Math.ceil(total / query.pageSize),
       },
+    };
+  }
+
+  async getStats() {
+    const [
+      totalSongs,
+      publishedSongs,
+      draftSongs,
+      unpublishedSongs,
+      artists,
+      albums,
+      categories,
+      playAggregate,
+    ] = await this.prisma.$transaction([
+      this.prisma.song.count(),
+      this.prisma.song.count({ where: { status: SongStatus.PUBLISHED } }),
+      this.prisma.song.count({ where: { status: SongStatus.DRAFT } }),
+      this.prisma.song.count({ where: { status: SongStatus.UNPUBLISHED } }),
+      this.prisma.artist.count(),
+      this.prisma.album.count(),
+      this.prisma.category.count(),
+      this.prisma.song.aggregate({ _sum: { playCount: true } }),
+    ]);
+
+    return {
+      songs: {
+        total: totalSongs,
+        published: publishedSongs,
+        draft: draftSongs,
+        unpublished: unpublishedSongs,
+      },
+      artists,
+      albums,
+      categories,
+      totalPlays: playAggregate._sum.playCount ?? 0,
     };
   }
 
@@ -215,21 +252,102 @@ export class AdminCatalogService {
     return { deleted: true };
   }
 
-  async createAlbum(dto: CreateAlbumDto) {
+  async createAlbum(dto: CreateAlbumDto, files: UploadedAlbumFiles = {}) {
     await this.assertArtistExists(dto.artistId);
+    const coverFile = files.cover?.[0];
+    let processedCover: ProcessedAsset | undefined;
+
     try {
-      return await this.prisma.album.create({
-        data: {
-          publicId: dto.publicId ?? this.publicId('album'),
-          title: dto.title,
-          artistId: dto.artistId,
-          releaseDate: dto.releaseDate ? new Date(dto.releaseDate) : undefined,
-          description: dto.description,
-        },
-        include: { artist: true, coverAsset: true },
+      if (coverFile) {
+        processedCover = await this.mediaStorage.processCover(coverFile);
+      }
+
+      return await this.prisma.$transaction(async (transaction) => {
+        const coverAsset = processedCover
+          ? await transaction.fileAsset.create({ data: processedCover.data })
+          : undefined;
+
+        return transaction.album.create({
+          data: {
+            publicId: dto.publicId ?? this.publicId('album'),
+            title: dto.title,
+            artistId: dto.artistId,
+            releaseDate: dto.releaseDate ? new Date(dto.releaseDate) : undefined,
+            description: dto.description,
+            coverAssetId: coverAsset?.id,
+          },
+          include: { artist: true, coverAsset: true },
+        });
       });
     } catch (error) {
+      if (processedCover) {
+        await this.mediaStorage.removeAssets([
+          { storagePath: processedCover.data.storagePath },
+        ]);
+      }
       this.handlePrismaError(error, '专辑公开 ID 已存在');
+    }
+  }
+
+  async updateAlbum(
+    id: string,
+    dto: UpdateAlbumDto,
+    files: UploadedAlbumFiles = {},
+  ) {
+    const existing = await this.prisma.album.findUnique({
+      where: { id },
+      select: { id: true, coverAsset: true },
+    });
+    if (!existing) {
+      throw new NotFoundException({
+        code: 'ALBUM_NOT_FOUND',
+        message: '专辑不存在',
+      });
+    }
+    if (dto.artistId) {
+      await this.assertArtistExists(dto.artistId);
+    }
+
+    const coverFile = files.cover?.[0];
+    const processedCover = coverFile
+      ? await this.mediaStorage.processCover(coverFile)
+      : undefined;
+
+    try {
+      const album = await this.prisma.$transaction(async (transaction) => {
+        const coverAsset = processedCover
+          ? await transaction.fileAsset.create({ data: processedCover.data })
+          : undefined;
+
+        return transaction.album.update({
+          where: { id },
+          data: {
+            title: dto.title,
+            artistId: dto.artistId,
+            releaseDate: dto.releaseDate
+              ? new Date(dto.releaseDate)
+              : undefined,
+            description:
+              dto.description === undefined
+                ? undefined
+                : dto.description.trim() || null,
+            coverAssetId: coverAsset?.id,
+          },
+          include: { artist: true, coverAsset: true },
+        });
+      });
+
+      if (existing.coverAsset && existing.coverAsset.id !== album.coverAssetId) {
+        await this.removeFileAsset(existing.coverAsset);
+      }
+      return album;
+    } catch (error) {
+      if (processedCover) {
+        await this.mediaStorage.removeAssets([
+          { storagePath: processedCover.data.storagePath },
+        ]);
+      }
+      throw error;
     }
   }
 

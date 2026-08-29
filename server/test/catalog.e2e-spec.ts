@@ -250,6 +250,19 @@ describe('Catalog management (e2e)', () => {
     });
     const authorization = `Bearer ${registerResponse.body.accessToken}`;
 
+    await request(app.getHttpServer())
+      .get('/api/admin/stats')
+      .set('Authorization', authorization)
+      .expect(200)
+      .expect(({ body }) => {
+        expect(typeof body.songs.total).toBe('number');
+        expect(typeof body.songs.published).toBe('number');
+        expect(typeof body.artists).toBe('number');
+        expect(typeof body.albums).toBe('number');
+        expect(typeof body.categories).toBe('number');
+        expect(typeof body.totalPlays).toBe('number');
+      });
+
     const artistResponse = await request(app.getHttpServer())
       .post('/api/admin/artists')
       .set('Authorization', authorization)
@@ -286,11 +299,43 @@ describe('Catalog management (e2e)', () => {
         expect(body.type).toBe('GENRE');
       });
 
+    const coverBuffer = await sharp({
+      create: {
+        width: 32,
+        height: 32,
+        channels: 4,
+        background: { r: 96, g: 132, b: 224, alpha: 1 },
+      },
+    })
+      .png()
+      .toBuffer();
+
     const albumResponse = await request(app.getHttpServer())
       .post('/api/admin/albums')
       .set('Authorization', authorization)
-      .send({ title: `Crud Album ${suffix}`, artistId: artistResponse.body.id })
+      .field('title', `Crud Album ${suffix}`)
+      .field('artistId', artistResponse.body.id)
+      .field('releaseDate', '2026-08-20')
+      .attach('cover', coverBuffer, {
+        filename: 'cover.png',
+        contentType: 'image/png',
+      })
       .expect(201);
+    expect(albumResponse.body.coverAssetId).toBeTruthy();
+
+    await request(app.getHttpServer())
+      .patch(`/api/admin/albums/${albumResponse.body.id}`)
+      .set('Authorization', authorization)
+      .field('title', `Crud Album Updated ${suffix}`)
+      .attach('cover', coverBuffer, {
+        filename: 'cover-next.png',
+        contentType: 'image/png',
+      })
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body.title).toBe(`Crud Album Updated ${suffix}`);
+        expect(body.coverAssetId).not.toBe(albumResponse.body.coverAssetId);
+      });
 
     await request(app.getHttpServer())
       .delete(`/api/admin/albums/${albumResponse.body.id}`)

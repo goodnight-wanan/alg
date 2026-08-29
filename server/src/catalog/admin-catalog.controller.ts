@@ -18,7 +18,11 @@ import { Roles } from '../auth/decorators/roles.decorator.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { RolesGuard } from '../auth/guards/roles.guard.js';
 import { AdminCatalogService } from './admin-catalog.service.js';
-import type { UploadedArtistFiles, UploadedSongFiles } from './catalog.types.js';
+import type {
+  UploadedAlbumFiles,
+  UploadedArtistFiles,
+  UploadedSongFiles,
+} from './catalog.types.js';
 import {
   AdminSongQueryDto,
   BatchSongIdsDto,
@@ -30,6 +34,7 @@ import {
   UpdateSongDto,
   UpdateSongStatusDto,
   UploadSongDto,
+  UpdateAlbumDto,
   UpdateArtistDto,
   UpdateCategoryDto,
 } from './dto/catalog.dto.js';
@@ -40,6 +45,11 @@ import { UploadCleanupInterceptor } from './interceptors/upload-cleanup.intercep
 @Roles(UserRole.ADMIN)
 export class AdminCatalogController {
   constructor(private readonly adminCatalogService: AdminCatalogService) {}
+
+  @Get('stats')
+  getStats() {
+    return this.adminCatalogService.getStats();
+  }
 
   @Get('songs')
   listSongs(@Query() query: AdminSongQueryDto) {
@@ -77,8 +87,28 @@ export class AdminCatalogController {
   }
 
   @Post('albums')
-  createAlbum(@Body() dto: CreateAlbumDto) {
-    return this.adminCatalogService.createAlbum(dto);
+  @UseInterceptors(
+    FileFieldsInterceptor([{ name: 'cover', maxCount: 1 }]),
+    UploadCleanupInterceptor,
+  )
+  createAlbum(
+    @Body() dto: CreateAlbumDto,
+    @UploadedFiles() files: UploadedAlbumFiles,
+  ) {
+    return this.adminCatalogService.createAlbum(dto, files ?? {});
+  }
+
+  @Patch('albums/:id')
+  @UseInterceptors(
+    FileFieldsInterceptor([{ name: 'cover', maxCount: 1 }]),
+    UploadCleanupInterceptor,
+  )
+  updateAlbum(
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @Body() dto: UpdateAlbumDto,
+    @UploadedFiles() files: UploadedAlbumFiles,
+  ) {
+    return this.adminCatalogService.updateAlbum(id, dto, files ?? {});
   }
 
   @Delete('albums/:id')

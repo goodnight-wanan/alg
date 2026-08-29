@@ -150,6 +150,30 @@ export class CreateAlbumDto {
   description?: string;
 }
 
+export class UpdateAlbumDto {
+  @Transform(({ value }) => optionalTrim(value))
+  @IsString({ message: '专辑名称必须是字符串' })
+  @Length(1, 160, { message: '专辑名称长度必须为 1 到 160 个字符' })
+  @IsOptional()
+  title?: string;
+
+  @Transform(({ value }) => optionalTrim(value))
+  @IsUUID('4', { message: '歌手 ID 无效' })
+  @IsOptional()
+  artistId?: string;
+
+  @Transform(({ value }) => optionalTrim(value))
+  @IsDateString({}, { message: '发行日期格式无效' })
+  @IsOptional()
+  releaseDate?: string;
+
+  @Transform(({ value }) => trim(value))
+  @IsString({ message: '专辑简介必须是字符串' })
+  @MaxLength(5000, { message: '专辑简介不能超过 5000 个字符' })
+  @IsOptional()
+  description?: string;
+}
+
 export class CreateCategoryDto {
   @Transform(({ value }) => trim(value))
   @IsString({ message: '分类名称必须是字符串' })

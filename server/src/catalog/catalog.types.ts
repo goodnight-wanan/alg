@@ -40,3 +40,7 @@ export interface UploadedSongFiles {
 export interface UploadedArtistFiles {
   avatar?: Express.Multer.File[];
 }
+
+export interface UploadedAlbumFiles {
+  cover?: Express.Multer.File[];
+}
