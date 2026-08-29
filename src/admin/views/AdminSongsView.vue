@@ -20,6 +20,7 @@ const search = ref('')
 const statusFilter = ref('')
 const page = ref(1)
 const totalPages = ref(1)
+const workspaceTab = ref('metadata')
 const metadataTab = ref('artists')
 const editingArtistId = ref('')
 const editingCategoryId = ref('')
@@ -60,6 +61,19 @@ const apiOrigin = new URL(API_BASE_URL, window.location.origin).origin
 const allSelected = computed(
   () => songs.value.length > 0 && selectedIds.value.length === songs.value.length
 )
+
+const summaryItems = computed(() => {
+  const stats = statsStore.stats
+  if (!stats) return []
+  return [
+    { label: '歌曲', value: stats.songs.total },
+    { label: '已上架', value: stats.songs.published },
+    { label: '歌手', value: stats.artists },
+    { label: '专辑', value: stats.albums },
+    { label: '分类', value: stats.categories },
+    { label: '总播放', value: stats.totalPlays }
+  ]
+})
 
 const CATEGORY_TYPE_LABELS = {
   GENRE: '类型',
@@ -572,6 +586,7 @@ function previewUrl(song) {
 }
 
 onMounted(async () => {
+  void statsStore.refresh()
   try {
     await Promise.all([loadReferenceData(), loadSongs()])
   } catch (requestError) {
@@ -594,6 +609,43 @@ onMounted(async () => {
       </div>
     </section>
 
+    <section v-if="summaryItems.length" class="glass-panel summary-strip" aria-label="数据汇总">
+      <div v-for="item in summaryItems" :key="item.label" class="summary-card">
+        <strong>{{ item.value }}</strong>
+        <span>{{ item.label }}</span>
+      </div>
+    </section>
+
+    <div class="workspace-tabs" role="tablist" aria-label="后台功能分区">
+      <button
+        type="button"
+        role="tab"
+        :aria-selected="workspaceTab === 'metadata'"
+        :class="{ active: workspaceTab === 'metadata' }"
+        @click="workspaceTab = 'metadata'"
+      >
+        歌手 / 分类 / 专辑
+      </button>
+      <button
+        type="button"
+        role="tab"
+        :aria-selected="workspaceTab === 'editor'"
+        :class="{ active: workspaceTab === 'editor' }"
+        @click="workspaceTab = 'editor'"
+      >
+        上传本地歌曲 / 录入远程歌曲
+      </button>
+      <button
+        type="button"
+        role="tab"
+        :aria-selected="workspaceTab === 'library'"
+        :class="{ active: workspaceTab === 'library' }"
+        @click="workspaceTab = 'library'"
+      >
+        歌曲列表
+      </button>
+    </div>
+
     <Transition name="toast">
       <div
         v-if="toast"
@@ -606,7 +658,7 @@ onMounted(async () => {
       </div>
     </Transition>
 
-    <section class="glass-panel metadata-panel">
+    <section v-show="workspaceTab === 'metadata'" class="glass-panel metadata-panel">
       <div class="metadata-tabs" role="tablist" aria-label="曲库元数据管理">
         <button
           type="button"
@@ -843,7 +895,7 @@ onMounted(async () => {
       </div>
     </section>
 
-    <section class="song-editor-grid">
+    <section v-show="workspaceTab === 'editor'" class="song-editor-grid">
       <form class="glass-panel song-form" @submit.prevent="uploadSong">
         <div class="section-heading">
           <div>
@@ -938,7 +990,7 @@ onMounted(async () => {
       </form>
     </section>
 
-    <section class="glass-panel table-panel">
+    <section v-show="workspaceTab === 'library'" class="glass-panel table-panel">
       <div class="table-toolbar">
         <div>
           <span class="eyebrow">LIBRARY</span>
@@ -1026,6 +1078,67 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.summary-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 12px;
+  margin-bottom: 22px;
+  padding: 16px 18px;
+}
+
+.summary-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 12px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.summary-card strong {
+  font-size: 25px;
+  font-weight: 900;
+  color: var(--brand-strong, #e94e77);
+}
+
+.summary-card span {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-secondary, #6b7280);
+  letter-spacing: 1px;
+}
+
+.workspace-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.workspace-tabs button {
+  padding: 10px 20px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: rgba(25, 25, 25, 0.06);
+  color: var(--text-secondary, #6b7280);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.workspace-tabs button:hover {
+  color: var(--brand-strong, #e94e77);
+}
+
+.workspace-tabs button.active {
+  background: var(--brand, #ff699d);
+  border-color: var(--brand, #ff699d);
+  color: #fff;
+}
+
 .metadata-panel {
   padding: 18px 20px 22px;
 }
@@ -1064,6 +1177,11 @@ onMounted(async () => {
   grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
   gap: 18px;
   padding-top: 18px;
+}
+
+.metadata-pane > .compact-form,
+.category-pane-body > .compact-form {
+  height: 460px;
 }
 
 .metadata-list {
@@ -1375,6 +1493,11 @@ onMounted(async () => {
 
   .category-pane-body {
     grid-template-columns: 1fr;
+  }
+
+  .metadata-pane > .compact-form,
+  .category-pane-body > .compact-form {
+    height: auto;
   }
 }
 </style>
