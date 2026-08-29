@@ -30,6 +30,7 @@ export function presentSong(
       id: song.artist.id,
       publicId: song.artist.publicId,
       name: song.artist.name,
+      region: song.artist.region,
       avatarUrl: assetUrl(song.artist.avatarAssetId),
     },
     album: song.album

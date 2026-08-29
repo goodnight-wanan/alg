@@ -35,6 +35,15 @@ enum FileAssetKind {
   USER_AVATAR
 }
 
+enum CategoryType {
+  GENRE
+  MOOD
+  ERA
+  REGION
+  CHART
+  FEATURE
+}
+
 model User {
   id                 String             @id @default(uuid()) @db.Uuid
   username           String             @db.VarChar(32)
@@ -79,6 +88,7 @@ model Artist {
   id            String     @id @default(uuid()) @db.Uuid
   publicId      String     @unique @map("public_id") @db.VarChar(64)
   name          String     @db.VarChar(100)
+  region        String?    @db.VarChar(60)
   biography     String?    @db.Text
   avatarAssetId String?    @unique @map("avatar_asset_id") @db.Uuid
   createdAt     DateTime   @default(now()) @map("created_at")
@@ -114,6 +124,7 @@ model Category {
   id          String         @id @default(uuid()) @db.Uuid
   name        String         @unique @db.VarChar(60)
   slug        String         @unique @db.VarChar(60)
+  type        CategoryType?
   description String?        @db.VarChar(255)
   createdAt   DateTime       @default(now()) @map("created_at")
   updatedAt   DateTime       @updatedAt @map("updated_at")

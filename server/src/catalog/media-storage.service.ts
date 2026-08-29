@@ -192,6 +192,22 @@ export class MediaStorageService implements OnModuleInit {
     });
   }
 
+  async processArtistAvatar(file: Express.Multer.File): Promise<ProcessedAsset> {
+    return this.processImage(file, {
+      kind: FileAssetKind.ARTIST_AVATAR,
+      outputRoot: this.avatarRoot,
+      maxDimension: 512,
+      maxBytes:
+        this.getPositiveInteger('MAX_AVATAR_UPLOAD_MB', 1) * 1024 * 1024,
+      tooLargeCode: 'ARTIST_AVATAR_TOO_LARGE',
+      tooLargeLabel: '歌手头像文件',
+      unsupportedCode: 'UNSUPPORTED_ARTIST_AVATAR_TYPE',
+      unsupportedMessage: '歌手头像仅支持 JPG、PNG、WebP、GIF 和 AVIF 图片',
+      failureCode: 'ARTIST_AVATAR_PROCESSING_FAILED',
+      failureMessage: '歌手头像图片无法识别或转换失败',
+    });
+  }
+
   private async processImage(
     file: Express.Multer.File,
     options: {

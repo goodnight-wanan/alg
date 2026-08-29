@@ -17,7 +17,7 @@ import {
   MaxLength,
   Min,
 } from 'class-validator';
-import { SongSourceType, SongStatus } from '@prisma/client';
+import { CategoryType, SongSourceType, SongStatus } from '@prisma/client';
 
 function trim(value: unknown) {
   return typeof value === 'string' ? value.trim() : value;
@@ -90,6 +90,32 @@ export class CreateArtistDto {
   name: string;
 
   @Transform(({ value }) => optionalTrim(value))
+  @IsString({ message: '歌手地区必须是字符串' })
+  @MaxLength(60, { message: '歌手地区不能超过 60 个字符' })
+  @IsOptional()
+  region?: string;
+
+  @Transform(({ value }) => optionalTrim(value))
+  @IsString({ message: '歌手简介必须是字符串' })
+  @MaxLength(5000, { message: '歌手简介不能超过 5000 个字符' })
+  @IsOptional()
+  biography?: string;
+}
+
+export class UpdateArtistDto {
+  @Transform(({ value }) => optionalTrim(value))
+  @IsString({ message: '歌手名称必须是字符串' })
+  @Length(1, 100, { message: '歌手名称长度必须为 1 到 100 个字符' })
+  @IsOptional()
+  name?: string;
+
+  @Transform(({ value }) => trim(value))
+  @IsString({ message: '歌手地区必须是字符串' })
+  @MaxLength(60, { message: '歌手地区不能超过 60 个字符' })
+  @IsOptional()
+  region?: string;
+
+  @Transform(({ value }) => trim(value))
   @IsString({ message: '歌手简介必须是字符串' })
   @MaxLength(5000, { message: '歌手简介不能超过 5000 个字符' })
   @IsOptional()
@@ -139,7 +165,38 @@ export class CreateCategoryDto {
   @Length(1, 60, { message: '分类别名长度必须为 1 到 60 个字符' })
   slug: string;
 
+  @IsEnum(CategoryType, { message: '分类类型无效' })
+  type: CategoryType;
+
   @Transform(({ value }) => optionalTrim(value))
+  @IsString({ message: '分类描述必须是字符串' })
+  @MaxLength(255, { message: '分类描述不能超过 255 个字符' })
+  @IsOptional()
+  description?: string;
+}
+
+export class UpdateCategoryDto {
+  @Transform(({ value }) => optionalTrim(value))
+  @IsString({ message: '分类名称必须是字符串' })
+  @Length(1, 60, { message: '分类名称长度必须为 1 到 60 个字符' })
+  @IsOptional()
+  name?: string;
+
+  @Transform(({ value }) =>
+    typeof value === 'string' ? value.trim().toLowerCase() : value,
+  )
+  @Matches(/^[a-z0-9-]+$/, {
+    message: '分类别名只能包含小写字母、数字和连字符',
+  })
+  @Length(1, 60, { message: '分类别名长度必须为 1 到 60 个字符' })
+  @IsOptional()
+  slug?: string;
+
+  @IsEnum(CategoryType, { message: '分类类型无效' })
+  @IsOptional()
+  type?: CategoryType;
+
+  @Transform(({ value }) => trim(value))
   @IsString({ message: '分类描述必须是字符串' })
   @MaxLength(255, { message: '分类描述不能超过 255 个字符' })
   @IsOptional()

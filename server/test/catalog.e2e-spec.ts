@@ -3,16 +3,20 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UserRole } from '@prisma/client';
 import request from 'supertest';
 import { App } from 'supertest/types';
+import sharp from 'sharp';
 import { AppModule } from '../src/app.module.js';
 import { configureApp } from '../src/app.setup.js';
 import { PrismaService } from '../src/database/prisma.service.js';
+import { MediaStorageService } from '../src/catalog/media-storage.service.js';
 
 describe('Catalog management (e2e)', () => {
   let app: INestApplication<App>;
   let prisma: PrismaService;
   const created = {
     userId: '',
+    crudUserId: '',
     artistId: '',
+    avatarArtistId: '',
     albumId: '',
     categoryId: '',
     songId: '',
@@ -61,9 +65,46 @@ describe('Catalog management (e2e)', () => {
     const artistResponse = await request(app.getHttpServer())
       .post('/api/admin/artists')
       .set('Authorization', `Bearer ${registerResponse.body.accessToken}`)
-      .send({ name: `Artist ${suffix}` })
+      .send({ name: `Artist ${suffix}`, region: '内地' })
       .expect(201);
     created.artistId = artistResponse.body.id;
+    expect(artistResponse.body.region).toBe('内地');
+
+    const avatarBuffer = await sharp({
+      create: {
+        width: 16,
+        height: 16,
+        channels: 4,
+        background: { r: 233, g: 78, b: 119, alpha: 1 },
+      },
+    })
+      .png()
+      .toBuffer();
+
+    const avatarArtistResponse = await request(app.getHttpServer())
+      .post('/api/admin/artists')
+      .set('Authorization', `Bearer ${registerResponse.body.accessToken}`)
+      .field('name', `Avatar Artist ${suffix}`)
+      .field('region', '欧美')
+      .attach('avatar', avatarBuffer, {
+        filename: 'avatar.png',
+        contentType: 'image/png',
+      })
+      .expect(201);
+    created.avatarArtistId = avatarArtistResponse.body.id;
+    expect(avatarArtistResponse.body.avatarAssetId).toBeTruthy();
+
+    await request(app.getHttpServer())
+      .get('/api/artists')
+      .expect(200)
+      .expect(({ body }) => {
+        const item = body.find(
+          (candidate: { id: string }) =>
+            candidate.id === created.avatarArtistId,
+        );
+        expect(item).toBeTruthy();
+        expect(item.avatarUrl).toMatch(/^\/api\/assets\//);
+      });
 
     const categoryResponse = await request(app.getHttpServer())
       .post('/api/admin/categories')
@@ -71,6 +112,7 @@ describe('Catalog management (e2e)', () => {
       .send({
         name: `Category ${suffix}`,
         slug: `category-${suffix}`.slice(0, 60),
+        type: 'GENRE',
       })
       .expect(201);
     created.categoryId = categoryResponse.body.id;
@@ -191,6 +233,92 @@ describe('Catalog management (e2e)', () => {
     created.songId = '';
   });
 
+  it('manages artist, category and album records', async () => {
+    const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    const username = `catalog_crud_${suffix}`.slice(0, 32);
+    const email = `catalog-crud-${suffix}@example.com`;
+    const password = 'catalog-crud-password-123';
+
+    const registerResponse = await request(app.getHttpServer())
+      .post('/api/auth/register')
+      .send({ username, email, password })
+      .expect(201);
+    created.crudUserId = registerResponse.body.user.id;
+    await prisma.user.update({
+      where: { id: created.crudUserId },
+      data: { role: UserRole.ADMIN },
+    });
+    const authorization = `Bearer ${registerResponse.body.accessToken}`;
+
+    const artistResponse = await request(app.getHttpServer())
+      .post('/api/admin/artists')
+      .set('Authorization', authorization)
+      .send({ name: `Crud Artist ${suffix}`, region: '日本' })
+      .expect(201);
+
+    await request(app.getHttpServer())
+      .patch(`/api/admin/artists/${artistResponse.body.id}`)
+      .set('Authorization', authorization)
+      .send({ name: `Crud Artist Updated ${suffix}`, region: '韩国' })
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body.name).toBe(`Crud Artist Updated ${suffix}`);
+        expect(body.region).toBe('韩国');
+      });
+
+    const categoryResponse = await request(app.getHttpServer())
+      .post('/api/admin/categories')
+      .set('Authorization', authorization)
+      .send({
+        name: `Crud Mood ${suffix}`,
+        slug: `mood-crud-${suffix}`.slice(0, 60),
+        type: 'MOOD',
+      })
+      .expect(201);
+
+    await request(app.getHttpServer())
+      .patch(`/api/admin/categories/${categoryResponse.body.id}`)
+      .set('Authorization', authorization)
+      .send({ name: `Crud Mood Updated ${suffix}`, type: 'GENRE' })
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body.name).toBe(`Crud Mood Updated ${suffix}`);
+        expect(body.type).toBe('GENRE');
+      });
+
+    const albumResponse = await request(app.getHttpServer())
+      .post('/api/admin/albums')
+      .set('Authorization', authorization)
+      .send({ title: `Crud Album ${suffix}`, artistId: artistResponse.body.id })
+      .expect(201);
+
+    await request(app.getHttpServer())
+      .delete(`/api/admin/albums/${albumResponse.body.id}`)
+      .set('Authorization', authorization)
+      .expect(200)
+      .expect({ deleted: true });
+
+    await request(app.getHttpServer())
+      .delete(`/api/admin/artists/${artistResponse.body.id}`)
+      .set('Authorization', authorization)
+      .expect(200)
+      .expect({ deleted: true });
+
+    await request(app.getHttpServer())
+      .delete(`/api/admin/categories/${categoryResponse.body.id}`)
+      .set('Authorization', authorization)
+      .expect(200)
+      .expect({ deleted: true });
+
+    await request(app.getHttpServer())
+      .delete(`/api/admin/artists/${created.artistId}`)
+      .set('Authorization', authorization)
+      .expect(400)
+      .expect(({ body }) => {
+        expect(body.code).toBe('ARTIST_IN_USE');
+      });
+  });
+
   afterAll(async () => {
     if (created.playlistId) {
       await prisma.playlist.deleteMany({ where: { id: created.playlistId } });
@@ -207,8 +335,28 @@ describe('Catalog management (e2e)', () => {
     if (created.artistId) {
       await prisma.artist.deleteMany({ where: { id: created.artistId } });
     }
+    if (created.avatarArtistId) {
+      const artist = await prisma.artist.findUnique({
+        where: { id: created.avatarArtistId },
+        select: { avatarAsset: true },
+      });
+      await prisma.artist.deleteMany({
+        where: { id: created.avatarArtistId },
+      });
+      if (artist?.avatarAsset) {
+        await prisma.fileAsset.deleteMany({
+          where: { id: artist.avatarAsset.id },
+        });
+        await app
+          .get(MediaStorageService)
+          .removeAssets([{ storagePath: artist.avatarAsset.storagePath }]);
+      }
+    }
     if (created.userId) {
       await prisma.user.deleteMany({ where: { id: created.userId } });
+    }
+    if (created.crudUserId) {
+      await prisma.user.deleteMany({ where: { id: created.crudUserId } });
     }
     await app?.close();
   });

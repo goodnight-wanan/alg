@@ -24,6 +24,14 @@ function categoryValue(song, prefix) {
   return song.categories?.find((category) => category.slug.startsWith(`${prefix}-`))?.name || ''
 }
 
+function categoryGroup(rawCategory) {
+  if (rawCategory.type) return rawCategory.type
+  const prefix = String(rawCategory.slug || '').split('-')[0]?.toUpperCase()
+  return ['GENRE', 'MOOD', 'ERA', 'REGION', 'CHART', 'FEATURE'].includes(prefix)
+    ? prefix
+    : ''
+}
+
 function formatDuration(seconds) {
   const value = Number(seconds) || 0
   const minutes = Math.floor(value / 60)
@@ -82,10 +90,18 @@ function unique(values) {
 
 function hydrateCategories(rawCategories) {
   const groups = {
-    genres: rawCategories.filter((item) => item.slug.startsWith('genre-')).map((item) => item.name),
-    moods: rawCategories.filter((item) => item.slug.startsWith('mood-')).map((item) => item.name),
-    eras: rawCategories.filter((item) => item.slug.startsWith('era-')).map((item) => item.name),
-    regions: rawCategories.filter((item) => item.slug.startsWith('region-')).map((item) => item.name)
+    genres: rawCategories
+      .filter((item) => categoryGroup(item) === 'GENRE')
+      .map((item) => item.name),
+    moods: rawCategories
+      .filter((item) => categoryGroup(item) === 'MOOD')
+      .map((item) => item.name),
+    eras: rawCategories
+      .filter((item) => categoryGroup(item) === 'ERA')
+      .map((item) => item.name),
+    regions: rawCategories
+      .filter((item) => categoryGroup(item) === 'REGION')
+      .map((item) => item.name)
   }
   Object.entries(groups).forEach(([key, values]) => replaceArray(categories[key], unique(values)))
 }
@@ -117,7 +133,7 @@ export function hydrateCatalog(bundle) {
       name: artist.name,
       biography: artist.biography,
       cover: resolveApiResourceUrl(artist.avatarUrl) || artistSongs[0]?.cover || fallbackCover,
-      region: artistSongs[0]?.region || '',
+      region: artist.region || artistSongs[0]?.region || '',
       genre: unique(artistSongs.map((song) => song.genre)).join(' / '),
       songs: artistSongs,
       songCount: artistSongs.length

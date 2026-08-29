@@ -338,10 +338,20 @@ async function seed() {
 
   const categoryBySlug = new Map();
   for (const category of categories) {
+    const type = category.group.toUpperCase();
     const record = await prisma.category.upsert({
       where: { slug: category.slug },
-      update: { name: category.name, description: `${category.group} 分类` },
-      create: { name: category.name, slug: category.slug, description: `${category.group} 分类` },
+      update: {
+        name: category.name,
+        description: `${category.group} 分类`,
+        type,
+      },
+      create: {
+        name: category.name,
+        slug: category.slug,
+        description: `${category.group} 分类`,
+        type,
+      },
     });
     categoryBySlug.set(record.slug, record);
   }
@@ -350,8 +360,17 @@ async function seed() {
   for (const artist of artists) {
     const record = await prisma.artist.upsert({
       where: { publicId: artist.publicId },
-      update: { name: artist.name, biography: artist.biography },
-      create: { publicId: artist.publicId, name: artist.name, biography: artist.biography },
+      update: {
+        name: artist.name,
+        biography: artist.biography,
+        region: artist.region,
+      },
+      create: {
+        publicId: artist.publicId,
+        name: artist.name,
+        biography: artist.biography,
+        region: artist.region,
+      },
     });
     artistByPublicId.set(record.publicId, record);
   }

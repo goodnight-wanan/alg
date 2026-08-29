@@ -18,7 +18,7 @@ import { Roles } from '../auth/decorators/roles.decorator.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { RolesGuard } from '../auth/guards/roles.guard.js';
 import { AdminCatalogService } from './admin-catalog.service.js';
-import type { UploadedSongFiles } from './catalog.types.js';
+import type { UploadedArtistFiles, UploadedSongFiles } from './catalog.types.js';
 import {
   AdminSongQueryDto,
   BatchSongIdsDto,
@@ -30,6 +30,8 @@ import {
   UpdateSongDto,
   UpdateSongStatusDto,
   UploadSongDto,
+  UpdateArtistDto,
+  UpdateCategoryDto,
 } from './dto/catalog.dto.js';
 import { UploadCleanupInterceptor } from './interceptors/upload-cleanup.interceptor.js';
 
@@ -45,8 +47,33 @@ export class AdminCatalogController {
   }
 
   @Post('artists')
-  createArtist(@Body() dto: CreateArtistDto) {
-    return this.adminCatalogService.createArtist(dto);
+  @UseInterceptors(
+    FileFieldsInterceptor([{ name: 'avatar', maxCount: 1 }]),
+    UploadCleanupInterceptor,
+  )
+  createArtist(
+    @Body() dto: CreateArtistDto,
+    @UploadedFiles() files: UploadedArtistFiles,
+  ) {
+    return this.adminCatalogService.createArtist(dto, files ?? {});
+  }
+
+  @Patch('artists/:id')
+  @UseInterceptors(
+    FileFieldsInterceptor([{ name: 'avatar', maxCount: 1 }]),
+    UploadCleanupInterceptor,
+  )
+  updateArtist(
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @Body() dto: UpdateArtistDto,
+    @UploadedFiles() files: UploadedArtistFiles,
+  ) {
+    return this.adminCatalogService.updateArtist(id, dto, files ?? {});
+  }
+
+  @Delete('artists/:id')
+  deleteArtist(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
+    return this.adminCatalogService.deleteArtist(id);
   }
 
   @Post('albums')
@@ -54,9 +81,29 @@ export class AdminCatalogController {
     return this.adminCatalogService.createAlbum(dto);
   }
 
+  @Delete('albums/:id')
+  deleteAlbum(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
+    return this.adminCatalogService.deleteAlbum(id);
+  }
+
   @Post('categories')
   createCategory(@Body() dto: CreateCategoryDto) {
     return this.adminCatalogService.createCategory(dto);
+  }
+
+  @Patch('categories/:id')
+  updateCategory(
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @Body() dto: UpdateCategoryDto,
+  ) {
+    return this.adminCatalogService.updateCategory(id, dto);
+  }
+
+  @Delete('categories/:id')
+  deleteCategory(
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+  ) {
+    return this.adminCatalogService.deleteCategory(id);
   }
 
   @Post('songs')

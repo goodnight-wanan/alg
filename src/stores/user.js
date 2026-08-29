@@ -136,17 +136,22 @@ export const useUserStore = defineStore('user', () => {
     if (initialized.value && !force) return isLoggedIn.value
 
     pendingInitialization = (async () => {
-      const session = getStoredAuthSession()
-      if (!session?.accessToken || !session?.refreshToken) {
-        clearSession()
-        initialized.value = true
-        return false
-      }
-
-      loading.value = true
-      hasSession.value = true
-      currentUser.value = normalizeUser(session.user)
+      // Defer the body so the assignment above finishes first. Otherwise a
+      // synchronously settled run (e.g. no stored session) would reset this
+      // flag in the finally block below and then be overwritten by the
+      // assignment, leaving a stale promise that blocks every later call.
+      await Promise.resolve()
       try {
+        const session = getStoredAuthSession()
+        if (!session?.accessToken || !session?.refreshToken) {
+          clearSession()
+          initialized.value = true
+          return false
+        }
+
+        loading.value = true
+        hasSession.value = true
+        currentUser.value = normalizeUser(session.user)
         const response = await fetchCurrentUser()
         const refreshedSession = getStoredAuthSession() || session
         setSession({ ...refreshedSession, user: response.user })

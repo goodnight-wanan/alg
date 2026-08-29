@@ -8,7 +8,11 @@ import {
 import { Prisma, SongSourceType, SongStatus } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service.js';
 import { presentSong } from './catalog.presenter.js';
-import { songRelations, UploadedSongFiles } from './catalog.types.js';
+import {
+  songRelations,
+  UploadedArtistFiles,
+  UploadedSongFiles,
+} from './catalog.types.js';
 import {
   AdminSongQueryDto,
   BatchSongStatusDto,
@@ -19,6 +23,8 @@ import {
   UpdateSongDto,
   UpdateSongStatusDto,
   UploadSongDto,
+  UpdateArtistDto,
+  UpdateCategoryDto,
 } from './dto/catalog.dto.js';
 import {
   MediaStorageService,
@@ -78,18 +84,135 @@ export class AdminCatalogService {
     };
   }
 
-  async createArtist(dto: CreateArtistDto) {
+  async createArtist(dto: CreateArtistDto, files: UploadedArtistFiles = {}) {
+    const avatarFile = files.avatar?.[0];
+    let processedAvatar: ProcessedAsset | undefined;
+
     try {
-      return await this.prisma.artist.create({
-        data: {
-          publicId: dto.publicId ?? this.publicId('artist'),
-          name: dto.name,
-          biography: dto.biography,
-        },
+      if (avatarFile) {
+        processedAvatar =
+          await this.mediaStorage.processArtistAvatar(avatarFile);
+      }
+
+      return await this.prisma.$transaction(async (transaction) => {
+        const avatarAsset = processedAvatar
+          ? await transaction.fileAsset.create({ data: processedAvatar.data })
+          : undefined;
+
+        return transaction.artist.create({
+          data: {
+            publicId: dto.publicId ?? this.publicId('artist'),
+            name: dto.name,
+            biography: dto.biography,
+            region: dto.region,
+            avatarAssetId: avatarAsset?.id,
+          },
+          include: { avatarAsset: true },
+        });
       });
     } catch (error) {
+      if (processedAvatar) {
+        await this.mediaStorage.removeAssets([
+          { storagePath: processedAvatar.data.storagePath },
+        ]);
+      }
       this.handlePrismaError(error, '歌手公开 ID 已存在');
     }
+  }
+
+  async updateArtist(
+    id: string,
+    dto: UpdateArtistDto,
+    files: UploadedArtistFiles = {},
+  ) {
+    const existing = await this.prisma.artist.findUnique({
+      where: { id },
+      select: { id: true, avatarAsset: true },
+    });
+    if (!existing) {
+      throw new NotFoundException({
+        code: 'ARTIST_NOT_FOUND',
+        message: '歌手不存在',
+      });
+    }
+
+    const avatarFile = files.avatar?.[0];
+    const processedAvatar = avatarFile
+      ? await this.mediaStorage.processArtistAvatar(avatarFile)
+      : undefined;
+
+    try {
+      const artist = await this.prisma.$transaction(async (transaction) => {
+        const avatarAsset = processedAvatar
+          ? await transaction.fileAsset.create({ data: processedAvatar.data })
+          : undefined;
+
+        return transaction.artist.update({
+          where: { id },
+          data: {
+            name: dto.name,
+            region:
+              dto.region === undefined
+                ? undefined
+                : dto.region.trim() || null,
+            biography:
+              dto.biography === undefined
+                ? undefined
+                : dto.biography.trim() || null,
+            avatarAssetId: avatarAsset?.id,
+          },
+          include: { avatarAsset: true },
+        });
+      });
+
+      if (existing.avatarAsset && existing.avatarAsset.id !== artist.avatarAssetId) {
+        await this.removeFileAsset(existing.avatarAsset);
+      }
+      return artist;
+    } catch (error) {
+      if (processedAvatar) {
+        await this.mediaStorage.removeAssets([
+          { storagePath: processedAvatar.data.storagePath },
+        ]);
+      }
+      throw error;
+    }
+  }
+
+  async deleteArtist(id: string) {
+    const artist = await this.prisma.artist.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        avatarAsset: true,
+        _count: { select: { albums: true, songs: true } },
+      },
+    });
+    if (!artist) {
+      throw new NotFoundException({
+        code: 'ARTIST_NOT_FOUND',
+        message: '歌手不存在',
+      });
+    }
+    if (artist._count.albums > 0 || artist._count.songs > 0) {
+      throw new BadRequestException({
+        code: 'ARTIST_IN_USE',
+        message: '该歌手已有歌曲或专辑，请先删除或迁移相关内容',
+      });
+    }
+
+    await this.prisma.$transaction(async (transaction) => {
+      await transaction.artist.delete({ where: { id } });
+      if (artist.avatarAsset) {
+        await transaction.fileAsset.delete({
+          where: { id: artist.avatarAsset.id },
+        });
+      }
+    });
+    if (artist.avatarAsset) {
+      await this.mediaStorage.removeAssets([artist.avatarAsset]);
+    }
+    return { deleted: true };
   }
 
   async createAlbum(dto: CreateAlbumDto) {
@@ -110,12 +233,80 @@ export class AdminCatalogService {
     }
   }
 
+  async deleteAlbum(id: string) {
+    const album = await this.prisma.album.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        coverAsset: true,
+        _count: { select: { songs: true } },
+      },
+    });
+    if (!album) {
+      throw new NotFoundException({
+        code: 'ALBUM_NOT_FOUND',
+        message: '专辑不存在',
+      });
+    }
+    if (album._count.songs > 0) {
+      throw new BadRequestException({
+        code: 'ALBUM_IN_USE',
+        message: '该专辑仍包含歌曲，请先删除或迁移专辑中的歌曲',
+      });
+    }
+
+    await this.prisma.$transaction(async (transaction) => {
+      await transaction.album.delete({ where: { id } });
+      if (album.coverAsset) {
+        await transaction.fileAsset.delete({
+          where: { id: album.coverAsset.id },
+        });
+      }
+    });
+    if (album.coverAsset) {
+      await this.mediaStorage.removeAssets([album.coverAsset]);
+    }
+    return { deleted: true };
+  }
+
   async createCategory(dto: CreateCategoryDto) {
     try {
       return await this.prisma.category.create({ data: dto });
     } catch (error) {
       this.handlePrismaError(error, '分类名称或别名已存在');
     }
+  }
+
+  async updateCategory(id: string, dto: UpdateCategoryDto) {
+    try {
+      return await this.prisma.category.update({
+        where: { id },
+        data: {
+          name: dto.name,
+          slug: dto.slug,
+          type: dto.type,
+          description:
+            dto.description === undefined
+              ? undefined
+              : dto.description.trim() || null,
+        },
+      });
+    } catch (error) {
+      this.handleCategoryUpdateError(error);
+    }
+  }
+
+  async deleteCategory(id: string) {
+    const result = await this.prisma.category.deleteMany({
+      where: { id },
+    });
+    if (result.count !== 1) {
+      throw new NotFoundException({
+        code: 'CATEGORY_NOT_FOUND',
+        message: '分类不存在',
+      });
+    }
+    return { deleted: true };
   }
 
   async createRemoteSong(dto: CreateRemoteSongDto) {
@@ -378,6 +569,35 @@ export class AdminCatalogService {
         message: '所选歌手不存在',
       });
     }
+  }
+
+  private async removeFileAsset(asset: { id: string; storagePath: string }) {
+    await this.prisma.fileAsset
+      .delete({ where: { id: asset.id } })
+      .then(() => this.mediaStorage.removeAssets([asset]))
+      .catch(() => undefined);
+  }
+
+  private handleCategoryUpdateError(error: unknown): never {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === 'P2002'
+    ) {
+      throw new ConflictException({
+        code: 'RESOURCE_ALREADY_EXISTS',
+        message: '分类名称或别名已存在',
+      });
+    }
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === 'P2025'
+    ) {
+      throw new NotFoundException({
+        code: 'CATEGORY_NOT_FOUND',
+        message: '分类不存在',
+      });
+    }
+    throw error;
   }
 
   private categoryCreate(categoryIds: string[] = []) {

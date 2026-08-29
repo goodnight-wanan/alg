@@ -141,6 +141,7 @@ export class CatalogService {
       id: artist.id,
       publicId: artist.publicId,
       name: artist.name,
+      region: artist.region,
       biography: artist.biography,
       avatarUrl: artist.avatarAsset
         ? `/api/assets/${artist.avatarAsset.id}`
