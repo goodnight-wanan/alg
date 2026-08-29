@@ -19,7 +19,7 @@
     "test:cov": "vitest run --coverage",
     "test:debug": "vitest --inspect-brk --no-file-parallelism",
     "test:e2e": "cross-env DATABASE_URL=postgresql://music_admin:music_dev_password@localhost:5432/music_site?schema=public vitest run --config ./vitest.config.e2e.ts",
-    "admin:promote": "node ./scripts/promote-admin.mjs",
+    "admin:promote": "cross-env DATABASE_URL=postgresql://music_admin:music_dev_password@localhost:5432/music_site?schema=public node ./scripts/promote-admin.mjs",
     "catalog:seed": "node ./scripts/seed-catalog.mjs",
     "prisma:generate": "cross-env DATABASE_URL=postgresql://music_admin:music_dev_password@localhost:5432/music_site?schema=public prisma generate",
     "prisma:format": "prisma format",
