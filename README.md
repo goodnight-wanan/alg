@@ -39,7 +39,16 @@ VITE_API_BASE_URL=http://localhost:3000/api
 
 ## 管理员账号
 
-先通过 `POST /api/auth/register` 注册普通账号，然后在 `vue-rewrite` 分支的 `server/` 目录执行：
+本地开发环境预设了一个管理员账号，可直接登录本后台：
+
+| 用户名 | 密码 | 邮箱 | 角色 |
+|--------|------|------|------|
+| `admin` | `123456` | `admin@example.com` | ADMIN |
+
+> 该账号仅用于本地开发测试，密码为弱密码，切勿用于生产环境。
+> 账号是手动写入本地数据库的，新 clone 的环境不会自动创建。
+
+如需自行创建管理员，先通过 `POST /api/auth/register` 注册普通账号，然后在 `vue-rewrite` 分支的 `server/` 目录执行：
 
 ```bash
 npm run admin:promote -- your-account@example.com
