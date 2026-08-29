@@ -38,6 +38,7 @@ services:
       MEDIA_ROOT: /app/uploads
       MAX_AUDIO_UPLOAD_MB: ${MAX_AUDIO_UPLOAD_MB:-50}
       MAX_COVER_UPLOAD_MB: ${MAX_COVER_UPLOAD_MB:-10}
+      MAX_AVATAR_UPLOAD_MB: ${MAX_AVATAR_UPLOAD_MB:-1}
       REMOTE_AUDIO_HOSTS: ${REMOTE_AUDIO_HOSTS:-}
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-local-development-access-secret-change-me}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-local-development-refresh-secret-change-me}

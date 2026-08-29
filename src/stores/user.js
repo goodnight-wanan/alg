@@ -1,352 +1,433 @@
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
-import { loadJSON, saveJSON, removeStorage, hashPassword } from '../utils/storage'
+import {
+  fetchCurrentUser,
+  loginAccount,
+  logoutAccount,
+  registerAccount
+} from '../api/auth'
+import {
+  AUTH_EXPIRED_EVENT,
+  clearAuthSession,
+  getStoredAuthSession,
+  saveAuthSession
+} from '../api/client'
+import { resolveApiResourceUrl } from '../api/catalog'
+import {
+  addFavoritePlaylist,
+  addFavoriteSong,
+  addUserPlaylistSong,
+  changePassword as changePasswordRequest,
+  clearPlayHistoryRequest,
+  createUserPlaylist,
+  deleteUserPlaylist,
+  fetchFavoritePlaylists,
+  fetchFavoriteSongs,
+  fetchPlayHistory,
+  fetchUserPlaylists,
+  recordPlayHistory,
+  removeFavoritePlaylist,
+  removeFavoriteSong,
+  removeUserPlaylistSong,
+  updateProfile,
+  updateUserPlaylist,
+  uploadAvatar
+} from '../api/me'
 
 export const DEFAULT_AVATAR = '/assets/imgs/default-avatar.svg'
 
-function sanitizeUser(user) {
+function normalizeUser(user) {
   if (!user) return null
-  const { passwordHash, ...safeUser } = user
   return {
-    ...safeUser,
-    avatarUrl: safeUser.avatarUrl || DEFAULT_AVATAR,
-    authProvider: safeUser.authProvider || 'password'
+    ...user,
+    avatarUrl: resolveApiResourceUrl(user.avatarUrl) || DEFAULT_AVATAR,
+    authProvider: 'password'
   }
 }
 
-function dataKey(base, userId) {
-  return userId ? `${base}:${userId}` : null
-}
-
-function normalizeHistory(history) {
-  return (Array.isArray(history) ? history : [])
-    .map((item) => {
-      if (typeof item === 'string') return { id: item, time: 0 }
-      return { id: item?.id, time: item?.time || 0 }
-    })
-    .filter((item) => item.id)
-}
-
-function normalizeCustomPlaylists(playlists) {
-  return (Array.isArray(playlists) ? playlists : [])
-    .map((playlist) => ({
-      id: String(playlist?.id || ''),
-      name: String(playlist?.name || '').trim(),
-      songIds: [...new Set(Array.isArray(playlist?.songIds) ? playlist.songIds : [])],
-      createdAt: playlist?.createdAt || Date.now(),
-      updatedAt: playlist?.updatedAt || playlist?.createdAt || Date.now()
-    }))
-    .filter((playlist) => playlist.id && playlist.name)
-}
-
-function loadUserData(userId) {
-  if (!userId) {
-    return { favoriteSongs: [], favoritePlaylists: [], playHistory: [], customPlaylists: [] }
-  }
-
+function normalizePlaylist(playlist) {
   return {
-    favoriteSongs: loadJSON(dataKey('favorite-songs', userId), []),
-    favoritePlaylists: loadJSON(dataKey('favorite-playlists', userId), []),
-    playHistory: normalizeHistory(loadJSON(dataKey('play-history', userId), [])),
-    customPlaylists: normalizeCustomPlaylists(loadJSON(dataKey('custom-playlists', userId), []))
+    id: playlist.id,
+    publicId: playlist.publicId,
+    name: playlist.title,
+    description: playlist.description || '',
+    songIds: (playlist.songs || []).map((song) => song.publicId).filter(Boolean),
+    createdAt: playlist.createdAt,
+    updatedAt: playlist.updatedAt
   }
+}
+
+function errorMessage(error, fallback) {
+  return error?.message || fallback
 }
 
 export const useUserStore = defineStore('user', () => {
-  const users = ref(loadJSON('users', []))
-  const currentUser = ref(sanitizeUser(loadJSON('session', null)))
-  const initialData = loadUserData(currentUser.value?.id)
+  const storedSession = getStoredAuthSession()
+  const currentUser = ref(normalizeUser(storedSession?.user))
+  const hasSession = ref(Boolean(storedSession?.accessToken && storedSession?.refreshToken))
+  const favoriteSongs = ref([])
+  const favoritePlaylists = ref([])
+  const playHistory = ref([])
+  const customPlaylists = ref([])
+  const initialized = ref(false)
+  const loading = ref(false)
+  const dataLoading = ref(false)
+  const error = ref('')
+  let pendingInitialization = null
 
-  const favoriteSongs = ref(initialData.favoriteSongs)
-  const favoritePlaylists = ref(initialData.favoritePlaylists)
-  const playHistory = ref(initialData.playHistory)
-  const customPlaylists = ref(initialData.customPlaylists)
+  const isLoggedIn = computed(() => Boolean(currentUser.value && hasSession.value))
 
-  const isLoggedIn = computed(() => Boolean(currentUser.value))
-
-  watch(users, (value) => saveJSON('users', value), { deep: true })
-  watch(currentUser, (value) => saveJSON('session', sanitizeUser(value)), { deep: true })
-
-  watch(currentUser, (value) => {
-    const data = loadUserData(value?.id)
-    favoriteSongs.value = data.favoriteSongs
-    favoritePlaylists.value = data.favoritePlaylists
-    playHistory.value = data.playHistory
-    customPlaylists.value = data.customPlaylists
-  })
-
-  watch(
-    favoriteSongs,
-    (value) => {
-      const key = dataKey('favorite-songs', currentUser.value?.id)
-      if (key) saveJSON(key, value)
-    },
-    { deep: true }
-  )
-
-  watch(
-    favoritePlaylists,
-    (value) => {
-      const key = dataKey('favorite-playlists', currentUser.value?.id)
-      if (key) saveJSON(key, value)
-    },
-    { deep: true }
-  )
-
-  watch(
-    playHistory,
-    (value) => {
-      const key = dataKey('play-history', currentUser.value?.id)
-      if (key) saveJSON(key, value)
-    },
-    { deep: true }
-  )
-
-  watch(
-    customPlaylists,
-    (value) => {
-      const key = dataKey('custom-playlists', currentUser.value?.id)
-      if (key) saveJSON(key, value)
-    },
-    { deep: true }
-  )
-
-  function findUser(account) {
-    return users.value.find((user) => user.username === account || user.email === account)
+  function setSession(session) {
+    saveAuthSession(session)
+    currentUser.value = normalizeUser(session.user)
+    hasSession.value = Boolean(session.accessToken && session.refreshToken)
   }
 
-  function register({ username, email, password, confirmPassword }) {
-    const name = username.trim()
-    const mail = email.trim().toLowerCase()
+  function resetUserData() {
+    favoriteSongs.value = []
+    favoritePlaylists.value = []
+    playHistory.value = []
+    customPlaylists.value = []
+  }
 
-    if (!name || !mail || !password) {
-      return { ok: false, message: '请填写完整的注册信息' }
+  function clearSession() {
+    clearAuthSession()
+    currentUser.value = null
+    hasSession.value = false
+    resetUserData()
+  }
+
+  async function loadLibrary() {
+    if (!isLoggedIn.value) {
+      resetUserData()
+      return false
     }
 
-    if (name.length < 2 || name.length > 20) {
-      return { ok: false, message: '用户名长度需在 2-20 个字符之间' }
+    dataLoading.value = true
+    error.value = ''
+    try {
+      const [songFavorites, playlistFavorites, history, playlists] = await Promise.all([
+        fetchFavoriteSongs(),
+        fetchFavoritePlaylists(),
+        fetchPlayHistory(),
+        fetchUserPlaylists()
+      ])
+      favoriteSongs.value = (songFavorites.items || []).map((song) => song.publicId)
+      favoritePlaylists.value = (playlistFavorites.items || []).map(
+        (playlist) => playlist.publicId
+      )
+      playHistory.value = (history.items || []).map((item) => ({
+        id: item.song.publicId,
+        time: new Date(item.lastPlayedAt).getTime(),
+        playCount: item.playCount
+      }))
+      customPlaylists.value = (playlists || []).map(normalizePlaylist)
+      return true
+    } catch (requestError) {
+      error.value = errorMessage(requestError, '用户数据加载失败，请稍后重试')
+      return false
+    } finally {
+      dataLoading.value = false
     }
+  }
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) {
-      return { ok: false, message: '请输入有效的邮箱地址' }
-    }
+  async function initialize({ force = false } = {}) {
+    if (pendingInitialization) return pendingInitialization
+    if (initialized.value && !force) return isLoggedIn.value
 
-    if (password.length < 6) {
-      return { ok: false, message: '密码长度不能少于 6 位' }
-    }
+    pendingInitialization = (async () => {
+      const session = getStoredAuthSession()
+      if (!session?.accessToken || !session?.refreshToken) {
+        clearSession()
+        initialized.value = true
+        return false
+      }
 
+      loading.value = true
+      hasSession.value = true
+      currentUser.value = normalizeUser(session.user)
+      try {
+        const response = await fetchCurrentUser()
+        const refreshedSession = getStoredAuthSession() || session
+        setSession({ ...refreshedSession, user: response.user })
+        await loadLibrary()
+        initialized.value = true
+        return true
+      } catch (requestError) {
+        clearSession()
+        error.value = errorMessage(requestError, '登录状态已失效，请重新登录')
+        initialized.value = true
+        return false
+      } finally {
+        loading.value = false
+        pendingInitialization = null
+      }
+    })()
+
+    return pendingInitialization
+  }
+
+  async function register({ username, email, password, confirmPassword }) {
     if (password !== confirmPassword) {
       return { ok: false, message: '两次输入的密码不一致' }
     }
-
-    if (findUser(name) || findUser(mail)) {
-      return { ok: false, message: '用户名或邮箱已被注册' }
+    try {
+      const session = await registerAccount({ username, email, password })
+      setSession(session)
+      await loadLibrary()
+      initialized.value = true
+      return { ok: true, message: '注册成功' }
+    } catch (requestError) {
+      return { ok: false, message: errorMessage(requestError, '注册失败，请稍后重试') }
     }
-
-    const user = {
-      id: `u${Date.now()}`,
-      username: name,
-      email: mail,
-      passwordHash: hashPassword(password),
-      avatarUrl: DEFAULT_AVATAR,
-      authProvider: 'password',
-      createdAt: new Date().toISOString()
-    }
-
-    users.value.push(user)
-    return { ok: true, message: '注册成功，请登录' }
   }
 
-  function login({ account, password }) {
-    const value = account.trim()
-    const user = findUser(value)
-
-    if (!user) {
-      return { ok: false, message: '用户不存在，请先注册' }
+  async function login({ account, password }) {
+    try {
+      const session = await loginAccount({ account, password })
+      setSession(session)
+      await loadLibrary()
+      initialized.value = true
+      return { ok: true, message: '登录成功' }
+    } catch (requestError) {
+      return { ok: false, message: errorMessage(requestError, '登录失败，请稍后重试') }
     }
-
-    if (user.passwordHash !== hashPassword(password)) {
-      return { ok: false, message: '用户名或密码错误' }
-    }
-
-    currentUser.value = sanitizeUser(user)
-    return { ok: true, message: '登录成功' }
   }
 
-  function logout() {
-    currentUser.value = null
-    removeStorage('session')
+  async function logout() {
+    try {
+      await logoutAccount()
+    } catch (requestError) {
+      console.warn('服务端退出失败，已清理本地登录状态', requestError)
+    } finally {
+      clearSession()
+      initialized.value = true
+    }
   }
 
   function isFavoriteSong(songId) {
     return favoriteSongs.value.includes(songId)
   }
 
-  function toggleFavoriteSong(songId) {
-    if (!isLoggedIn.value) return false
-
-    const index = favoriteSongs.value.indexOf(songId)
-    if (index >= 0) {
-      favoriteSongs.value.splice(index, 1)
-      return false
+  async function toggleFavoriteSong(songId) {
+    if (!isLoggedIn.value) return { ok: false, message: '请先登录后再收藏' }
+    const wasFavorite = isFavoriteSong(songId)
+    favoriteSongs.value = wasFavorite
+      ? favoriteSongs.value.filter((id) => id !== songId)
+      : [songId, ...favoriteSongs.value]
+    try {
+      if (wasFavorite) await removeFavoriteSong(songId)
+      else await addFavoriteSong(songId)
+      return { ok: true, added: !wasFavorite }
+    } catch (requestError) {
+      favoriteSongs.value = wasFavorite
+        ? [songId, ...favoriteSongs.value.filter((id) => id !== songId)]
+        : favoriteSongs.value.filter((id) => id !== songId)
+      return {
+        ok: false,
+        added: wasFavorite,
+        message: errorMessage(requestError, '收藏操作失败，请重试')
+      }
     }
-
-    favoriteSongs.value.unshift(songId)
-    return true
   }
 
   function isFavoritePlaylist(playlistId) {
     return favoritePlaylists.value.includes(playlistId)
   }
 
-  function toggleFavoritePlaylist(playlistId) {
-    if (!isLoggedIn.value) return false
-
-    const index = favoritePlaylists.value.indexOf(playlistId)
-    if (index >= 0) {
-      favoritePlaylists.value.splice(index, 1)
-      return false
+  async function toggleFavoritePlaylist(playlistId) {
+    if (!isLoggedIn.value) return { ok: false, message: '请先登录后再收藏' }
+    const wasFavorite = isFavoritePlaylist(playlistId)
+    favoritePlaylists.value = wasFavorite
+      ? favoritePlaylists.value.filter((id) => id !== playlistId)
+      : [playlistId, ...favoritePlaylists.value]
+    try {
+      if (wasFavorite) await removeFavoritePlaylist(playlistId)
+      else await addFavoritePlaylist(playlistId)
+      return { ok: true, added: !wasFavorite }
+    } catch (requestError) {
+      favoritePlaylists.value = wasFavorite
+        ? [playlistId, ...favoritePlaylists.value.filter((id) => id !== playlistId)]
+        : favoritePlaylists.value.filter((id) => id !== playlistId)
+      return {
+        ok: false,
+        added: wasFavorite,
+        message: errorMessage(requestError, '收藏操作失败，请重试')
+      }
     }
-
-    favoritePlaylists.value.unshift(playlistId)
-    return true
   }
 
   function recordPlay(songId) {
     if (!isLoggedIn.value) return
-
-    const nextHistory = [
-      { id: songId, time: Date.now() },
+    const existing = playHistory.value.find((item) => item.id === songId)
+    playHistory.value = [
+      {
+        id: songId,
+        time: Date.now(),
+        playCount: (existing?.playCount || 0) + 1
+      },
       ...playHistory.value.filter((item) => item.id !== songId)
-    ]
-    playHistory.value = nextHistory.slice(0, 50)
+    ].slice(0, 50)
+    void recordPlayHistory(songId).catch((requestError) => {
+      error.value = errorMessage(requestError, '播放记录同步失败')
+    })
   }
 
-  function clearPlayHistory() {
+  async function clearPlayHistory() {
+    const previous = playHistory.value
     playHistory.value = []
+    try {
+      await clearPlayHistoryRequest()
+      return { ok: true, message: '播放记录已清空' }
+    } catch (requestError) {
+      playHistory.value = previous
+      return { ok: false, message: errorMessage(requestError, '清空播放记录失败') }
+    }
   }
 
-  function createCustomPlaylist(name, songId = null) {
+  async function createCustomPlaylist(name, songId = null) {
     if (!isLoggedIn.value) return { ok: false, message: '请先登录后创建歌单' }
-
-    const title = String(name || '').trim()
-    if (!title) return { ok: false, message: '请输入歌单名称' }
-    if (title.length > 30) return { ok: false, message: '歌单名称不能超过 30 个字符' }
-    if (
-      customPlaylists.value.some((playlist) => playlist.name.toLowerCase() === title.toLowerCase())
-    ) {
-      return { ok: false, message: '已存在同名歌单' }
+    try {
+      const playlist = await createUserPlaylist({
+        title: String(name || '').trim(),
+        ...(songId ? { songId } : {})
+      })
+      const normalized = normalizePlaylist(playlist)
+      customPlaylists.value.unshift(normalized)
+      return {
+        ok: true,
+        playlist: normalized,
+        message: songId ? '歌单已创建并添加歌曲' : '歌单创建成功'
+      }
+    } catch (requestError) {
+      return { ok: false, message: errorMessage(requestError, '歌单创建失败') }
     }
-
-    const now = Date.now()
-    const playlist = {
-      id: `custom-${now}-${Math.random().toString(36).slice(2, 8)}`,
-      name: title,
-      songIds: songId ? [songId] : [],
-      createdAt: now,
-      updatedAt: now
-    }
-    customPlaylists.value.unshift(playlist)
-    return { ok: true, playlist, message: songId ? '歌单已创建并添加歌曲' : '歌单创建成功' }
   }
 
-  function addSongToCustomPlaylist(playlistId, songId) {
+  async function addSongToCustomPlaylist(playlistId, songId) {
     if (!isLoggedIn.value) return { ok: false, message: '请先登录后添加歌曲' }
-
     const playlist = customPlaylists.value.find((item) => item.id === playlistId)
     if (!playlist) return { ok: false, message: '歌单不存在' }
-
-    const existed = playlist.songIds.includes(songId)
-    if (existed) {
-      return {
-        ok: false,
-        duplicate: true,
-        message: `歌曲已在「${playlist.name}」歌单中`
-      }
+    if (playlist.songIds.includes(songId)) {
+      return { ok: false, duplicate: true, message: `歌曲已在「${playlist.name}」歌单中` }
     }
 
     playlist.songIds = [...playlist.songIds, songId]
-    playlist.updatedAt = Date.now()
-    return {
-      ok: true,
-      added: true,
-      message: `已添加到「${playlist.name}」`
+    playlist.updatedAt = new Date().toISOString()
+    try {
+      const result = await addUserPlaylistSong(playlistId, songId)
+      if (result.duplicate) {
+        return { ok: false, duplicate: true, message: `歌曲已在「${playlist.name}」歌单中` }
+      }
+      return { ok: true, added: true, message: `已添加到「${playlist.name}」` }
+    } catch (requestError) {
+      playlist.songIds = playlist.songIds.filter((id) => id !== songId)
+      return { ok: false, message: errorMessage(requestError, '添加歌曲失败') }
     }
   }
 
-  function updateAvatar(avatarUrl) {
-    if (!isLoggedIn.value) return { ok: false, message: '请先登录后修改头像' }
-    if (currentUser.value.authProvider !== 'password') {
-      return { ok: false, message: '第三方登录账号暂不支持修改头像' }
+  async function updateNickname(nickname) {
+    try {
+      const response = await updateProfile({ nickname })
+      currentUser.value = normalizeUser(response.user)
+      const session = getStoredAuthSession()
+      if (session) saveAuthSession({ ...session, user: response.user })
+      return { ok: true, message: '个人资料已更新' }
+    } catch (requestError) {
+      return { ok: false, message: errorMessage(requestError, '个人资料更新失败') }
     }
-    if (!String(avatarUrl || '').startsWith('data:image/webp;base64,')) {
-      return { ok: false, message: '头像仅支持 WebP 图片' }
-    }
-
-    const userIndex = users.value.findIndex((user) => user.id === currentUser.value.id)
-    if (userIndex < 0) return { ok: false, message: '未找到当前用户信息' }
-
-    const updatedUser = { ...users.value[userIndex], avatarUrl }
-    users.value[userIndex] = updatedUser
-    currentUser.value = sanitizeUser(updatedUser)
-    return { ok: true, message: '头像修改成功' }
   }
 
-  function changePassword({ currentPassword, newPassword, confirmPassword }) {
-    if (!isLoggedIn.value) return { ok: false, message: '请先登录后修改密码' }
-    if (currentUser.value.authProvider !== 'password') {
-      return { ok: false, message: '第三方登录账号暂不支持修改密码' }
+  async function updateAvatar(file) {
+    try {
+      const response = await uploadAvatar(file)
+      currentUser.value = normalizeUser(response.user)
+      const session = getStoredAuthSession()
+      if (session) saveAuthSession({ ...session, user: response.user })
+      return { ok: true, message: '头像修改成功' }
+    } catch (requestError) {
+      return { ok: false, message: errorMessage(requestError, '头像上传失败') }
     }
+  }
 
-    const userIndex = users.value.findIndex((user) => user.id === currentUser.value.id)
-    if (userIndex < 0) return { ok: false, message: '未找到当前用户信息' }
-    if (users.value[userIndex].passwordHash !== hashPassword(currentPassword)) {
-      return { ok: false, message: '当前密码不正确' }
-    }
-    if (newPassword.length < 6) {
-      return { ok: false, message: '新密码长度不能少于 6 位' }
-    }
-    if (newPassword === currentPassword) {
-      return { ok: false, message: '新密码不能与当前密码相同' }
-    }
+  async function changePassword({ currentPassword, newPassword, confirmPassword }) {
     if (newPassword !== confirmPassword) {
       return { ok: false, message: '两次输入的新密码不一致' }
     }
-
-    users.value[userIndex] = {
-      ...users.value[userIndex],
-      passwordHash: hashPassword(newPassword)
+    try {
+      const response = await changePasswordRequest({ currentPassword, newPassword })
+      clearSession()
+      return { ok: true, message: response.message || '密码修改成功，请重新登录' }
+    } catch (requestError) {
+      return { ok: false, message: errorMessage(requestError, '密码修改失败') }
     }
-    return { ok: true, message: '密码修改成功' }
   }
 
-  function removeSongFromCustomPlaylist(playlistId, songId) {
+  async function removeSongFromCustomPlaylist(playlistId, songId) {
     const playlist = customPlaylists.value.find((item) => item.id === playlistId)
-    if (!playlist) return false
+    if (!playlist) return { ok: false, message: '歌单不存在' }
+    const previousIds = playlist.songIds
     playlist.songIds = playlist.songIds.filter((id) => id !== songId)
-    playlist.updatedAt = Date.now()
-    return true
+    try {
+      await removeUserPlaylistSong(playlistId, songId)
+      return { ok: true, message: '已从歌单移除' }
+    } catch (requestError) {
+      playlist.songIds = previousIds
+      return { ok: false, message: errorMessage(requestError, '移除歌曲失败') }
+    }
   }
 
-  function deleteCustomPlaylist(playlistId) {
+  async function deleteCustomPlaylist(playlistId) {
     const index = customPlaylists.value.findIndex((item) => item.id === playlistId)
-    if (index < 0) return false
-    customPlaylists.value.splice(index, 1)
-    return true
+    if (index < 0) return { ok: false, message: '歌单不存在' }
+    const [removed] = customPlaylists.value.splice(index, 1)
+    try {
+      await deleteUserPlaylist(playlistId)
+      return { ok: true, message: '歌单已删除' }
+    } catch (requestError) {
+      customPlaylists.value.splice(index, 0, removed)
+      return { ok: false, message: errorMessage(requestError, '删除歌单失败') }
+    }
   }
 
-  function syncSession() {
-    currentUser.value = sanitizeUser(loadJSON('session', null))
+  async function updateCustomPlaylist(playlistId, name) {
+    const playlist = customPlaylists.value.find((item) => item.id === playlistId)
+    if (!playlist) return { ok: false, message: '歌单不存在' }
+    const previousName = playlist.name
+    playlist.name = String(name || '').trim()
+    try {
+      const updated = await updateUserPlaylist(playlistId, { title: playlist.name })
+      Object.assign(playlist, normalizePlaylist(updated))
+      return { ok: true, message: '歌单名称已更新' }
+    } catch (requestError) {
+      playlist.name = previousName
+      return { ok: false, message: errorMessage(requestError, '歌单更新失败') }
+    }
   }
+
+  async function syncSession() {
+    initialized.value = false
+    return initialize({ force: true })
+  }
+
+  window.addEventListener(AUTH_EXPIRED_EVENT, () => {
+    clearSession()
+    initialized.value = true
+  })
 
   return {
-    users,
     currentUser,
     favoriteSongs,
     favoritePlaylists,
     playHistory,
     customPlaylists,
+    initialized,
+    loading,
+    dataLoading,
+    error,
     isLoggedIn,
+    initialize,
+    loadLibrary,
     register,
     login,
     logout,
@@ -358,9 +439,11 @@ export const useUserStore = defineStore('user', () => {
     clearPlayHistory,
     createCustomPlaylist,
     addSongToCustomPlaylist,
+    updateNickname,
     updateAvatar,
     changePassword,
     removeSongFromCustomPlaylist,
+    updateCustomPlaylist,
     deleteCustomPlaylist,
     syncSession
   }

@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { FileAssetKind, Prisma, SongStatus } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service.js';
-import { presentSong } from './catalog.presenter.js';
-import { songRelations } from './catalog.types.js';
+import { presentPlaylist, presentSong } from './catalog.presenter.js';
+import { playlistRelations, songRelations } from './catalog.types.js';
 import { PaginationQueryDto } from './dto/catalog.dto.js';
 
 @Injectable()
@@ -184,27 +184,25 @@ export class CatalogService {
     const playlists = await this.prisma.playlist.findMany({
       where: { isPublished: true },
       include: {
-        coverAsset: true,
+        ...playlistRelations,
         songs: {
+          ...playlistRelations.songs,
           where: { song: { status: SongStatus.PUBLISHED } },
-          include: { song: { include: songRelations } },
-          orderBy: { position: 'asc' },
         },
       },
       orderBy: [{ createdAt: 'desc' }, { title: 'asc' }],
     });
-    return playlists.map((playlist) => this.presentPlaylist(playlist));
+    return playlists.map((playlist) => presentPlaylist(playlist));
   }
 
   async getPlaylist(publicId: string) {
     const playlist = await this.prisma.playlist.findFirst({
       where: { publicId, isPublished: true },
       include: {
-        coverAsset: true,
+        ...playlistRelations,
         songs: {
+          ...playlistRelations.songs,
           where: { song: { status: SongStatus.PUBLISHED } },
-          include: { song: { include: songRelations } },
-          orderBy: { position: 'asc' },
         },
       },
     });
@@ -214,34 +212,6 @@ export class CatalogService {
         message: '歌单不存在或尚未发布',
       });
     }
-    return this.presentPlaylist(playlist);
-  }
-
-  private presentPlaylist(
-    playlist: Prisma.PlaylistGetPayload<{
-      include: {
-        coverAsset: true;
-        songs: {
-          include: { song: { include: typeof songRelations } };
-        };
-      };
-    }>,
-  ) {
-    return {
-      id: playlist.id,
-      publicId: playlist.publicId,
-      title: playlist.title,
-      description: playlist.description,
-      genre: playlist.genre,
-      mood: playlist.mood,
-      era: playlist.era,
-      coverUrl: playlist.coverAsset
-        ? `/api/assets/${playlist.coverAsset.id}`
-        : null,
-      songCount: playlist.songs.length,
-      songs: playlist.songs.map(({ song }) => presentSong(song)),
-      createdAt: playlist.createdAt,
-      updatedAt: playlist.updatedAt,
-    };
+    return presentPlaylist(playlist);
   }
 }

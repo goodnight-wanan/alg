@@ -46,14 +46,14 @@ function closeDialog() {
   error.value = ''
 }
 
-function addToPlaylist(playlist) {
-  const result = userStore.addSongToCustomPlaylist(playlist.id, props.song.id)
+async function addToPlaylist(playlist) {
+  const result = await userStore.addSongToCustomPlaylist(playlist.id, props.song.id)
   showNotice(result.message, result.ok ? 'success' : result.duplicate ? 'info' : 'error')
   if (result.ok) closeDialog()
 }
 
-function createAndAdd() {
-  const result = userStore.createCustomPlaylist(playlistName.value, props.song.id)
+async function createAndAdd() {
+  const result = await userStore.createCustomPlaylist(playlistName.value, props.song.id)
   if (!result.ok) {
     error.value = result.message
     return

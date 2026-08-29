@@ -6,18 +6,14 @@ import { ConfigService } from '@nestjs/config';
 import { MulterModule } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { AuthModule } from '../auth/auth.module.js';
-import { AdminCatalogController } from './admin-catalog.controller.js';
-import { AdminCatalogService } from './admin-catalog.service.js';
-import { CatalogController } from './catalog.controller.js';
-import { CatalogService } from './catalog.service.js';
-import { UploadCleanupInterceptor } from './interceptors/upload-cleanup.interceptor.js';
-import { MediaStorageService } from './media-storage.service.js';
-import { MediaController } from './media.controller.js';
-import { RemoteAudioPolicyService } from './remote-audio-policy.service.js';
+import { CatalogModule } from '../catalog/catalog.module.js';
+import { MeController } from './me.controller.js';
+import { MeService } from './me.service.js';
 
 @Module({
   imports: [
     AuthModule,
+    CatalogModule,
     MulterModule.registerAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
@@ -27,9 +23,8 @@ import { RemoteAudioPolicyService } from './remote-audio-policy.service.js';
         const temporaryRoot = resolve(mediaRoot, 'tmp');
         mkdirSync(temporaryRoot, { recursive: true });
         const maxUploadMb = Number(
-          configService.get<string | number>('MAX_AUDIO_UPLOAD_MB', 50),
+          configService.get<string | number>('MAX_AVATAR_UPLOAD_MB', 1),
         );
-
         return {
           storage: diskStorage({
             destination: temporaryRoot,
@@ -41,11 +36,11 @@ import { RemoteAudioPolicyService } from './remote-audio-policy.service.js';
             },
           }),
           limits: {
-            files: 2,
+            files: 1,
             fileSize:
               (Number.isFinite(maxUploadMb) && maxUploadMb > 0
                 ? maxUploadMb
-                : 50) *
+                : 1) *
               1024 *
               1024,
           },
@@ -53,14 +48,7 @@ import { RemoteAudioPolicyService } from './remote-audio-policy.service.js';
       },
     }),
   ],
-  controllers: [CatalogController, AdminCatalogController, MediaController],
-  providers: [
-    CatalogService,
-    AdminCatalogService,
-    MediaStorageService,
-    RemoteAudioPolicyService,
-    UploadCleanupInterceptor,
-  ],
-  exports: [CatalogService, MediaStorageService],
+  controllers: [MeController],
+  providers: [MeService],
 })
-export class CatalogModule {}
+export class MeModule {}

@@ -20,6 +20,18 @@ export type SongWithRelations = Prisma.SongGetPayload<{
   include: typeof songRelations;
 }>;
 
+export const playlistRelations = {
+  coverAsset: true,
+  songs: {
+    include: { song: { include: songRelations } },
+    orderBy: { position: 'asc' as const },
+  },
+} satisfies Prisma.PlaylistInclude;
+
+export type PlaylistWithSongs = Prisma.PlaylistGetPayload<{
+  include: typeof playlistRelations;
+}>;
+
 export interface UploadedSongFiles {
   audio?: Express.Multer.File[];
   cover?: Express.Multer.File[];

@@ -1,4 +1,7 @@
-import { SongWithRelations } from './catalog.types.js';
+import {
+  PlaylistWithSongs,
+  SongWithRelations,
+} from './catalog.types.js';
 
 function assetUrl(assetId?: string | null) {
   return assetId ? `/api/assets/${assetId}` : null;
@@ -53,4 +56,23 @@ export function presentSong(
         coverAsset: song.coverAsset,
       }
     : result;
+}
+
+export function presentPlaylist(playlist: PlaylistWithSongs) {
+  return {
+    id: playlist.id,
+    publicId: playlist.publicId,
+    title: playlist.title,
+    description: playlist.description,
+    genre: playlist.genre,
+    mood: playlist.mood,
+    era: playlist.era,
+    coverUrl: playlist.coverAsset
+      ? `/api/assets/${playlist.coverAsset.id}`
+      : null,
+    songCount: playlist.songs.length,
+    songs: playlist.songs.map(({ song }) => presentSong(song)),
+    createdAt: playlist.createdAt,
+    updatedAt: playlist.updatedAt,
+  };
 }

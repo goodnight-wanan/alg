@@ -32,22 +32,29 @@ enum FileAssetKind {
   AUDIO
   COVER
   ARTIST_AVATAR
+  USER_AVATAR
 }
 
 model User {
-  id                 String         @id @default(uuid()) @db.Uuid
-  username           String         @db.VarChar(32)
-  usernameNormalized String         @unique @map("username_normalized") @db.VarChar(32)
-  email              String         @unique @db.VarChar(254)
-  passwordHash       String         @map("password_hash") @db.VarChar(255)
-  nickname           String?        @db.VarChar(50)
-  avatarUrl          String?        @map("avatar_url") @db.VarChar(2048)
-  role               UserRole       @default(USER)
-  status             UserStatus     @default(ACTIVE)
-  lastLoginAt        DateTime?      @map("last_login_at")
-  createdAt          DateTime       @default(now()) @map("created_at")
-  updatedAt          DateTime       @updatedAt @map("updated_at")
+  id                 String             @id @default(uuid()) @db.Uuid
+  username           String             @db.VarChar(32)
+  usernameNormalized String             @unique @map("username_normalized") @db.VarChar(32)
+  email              String             @unique @db.VarChar(254)
+  passwordHash       String             @map("password_hash") @db.VarChar(255)
+  nickname           String?            @db.VarChar(50)
+  avatarUrl          String?            @map("avatar_url") @db.VarChar(2048)
+  avatarAssetId      String?            @unique @map("avatar_asset_id") @db.Uuid
+  role               UserRole           @default(USER)
+  status             UserStatus         @default(ACTIVE)
+  lastLoginAt        DateTime?          @map("last_login_at")
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
+  avatarAsset        FileAsset?         @relation("UserAvatar", fields: [avatarAssetId], references: [id], onDelete: SetNull)
   refreshTokens      RefreshToken[]
+  favoriteSongs      FavoriteSong[]
+  favoritePlaylists  FavoritePlaylist[]
+  playlists          Playlist[]
+  playHistory        PlayHistory[]
 
   @@map("users")
 }
@@ -138,6 +145,8 @@ model Song {
   coverAsset      FileAsset?     @relation("SongCover", fields: [coverAssetId], references: [id], onDelete: SetNull)
   categories      SongCategory[]
   playlists       PlaylistSong[]
+  favoritedBy     FavoriteSong[]
+  playHistory     PlayHistory[]
 
   @@index([artistId])
   @@index([albumId])
@@ -147,23 +156,68 @@ model Song {
 }
 
 model Playlist {
-  id           String         @id @default(uuid()) @db.Uuid
-  publicId     String         @unique @map("public_id") @db.VarChar(64)
-  title        String         @db.VarChar(160)
-  description  String?        @db.Text
-  coverAssetId String?        @unique @map("cover_asset_id") @db.Uuid
-  genre        String?        @db.VarChar(60)
-  mood         String?        @db.VarChar(60)
-  era          String?        @db.VarChar(60)
-  isPublished  Boolean        @default(false) @map("is_published")
-  createdAt    DateTime       @default(now()) @map("created_at")
-  updatedAt    DateTime       @updatedAt @map("updated_at")
-  coverAsset   FileAsset?     @relation("PlaylistCover", fields: [coverAssetId], references: [id], onDelete: SetNull)
+  id           String             @id @default(uuid()) @db.Uuid
+  publicId     String             @unique @map("public_id") @db.VarChar(64)
+  title        String             @db.VarChar(160)
+  description  String?            @db.Text
+  coverAssetId String?            @unique @map("cover_asset_id") @db.Uuid
+  ownerId      String?            @map("owner_id") @db.Uuid
+  genre        String?            @db.VarChar(60)
+  mood         String?            @db.VarChar(60)
+  era          String?            @db.VarChar(60)
+  isPublished  Boolean            @default(false) @map("is_published")
+  createdAt    DateTime           @default(now()) @map("created_at")
+  updatedAt    DateTime           @updatedAt @map("updated_at")
+  coverAsset   FileAsset?         @relation("PlaylistCover", fields: [coverAssetId], references: [id], onDelete: SetNull)
+  owner        User?              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   songs        PlaylistSong[]
+  favoritedBy  FavoritePlaylist[]
 
+  @@index([ownerId, createdAt])
   @@index([isPublished, createdAt])
   @@index([title])
   @@map("playlists")
+}
+
+model FavoriteSong {
+  userId    String   @map("user_id") @db.Uuid
+  songId    String   @map("song_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  song      Song     @relation(fields: [songId], references: [id], onDelete: Cascade)
+
+  @@id([userId, songId])
+  @@index([songId])
+  @@index([userId, createdAt])
+  @@map("favorite_songs")
+}
+
+model FavoritePlaylist {
+  userId     String   @map("user_id") @db.Uuid
+  playlistId String   @map("playlist_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  playlist   Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+
+  @@id([userId, playlistId])
+  @@index([playlistId])
+  @@index([userId, createdAt])
+  @@map("favorite_playlists")
+}
+
+model PlayHistory {
+  userId        String   @map("user_id") @db.Uuid
+  songId        String   @map("song_id") @db.Uuid
+  playCount     Int      @default(1) @map("play_count")
+  firstPlayedAt DateTime @default(now()) @map("first_played_at")
+  lastPlayedAt  DateTime @default(now()) @map("last_played_at")
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  song          Song     @relation(fields: [songId], references: [id], onDelete: Cascade)
+
+  @@id([userId, songId])
+  @@index([songId])
+  @@index([userId, lastPlayedAt])
+  @@map("play_history")
 }
 
 model PlaylistSong {
@@ -203,6 +257,7 @@ model FileAsset {
   width         Int?
   height        Int?
   createdAt     DateTime      @default(now()) @map("created_at")
+  userAvatar    User?         @relation("UserAvatar")
   artistAvatar  Artist?       @relation("ArtistAvatar")
   albumCover    Album?        @relation("AlbumCover")
   songAudio     Song?         @relation("SongAudio")

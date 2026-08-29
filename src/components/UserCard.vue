@@ -14,7 +14,7 @@ const avatarUrl = computed(() => userStore.currentUser?.avatarUrl)
 const listeningSeconds = computed(() =>
   userStore.playHistory.reduce((sum, item) => {
     const song = getSongById(item.id)
-    return sum + (song?.durationSeconds || 0)
+    return sum + (song?.durationSeconds || 0) * (item.playCount || 1)
   }, 0)
 )
 
@@ -40,7 +40,9 @@ const stats = computed(() => [
       <img :src="avatarUrl" alt="用户头像" />
     </div>
     <div class="user-card-main">
-      <div class="user-card-name">{{ userStore.currentUser?.username || '' }}</div>
+      <div class="user-card-name">
+        {{ userStore.currentUser?.nickname || userStore.currentUser?.username || '' }}
+      </div>
       <div class="user-card-email">{{ userStore.currentUser?.email || '' }}</div>
       <div v-if="showStats" class="user-card-stats">
         <span v-for="item in stats" :key="item.label">

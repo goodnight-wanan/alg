@@ -49,7 +49,7 @@ function playSong(song) {
   playerStore.playSong(song, songs.value)
 }
 
-function toggleFavorite() {
+async function toggleFavorite() {
   if (!playlist.value || isCustom.value) return
 
   if (!userStore.isLoggedIn) {
@@ -57,23 +57,35 @@ function toggleFavorite() {
     return
   }
 
-  userStore.toggleFavoritePlaylist(playlist.value.id)
+  const result = await userStore.toggleFavoritePlaylist(playlist.value.id)
+  showNotice(
+    result.ok ? (result.added ? '歌单已收藏' : '已取消收藏歌单') : result.message,
+    result.ok ? (result.added ? 'success' : 'info') : 'error'
+  )
 }
 
-function removeSong(songId) {
+async function removeSong(songId) {
   if (!playlist.value || !isCustom.value) return
-  if (userStore.removeSongFromCustomPlaylist(playlist.value.id, songId)) {
-    showNotice('已从歌单移除', 'success')
-  }
+  const result = await userStore.removeSongFromCustomPlaylist(playlist.value.id, songId)
+  showNotice(result.message, result.ok ? 'success' : 'error')
 }
 
-function deletePlaylist() {
+async function deletePlaylist() {
   if (!playlist.value || !isCustom.value) return
   if (!window.confirm('确定删除这个歌单吗？')) return
-  if (userStore.deleteCustomPlaylist(playlist.value.id)) {
-    showNotice('歌单已删除', 'success')
+  const result = await userStore.deleteCustomPlaylist(playlist.value.id)
+  showNotice(result.message, result.ok ? 'success' : 'error')
+  if (result.ok) {
     router.replace({ name: 'mine', query: { tab: 'custom' } })
   }
+}
+
+async function renamePlaylist() {
+  if (!playlist.value || !isCustom.value) return
+  const nextName = window.prompt('请输入新的歌单名称', playlist.value.title)
+  if (nextName === null || nextName.trim() === playlist.value.title) return
+  const result = await userStore.updateCustomPlaylist(playlist.value.id, nextName)
+  showNotice(result.message, result.ok ? 'success' : 'error')
 }
 </script>
 
@@ -103,10 +115,15 @@ function deletePlaylist() {
             <Icon :name="isFavorite ? 'heart' : 'heart-outline'" />
             {{ isFavorite ? '已收藏' : '收藏歌单' }}
           </button>
-          <button v-else type="button" class="playlist-delete" @click="deletePlaylist">
-            <Icon name="close" />
-            删除歌单
-          </button>
+          <template v-else>
+            <button type="button" class="playlist-edit" @click="renamePlaylist">
+              编辑名称
+            </button>
+            <button type="button" class="playlist-delete" @click="deletePlaylist">
+              <Icon name="close" />
+              删除歌单
+            </button>
+          </template>
         </div>
       </div>
     </div>
@@ -220,6 +237,7 @@ function deletePlaylist() {
 
 .playlist-play,
 .playlist-favorite,
+.playlist-edit,
 .playlist-delete {
   display: inline-flex;
   align-items: center;
@@ -258,6 +276,18 @@ function deletePlaylist() {
   justify-content: center;
   background: rgba(197, 53, 78, 0.1);
   color: #c5354e;
+}
+
+.playlist-edit {
+  min-width: 108px;
+  justify-content: center;
+  background: rgba(25, 25, 25, 0.06);
+  color: var(--text-secondary);
+}
+
+.playlist-edit:hover {
+  background: rgba(255, 105, 157, 0.12);
+  color: var(--brand-strong);
 }
 
 .playlist-delete:hover {

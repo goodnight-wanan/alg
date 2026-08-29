@@ -88,11 +88,12 @@ const router = createRouter({
   }
 })
 
-router.beforeEach((to) => {
+router.beforeEach(async (to) => {
   const userStore = useUserStore()
+  await userStore.initialize()
 
   if (to.meta.requiresAuth && !userStore.isLoggedIn) {
-    return { name: 'login' }
+    return { name: 'login', query: { redirect: to.fullPath } }
   }
 
   document.title = to.meta.title || '悦音音乐'

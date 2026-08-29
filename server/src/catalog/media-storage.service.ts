@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { createReadStream } from 'node:fs';
-import { mkdir, rm, stat } from 'node:fs/promises';
+import { mkdir, readFile, rm, stat } from 'node:fs/promises';
 import { extname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { spawn } from 'node:child_process';
 import {
@@ -57,6 +57,7 @@ export class MediaStorageService implements OnModuleInit {
   private readonly tempRoot: string;
   private readonly audioRoot: string;
   private readonly coverRoot: string;
+  private readonly avatarRoot: string;
 
   constructor(private readonly configService: ConfigService) {
     const configuredRoot = this.configService.get<string>(
@@ -67,6 +68,7 @@ export class MediaStorageService implements OnModuleInit {
     this.tempRoot = join(this.mediaRoot, 'tmp');
     this.audioRoot = join(this.mediaRoot, 'audio');
     this.coverRoot = join(this.mediaRoot, 'covers');
+    this.avatarRoot = join(this.mediaRoot, 'avatars');
   }
 
   async onModuleInit() {
@@ -74,6 +76,7 @@ export class MediaStorageService implements OnModuleInit {
       mkdir(this.tempRoot, { recursive: true }),
       mkdir(this.audioRoot, { recursive: true }),
       mkdir(this.coverRoot, { recursive: true }),
+      mkdir(this.avatarRoot, { recursive: true }),
     ]);
   }
 
@@ -158,14 +161,60 @@ export class MediaStorageService implements OnModuleInit {
   }
 
   async processCover(file: Express.Multer.File): Promise<ProcessedAsset> {
-    this.assertCoverFile(file);
+    return this.processImage(file, {
+      kind: FileAssetKind.COVER,
+      outputRoot: this.coverRoot,
+      maxDimension: 1200,
+      maxBytes:
+        this.getPositiveInteger('MAX_COVER_UPLOAD_MB', 10) * 1024 * 1024,
+      tooLargeCode: 'COVER_TOO_LARGE',
+      tooLargeLabel: '封面文件',
+      unsupportedCode: 'UNSUPPORTED_COVER_TYPE',
+      unsupportedMessage: '仅支持 JPG、PNG、WebP、GIF 和 AVIF 图片',
+      failureCode: 'COVER_PROCESSING_FAILED',
+      failureMessage: '封面图片无法识别或转换失败',
+    });
+  }
+
+  async processAvatar(file: Express.Multer.File): Promise<ProcessedAsset> {
+    return this.processImage(file, {
+      kind: FileAssetKind.USER_AVATAR,
+      outputRoot: this.avatarRoot,
+      maxDimension: 512,
+      maxBytes:
+        this.getPositiveInteger('MAX_AVATAR_UPLOAD_MB', 1) * 1024 * 1024,
+      tooLargeCode: 'AVATAR_TOO_LARGE',
+      tooLargeLabel: '头像文件',
+      unsupportedCode: 'UNSUPPORTED_AVATAR_TYPE',
+      unsupportedMessage: '头像仅支持 JPG、PNG、WebP、GIF 和 AVIF 图片',
+      failureCode: 'AVATAR_PROCESSING_FAILED',
+      failureMessage: '头像图片无法识别或转换失败',
+    });
+  }
+
+  private async processImage(
+    file: Express.Multer.File,
+    options: {
+      kind: FileAssetKind;
+      outputRoot: string;
+      maxDimension: number;
+      maxBytes: number;
+      tooLargeCode: string;
+      tooLargeLabel: string;
+      unsupportedCode: string;
+      unsupportedMessage: string;
+      failureCode: string;
+      failureMessage: string;
+    },
+  ): Promise<ProcessedAsset> {
+    this.assertImageFile(file, options);
     const outputName = `${randomUUID()}.webp`;
-    const outputPath = join(this.coverRoot, outputName);
+    const outputPath = join(options.outputRoot, outputName);
 
     try {
-      const image = sharp(file.path, { failOn: 'error' }).rotate().resize({
-        width: 1200,
-        height: 1200,
+      const image = sharp(await readFile(file.path), { failOn: 'error' }).rotate().resize({
+        width: options.maxDimension,
+        height: options.maxDimension,
         fit: 'inside',
         withoutEnlargement: true,
       });
@@ -175,7 +224,7 @@ export class MediaStorageService implements OnModuleInit {
       return {
         absolutePath: outputPath,
         data: {
-          kind: FileAssetKind.COVER,
+          kind: options.kind,
           storagePath: this.toStoragePath(outputPath),
           originalName: file.originalname.slice(0, 255),
           mimeType: 'image/webp',
@@ -194,8 +243,8 @@ export class MediaStorageService implements OnModuleInit {
         throw error;
       }
       throw new UnprocessableEntityException({
-        code: 'COVER_PROCESSING_FAILED',
-        message: '封面图片无法识别或转换失败',
+        code: options.failureCode,
+        message: options.failureMessage,
       });
     } finally {
       await this.removeFile(file.path);
@@ -257,15 +306,22 @@ export class MediaStorageService implements OnModuleInit {
     }
   }
 
-  private assertCoverFile(file: Express.Multer.File) {
+  private assertImageFile(
+    file: Express.Multer.File,
+    options: {
+      maxBytes: number;
+      tooLargeCode: string;
+      tooLargeLabel: string;
+      unsupportedCode: string;
+      unsupportedMessage: string;
+    },
+  ) {
     const extension = extname(file.originalname).toLowerCase();
-    const maxBytes =
-      this.getPositiveInteger('MAX_COVER_UPLOAD_MB', 10) * 1024 * 1024;
 
-    if (file.size > maxBytes) {
+    if (file.size > options.maxBytes) {
       throw new PayloadTooLargeException({
-        code: 'COVER_TOO_LARGE',
-        message: `封面文件不能超过 ${Math.floor(maxBytes / 1024 / 1024)} MB`,
+        code: options.tooLargeCode,
+        message: `${options.tooLargeLabel}不能超过 ${Math.floor(options.maxBytes / 1024 / 1024)} MB`,
       });
     }
     if (
@@ -273,8 +329,8 @@ export class MediaStorageService implements OnModuleInit {
       !file.mimetype.startsWith('image/')
     ) {
       throw new UnsupportedMediaTypeException({
-        code: 'UNSUPPORTED_COVER_TYPE',
-        message: '仅支持 JPG、PNG、WebP、GIF 和 AVIF 图片',
+        code: options.unsupportedCode,
+        message: options.unsupportedMessage,
       });
     }
   }

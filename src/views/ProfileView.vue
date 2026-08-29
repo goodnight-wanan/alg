@@ -13,10 +13,15 @@ const router = useRouter()
 const fileInput = ref(null)
 const avatarDialogOpen = ref(false)
 const avatarPreview = ref('')
+const avatarFile = ref(null)
 const avatarFileName = ref('')
 const avatarError = ref('')
+const profileError = ref('')
+const profileSaving = ref(false)
 const passwordError = ref('')
+const passwordSaving = ref(false)
 const captcha = ref(createCaptcha())
+const nickname = ref(userStore.currentUser?.nickname || userStore.currentUser?.username || '')
 const passwordForm = reactive({
   currentPassword: '',
   newPassword: '',
@@ -59,6 +64,7 @@ function openAvatarDialog() {
     return
   }
   avatarPreview.value = ''
+  avatarFile.value = null
   avatarFileName.value = ''
   avatarError.value = ''
   avatarDialogOpen.value = true
@@ -67,6 +73,7 @@ function openAvatarDialog() {
 function closeAvatarDialog() {
   avatarDialogOpen.value = false
   avatarPreview.value = ''
+  avatarFile.value = null
   avatarFileName.value = ''
   avatarError.value = ''
 }
@@ -107,6 +114,7 @@ async function handleAvatarFile(event) {
   }
   try {
     avatarPreview.value = await readAsDataUrl(file)
+    avatarFile.value = file
     avatarFileName.value = file.name
   } catch {
     avatarError.value = '图片读取失败，请重新选择。'
@@ -114,24 +122,38 @@ async function handleAvatarFile(event) {
   }
 }
 
-function saveAvatar() {
-  if (!avatarPreview.value) {
+async function saveAvatar() {
+  if (!avatarPreview.value || !avatarFile.value) {
     avatarError.value = '请先选择一张 WebP 图片。'
     return
   }
-  const result = userStore.updateAvatar(avatarPreview.value)
+  const result = await userStore.updateAvatar(avatarFile.value)
   showNotice(result.message, result.ok ? 'success' : 'error')
   if (result.ok) closeAvatarDialog()
 }
 
-function submitPassword() {
+async function submitProfile() {
+  profileError.value = ''
+  profileSaving.value = true
+  const result = await userStore.updateNickname(nickname.value)
+  profileSaving.value = false
+  if (!result.ok) {
+    profileError.value = result.message
+    return
+  }
+  showNotice(result.message, 'success')
+}
+
+async function submitPassword() {
   passwordError.value = ''
   if (passwordForm.captcha.trim().toUpperCase() !== captcha.value) {
     passwordError.value = '验证码不正确，请重新输入。'
     refreshCaptcha()
     return
   }
-  const result = userStore.changePassword(passwordForm)
+  passwordSaving.value = true
+  const result = await userStore.changePassword(passwordForm)
+  passwordSaving.value = false
   if (!result.ok) {
     passwordError.value = result.message
     refreshCaptcha()
@@ -142,10 +164,11 @@ function submitPassword() {
   passwordForm.confirmPassword = ''
   refreshCaptcha()
   showNotice(result.message, 'success')
+  router.replace({ name: 'login', query: { redirect: '/profile' } })
 }
 
-function logout() {
-  userStore.logout()
+async function logout() {
+  await userStore.logout()
   showNotice('已安全退出登录', 'success')
   router.replace({ name: 'home' })
 }
@@ -211,6 +234,10 @@ onBeforeUnmount(() => document.body.classList.remove('modal-open'))
               <dd>{{ userStore.currentUser?.email }}</dd>
             </div>
             <div>
+              <dt>昵称</dt>
+              <dd>{{ userStore.currentUser?.nickname || '未设置' }}</dd>
+            </div>
+            <div>
               <dt>登录方式</dt>
               <dd>{{ providerLabel }}</dd>
             </div>
@@ -219,6 +246,28 @@ onBeforeUnmount(() => document.body.classList.remove('modal-open'))
               <dd>{{ joinedAt }}</dd>
             </div>
           </dl>
+          <form class="password-form profile-nickname-form" @submit.prevent="submitProfile">
+            <label for="profile-nickname">修改昵称</label>
+            <input
+              id="profile-nickname"
+              v-model.trim="nickname"
+              type="text"
+              maxlength="50"
+              autocomplete="nickname"
+              placeholder="输入你的昵称"
+              required
+            />
+            <p v-if="profileError" class="profile-form-error">
+              <Icon name="alert" :size="16" />{{ profileError }}
+            </p>
+            <button
+              type="submit"
+              class="profile-primary-button"
+              :disabled="profileSaving"
+            >
+              {{ profileSaving ? '正在保存…' : '保存资料' }}
+            </button>
+          </form>
         </section>
       </div>
 
@@ -246,8 +295,9 @@ onBeforeUnmount(() => document.body.classList.remove('modal-open'))
             v-model="passwordForm.newPassword"
             type="password"
             autocomplete="new-password"
-            minlength="6"
-            placeholder="至少 6 位字符"
+            minlength="8"
+            maxlength="72"
+            placeholder="至少 8 位字符"
             required
           />
           <label for="profile-confirm-password">确认新密码</label>
@@ -256,7 +306,8 @@ onBeforeUnmount(() => document.body.classList.remove('modal-open'))
             v-model="passwordForm.confirmPassword"
             type="password"
             autocomplete="new-password"
-            minlength="6"
+            minlength="8"
+            maxlength="72"
             placeholder="再次输入新密码"
             required
           />
@@ -285,7 +336,13 @@ onBeforeUnmount(() => document.body.classList.remove('modal-open'))
           <p v-if="passwordError" class="profile-form-error">
             <Icon name="alert" :size="16" />{{ passwordError }}
           </p>
-          <button type="submit" class="profile-primary-button password-submit">修改密码</button>
+          <button
+            type="submit"
+            class="profile-primary-button password-submit"
+            :disabled="passwordSaving"
+          >
+            {{ passwordSaving ? '正在修改…' : '修改密码' }}
+          </button>
         </form>
         <div v-else class="social-account-notice">
           <Icon name="info" :size="22" />

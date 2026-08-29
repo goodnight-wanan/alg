@@ -15,17 +15,21 @@ const router = useRouter()
 const userStore = useUserStore()
 const isFavorite = computed(() => userStore.isFavoriteSong(props.song.id))
 
-function toggleFavorite() {
+async function toggleFavorite() {
   if (!userStore.isLoggedIn) {
     showNotice('请先登录后再收藏')
     openAuthWindow(router, 'login', route.fullPath)
     return
   }
 
-  const added = userStore.toggleFavoriteSong(props.song.id)
+  const result = await userStore.toggleFavoriteSong(props.song.id)
+  if (!result.ok) {
+    showNotice(result.message, 'error')
+    return
+  }
   showNotice(
-    added ? `已收藏《${props.song.title}》` : `已取消收藏《${props.song.title}》`,
-    added ? 'success' : 'info'
+    result.added ? `已收藏《${props.song.title}》` : `已取消收藏《${props.song.title}》`,
+    result.added ? 'success' : 'info'
   )
 }
 </script>

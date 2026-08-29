@@ -1,6 +1,6 @@
-const configuredBaseUrl = String(import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '')
+import { API_BASE_URL } from './client'
 
-export const API_BASE_URL = configuredBaseUrl
+export { API_BASE_URL }
 
 function createTimeoutSignal(timeoutMs = 12000) {
   const controller = new AbortController()

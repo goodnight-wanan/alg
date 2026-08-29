@@ -35,7 +35,7 @@ function playAt(index) {
   showQueue.value = false
 }
 
-function toggleFavorite() {
+async function toggleFavorite() {
   if (!playerStore.currentSong) return
 
   if (!userStore.isLoggedIn) {
@@ -43,7 +43,8 @@ function toggleFavorite() {
     return
   }
 
-  userStore.toggleFavoriteSong(playerStore.currentSong.id)
+  const result = await userStore.toggleFavoriteSong(playerStore.currentSong.id)
+  if (!result.ok) showNotice(result.message, 'error')
 }
 
 function handleKeydown(event) {

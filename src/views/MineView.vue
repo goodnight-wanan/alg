@@ -55,20 +55,23 @@ function openPlaylist(id) {
   router.push({ name: 'playlist', params: { id } })
 }
 
-function removeFavoriteSong(songId) {
-  userStore.toggleFavoriteSong(songId)
+async function removeFavoriteSong(songId) {
+  const result = await userStore.toggleFavoriteSong(songId)
+  if (!result.ok) showNotice(result.message, 'error')
 }
 
-function removeFavoritePlaylist(playlistId) {
-  userStore.toggleFavoritePlaylist(playlistId)
+async function removeFavoritePlaylist(playlistId) {
+  const result = await userStore.toggleFavoritePlaylist(playlistId)
+  if (!result.ok) showNotice(result.message, 'error')
 }
 
-function clearHistory() {
-  userStore.clearPlayHistory()
+async function clearHistory() {
+  const result = await userStore.clearPlayHistory()
+  showNotice(result.message, result.ok ? 'success' : 'error')
 }
 
-function createPlaylist() {
-  const result = userStore.createCustomPlaylist(newPlaylistName.value)
+async function createPlaylist() {
+  const result = await userStore.createCustomPlaylist(newPlaylistName.value)
   showNotice(result.message, result.ok ? 'success' : 'error')
   if (!result.ok) return
   newPlaylistName.value = ''
@@ -78,9 +81,10 @@ function playCustomPlaylist(playlist) {
   if (playlist.songs.length) playerStore.playAll(playlist.songs)
 }
 
-function deleteCustomPlaylist(playlistId) {
+async function deleteCustomPlaylist(playlistId) {
   if (!window.confirm('确定删除这个歌单吗？')) return
-  userStore.deleteCustomPlaylist(playlistId)
+  const result = await userStore.deleteCustomPlaylist(playlistId)
+  showNotice(result.message, result.ok ? 'success' : 'error')
 }
 
 function formatTimeAgo(time) {
@@ -102,6 +106,14 @@ function formatTimeAgo(time) {
     <h1 class="functional-title">我的音乐</h1>
 
     <UserCard show-stats />
+
+    <div v-if="userStore.dataLoading" class="user-data-state" aria-live="polite">
+      正在同步你的收藏、歌单和播放记录…
+    </div>
+    <div v-else-if="userStore.error" class="user-data-state is-error" role="alert">
+      <span>{{ userStore.error }}</span>
+      <button type="button" @click="userStore.loadLibrary">重新加载</button>
+    </div>
 
     <div class="mine-tabs" role="tablist">
       <button
@@ -348,6 +360,32 @@ function formatTimeAgo(time) {
   border: 1px solid rgba(255, 255, 255, 0.7);
   border-radius: 999px;
   background: var(--surface);
+}
+
+.user-data-state {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: rgba(255, 126, 179, 0.1);
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.user-data-state.is-error {
+  background: rgba(197, 53, 78, 0.1);
+  color: #a52f44;
+}
+
+.user-data-state button {
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: var(--brand-strong);
+  color: #fff;
+  font-weight: 800;
 }
 
 .custom-playlist-toolbar {

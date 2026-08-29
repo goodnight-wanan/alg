@@ -6,6 +6,7 @@ import AppHeader from './components/AppHeader.vue'
 import { useCatalogStore } from './stores/catalog'
 import { useUserStore } from './stores/user'
 import { showNotice, useNotice } from './utils/notice'
+import { AUTH_EXPIRED_EVENT } from './api/client'
 
 const route = useRoute()
 const router = useRouter()
@@ -32,25 +33,34 @@ function scrollToTop() {
 }
 
 function handleStorage(event) {
-  if (event.key === 'music-site:session') {
-    userStore.syncSession()
+  if (event.key === 'music-site:auth-session') {
+    void userStore.syncSession()
   }
 }
 
-function handleAuthMessage(event) {
+async function handleAuthMessage(event) {
   if (event.origin !== window.location.origin || event.data?.type !== 'music-site:auth-success')
     return
-  userStore.syncSession()
+  await userStore.syncSession()
   showNotice('登录成功', 'success')
   const redirect = String(event.data.redirect || '/')
   if (redirect.startsWith('/') && !redirect.startsWith('//')) router.push(redirect)
 }
 
+function handleAuthExpired() {
+  showNotice('登录状态已过期，请重新登录', 'error')
+  if (route.meta.requiresAuth) {
+    router.replace({ name: 'login', query: { redirect: route.fullPath } })
+  }
+}
+
 onMounted(() => {
-  catalogStore.loadCatalog()
+  void userStore.initialize()
+  void catalogStore.loadCatalog()
   window.addEventListener('scroll', handleScroll, { passive: true })
   window.addEventListener('storage', handleStorage)
   window.addEventListener('message', handleAuthMessage)
+  window.addEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired)
   handleScroll()
 })
 
@@ -58,6 +68,7 @@ onBeforeUnmount(() => {
   window.removeEventListener('scroll', handleScroll)
   window.removeEventListener('storage', handleStorage)
   window.removeEventListener('message', handleAuthMessage)
+  window.removeEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired)
 })
 </script>
 

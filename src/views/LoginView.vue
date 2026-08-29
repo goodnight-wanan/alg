@@ -12,15 +12,18 @@ const userStore = useUserStore()
 const form = reactive({ account: '', password: '', agree: false })
 const error = ref('')
 const notice = ref(route.query.registered === '1' ? '注册成功，请使用新账号登录。' : '')
+const submitting = ref(false)
 
-function submit() {
+async function submit() {
   error.value = ''
   if (!form.agree) {
     error.value = '请先阅读并同意用户协议'
     return
   }
 
-  const result = userStore.login({ account: form.account, password: form.password })
+  submitting.value = true
+  const result = await userStore.login({ account: form.account, password: form.password })
+  submitting.value = false
   if (!result.ok) {
     error.value = result.message
     return
@@ -94,7 +97,9 @@ function openRegister() {
         </div>
         <p v-if="error" class="form-error"><Icon name="alert" :size="16" />{{ error }}</p>
         <p v-if="notice" class="form-notice"><Icon name="info" :size="16" />{{ notice }}</p>
-        <button type="submit">登录</button>
+        <button type="submit" :disabled="submitting">
+          {{ submitting ? '正在登录…' : '登录' }}
+        </button>
         <a href="#" @click.prevent="showForgotPasswordNotice">忘记密码？</a>
         <button type="button" class="auth-text-button" @click="openRegister">注册账号</button>
       </form>
