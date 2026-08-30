@@ -28,10 +28,12 @@
 
 ## 技术栈
 
-- 前端：Vue 3、Vite、Vue Router 4、Pinia
-- 后端：NestJS 11、Prisma 6.12、PostgreSQL 17
-- 工具：FFmpeg（音频转码）、sharp（WebP 封面）、Vitest（测试）
-- 部署：Docker Compose
+| 分类 | 技术 | 用途 |
+|------|------|------|
+| 前端 | Vue 3、Vite、Vue Router 4、Pinia | 用户前台与管理后台 |
+| 后端 | NestJS 11、Prisma 6.12、PostgreSQL 17 | API、ORM 与数据库 |
+| 工具 | FFmpeg、sharp、Vitest | 音频转码、WebP 封面、测试 |
+| 部署 | Docker Compose | 一键编排 API 与数据库 |
 
 ## 快速开始
 
