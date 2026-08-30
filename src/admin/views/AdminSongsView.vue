@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { API_BASE_URL } from '../api'
 import { useAdminAuthStore } from '../auth'
 import { useAdminStatsStore } from '../stats'
@@ -27,6 +27,12 @@ const editingCategoryId = ref('')
 const editingAlbumId = ref('')
 const activeCategoryGroup = ref('GENRE')
 const editingCategoryGroup = ref('')
+const METADATA_PAGE_SIZE = 5
+const artistPage = ref(1)
+const categoryPage = ref(1)
+const albumPage = ref(1)
+const artistSearch = ref('')
+const albumSearch = ref('')
 
 const artistForm = reactive({ name: '', region: '', biography: '', avatar: null })
 const categoryForm = reactive({ name: '', slug: '', description: '' })
@@ -128,6 +134,53 @@ const activeGroupCategories = computed(() =>
   categories.value.filter((category) => categoryGroup(category) === activeCategoryGroup.value)
 )
 
+const filteredArtists = computed(() => {
+  const keyword = artistSearch.value.trim().toLowerCase()
+  if (!keyword) return artists.value
+  return artists.value.filter((artist) =>
+    [artist.name, artist.region].some((value) =>
+      String(value || '').toLowerCase().includes(keyword)
+    )
+  )
+})
+
+const filteredAlbums = computed(() => {
+  const keyword = albumSearch.value.trim().toLowerCase()
+  if (!keyword) return albums.value
+  return albums.value.filter((album) =>
+    [album.title, album.artist?.name].some((value) =>
+      String(value || '').toLowerCase().includes(keyword)
+    )
+  )
+})
+
+const artistTotalPages = computed(() =>
+  Math.max(1, Math.ceil(filteredArtists.value.length / METADATA_PAGE_SIZE))
+)
+
+const albumTotalPages = computed(() =>
+  Math.max(1, Math.ceil(filteredAlbums.value.length / METADATA_PAGE_SIZE))
+)
+
+const categoryTotalPages = computed(() =>
+  Math.max(1, Math.ceil(activeGroupCategories.value.length / METADATA_PAGE_SIZE))
+)
+
+const pagedArtists = computed(() => {
+  const start = (artistPage.value - 1) * METADATA_PAGE_SIZE
+  return filteredArtists.value.slice(start, start + METADATA_PAGE_SIZE)
+})
+
+const pagedAlbums = computed(() => {
+  const start = (albumPage.value - 1) * METADATA_PAGE_SIZE
+  return filteredAlbums.value.slice(start, start + METADATA_PAGE_SIZE)
+})
+
+const pagedGroupCategories = computed(() => {
+  const start = (categoryPage.value - 1) * METADATA_PAGE_SIZE
+  return activeGroupCategories.value.slice(start, start + METADATA_PAGE_SIZE)
+})
+
 const activeCategoryGroupLabel = computed(
   () => CATEGORY_TYPE_LABELS[activeCategoryGroup.value] || '未分组'
 )
@@ -193,7 +246,7 @@ async function loadReferenceData() {
 async function loadSongs() {
   loading.value = true
   try {
-    const params = new URLSearchParams({ page: String(page.value), pageSize: '20' })
+    const params = new URLSearchParams({ page: String(page.value), pageSize: '10' })
     if (search.value.trim()) params.set('search', search.value.trim())
     if (statusFilter.value) params.set('status', statusFilter.value)
     const result = await auth.request(`/admin/songs?${params}`)
@@ -292,6 +345,7 @@ async function deleteArtist(artist) {
 function selectCategoryGroup(group) {
   if (editingCategoryId.value) cancelCategoryEdit()
   activeCategoryGroup.value = group
+  categoryPage.value = 1
 }
 
 function resetCategoryForm() {
@@ -573,6 +627,36 @@ function nextPage() {
   void loadSongs()
 }
 
+function previousArtistPage() {
+  if (artistPage.value <= 1) return
+  artistPage.value -= 1
+}
+
+function nextArtistPage() {
+  if (artistPage.value >= artistTotalPages.value) return
+  artistPage.value += 1
+}
+
+function previousCategoryPage() {
+  if (categoryPage.value <= 1) return
+  categoryPage.value -= 1
+}
+
+function nextCategoryPage() {
+  if (categoryPage.value >= categoryTotalPages.value) return
+  categoryPage.value += 1
+}
+
+function previousAlbumPage() {
+  if (albumPage.value <= 1) return
+  albumPage.value -= 1
+}
+
+function nextAlbumPage() {
+  if (albumPage.value >= albumTotalPages.value) return
+  albumPage.value += 1
+}
+
 function setAudioFile(event) {
   uploadForm.audio = event.target.files?.[0] || null
 }
@@ -584,6 +668,17 @@ function setCoverFile(event) {
 function previewUrl(song) {
   return song.status === 'PUBLISHED' ? `${apiOrigin}${song.audioUrl}` : null
 }
+
+watch([artistSearch, albumSearch], () => {
+  artistPage.value = 1
+  albumPage.value = 1
+})
+
+watch([filteredArtists, filteredAlbums, activeGroupCategories], () => {
+  if (artistPage.value > artistTotalPages.value) artistPage.value = artistTotalPages.value
+  if (albumPage.value > albumTotalPages.value) albumPage.value = albumTotalPages.value
+  if (categoryPage.value > categoryTotalPages.value) categoryPage.value = categoryTotalPages.value
+})
 
 onMounted(async () => {
   void statsStore.refresh()
@@ -736,26 +831,55 @@ onMounted(async () => {
           </div>
         </form>
 
-        <div class="metadata-list" aria-label="歌手列表">
-          <article v-for="artist in artists" :key="artist.id" class="metadata-item">
-            <img
-              v-if="assetUrl(artist.avatarUrl)"
-              class="metadata-thumb round"
-              :src="assetUrl(artist.avatarUrl)"
-              :alt="artist.name"
-            />
-            <span v-else class="metadata-thumb round placeholder">{{ artist.name.slice(0, 1) }}</span>
-            <div class="metadata-item-main">
-              <strong>{{ artist.name }}</strong>
-              <small>{{ artist.region || '未设置地区' }} · {{ artist.songCount }} 首</small>
-              <p v-if="artist.biography">{{ artist.biography }}</p>
-            </div>
-            <div class="item-actions">
-              <button type="button" @click="startArtistEdit(artist)">编辑</button>
-              <button type="button" class="danger-text" @click="deleteArtist(artist)">删除</button>
-            </div>
-          </article>
-          <p v-if="!artists.length" class="empty-state">暂无歌手，先在上方创建一位歌手。</p>
+        <div class="metadata-list-column">
+          <input
+            v-model.trim="artistSearch"
+            class="metadata-search"
+            type="search"
+            placeholder="搜索歌手名称或地区"
+          />
+          <div class="metadata-list" aria-label="歌手列表">
+            <article v-for="artist in pagedArtists" :key="artist.id" class="metadata-item">
+              <img
+                v-if="assetUrl(artist.avatarUrl)"
+                class="metadata-thumb round"
+                :src="assetUrl(artist.avatarUrl)"
+                :alt="artist.name"
+              />
+              <span v-else class="metadata-thumb round placeholder">{{
+                artist.name.slice(0, 1)
+              }}</span>
+              <div class="metadata-item-main">
+                <strong>{{ artist.name }}</strong>
+                <small>{{ artist.region || '未设置地区' }} · {{ artist.songCount }} 首</small>
+                <p v-if="artist.biography">{{ artist.biography }}</p>
+              </div>
+              <div class="item-actions">
+                <button type="button" @click="startArtistEdit(artist)">编辑</button>
+                <button type="button" class="danger-text" @click="deleteArtist(artist)">删除</button>
+              </div>
+            </article>
+            <p v-if="!filteredArtists.length" class="empty-state">
+              {{ artistSearch.trim() ? '未找到匹配的歌手' : '暂无歌手，先在上方创建一位歌手。' }}
+            </p>
+          </div>
+          <div v-if="artistTotalPages > 1" class="metadata-pager">
+            <button
+              type="button"
+              :disabled="artistPage <= 1"
+              @click="previousArtistPage"
+            >
+              上一页
+            </button>
+            <span>{{ artistPage }} / {{ artistTotalPages }}</span>
+            <button
+              type="button"
+              :disabled="artistPage >= artistTotalPages"
+              @click="nextArtistPage"
+            >
+              下一页
+            </button>
+          </div>
         </div>
       </div>
 
@@ -807,21 +931,40 @@ onMounted(async () => {
             </div>
           </form>
 
-          <div class="tag-card-list" aria-label="分类标签列表">
-            <article v-for="category in activeGroupCategories" :key="category.id" class="tag-card">
-              <div class="tag-card-main">
-                <strong>{{ category.name }}</strong>
-                <small>{{ category.slug }}</small>
-                <p v-if="category.description">{{ category.description }}</p>
-              </div>
-              <div class="item-actions">
-                <button type="button" @click="startCategoryEdit(category)">编辑</button>
-                <button type="button" class="danger-text" @click="deleteCategory(category)">删除</button>
-              </div>
-            </article>
-            <p v-if="!activeGroupCategories.length" class="empty-state">
-              该分组下暂无标签，使用上方表单新建一个。
-            </p>
+          <div class="metadata-list-column">
+            <div class="tag-card-list" aria-label="分类标签列表">
+              <article v-for="category in pagedGroupCategories" :key="category.id" class="tag-card">
+                <div class="tag-card-main">
+                  <strong>{{ category.name }}</strong>
+                  <small>{{ category.slug }}</small>
+                  <p v-if="category.description">{{ category.description }}</p>
+                </div>
+                <div class="item-actions">
+                  <button type="button" @click="startCategoryEdit(category)">编辑</button>
+                  <button type="button" class="danger-text" @click="deleteCategory(category)">删除</button>
+                </div>
+              </article>
+              <p v-if="!activeGroupCategories.length" class="empty-state">
+                该分组下暂无标签，使用上方表单新建一个。
+              </p>
+            </div>
+            <div v-if="categoryTotalPages > 1" class="metadata-pager">
+              <button
+                type="button"
+                :disabled="categoryPage <= 1"
+                @click="previousCategoryPage"
+              >
+                上一页
+              </button>
+              <span>{{ categoryPage }} / {{ categoryTotalPages }}</span>
+              <button
+                type="button"
+                :disabled="categoryPage >= categoryTotalPages"
+                @click="nextCategoryPage"
+              >
+                下一页
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -868,29 +1011,58 @@ onMounted(async () => {
           </div>
         </form>
 
-        <div class="metadata-list" aria-label="专辑列表">
-          <article v-for="album in albums" :key="album.id" class="metadata-item">
-            <img
-              v-if="assetUrl(album.coverUrl)"
-              class="metadata-thumb"
-              :src="assetUrl(album.coverUrl)"
-              :alt="album.title"
-            />
-            <span v-else class="metadata-thumb placeholder">专辑</span>
-            <div class="metadata-item-main">
-              <strong>{{ album.title }}</strong>
-              <small>
-                {{ album.artist.name }} · {{ album.songCount }} 首
-                <template v-if="album.releaseDate"> · {{ formatDate(album.releaseDate) }}</template>
-              </small>
-              <p v-if="album.description">{{ album.description }}</p>
-            </div>
-            <div class="item-actions">
-              <button type="button" @click="startAlbumEdit(album)">编辑</button>
-              <button type="button" class="danger-text" @click="deleteAlbum(album)">删除</button>
-            </div>
-          </article>
-          <p v-if="!albums.length" class="empty-state">暂无专辑，先在上方创建一张专辑。</p>
+        <div class="metadata-list-column">
+          <input
+            v-model.trim="albumSearch"
+            class="metadata-search"
+            type="search"
+            placeholder="搜索专辑名称或歌手"
+          />
+          <div class="metadata-list" aria-label="专辑列表">
+            <article v-for="album in pagedAlbums" :key="album.id" class="metadata-item">
+              <img
+                v-if="assetUrl(album.coverUrl)"
+                class="metadata-thumb"
+                :src="assetUrl(album.coverUrl)"
+                :alt="album.title"
+              />
+              <span v-else class="metadata-thumb placeholder">专辑</span>
+              <div class="metadata-item-main">
+                <strong>{{ album.title }}</strong>
+                <small>
+                  {{ album.artist.name }} · {{ album.songCount }} 首
+                  <template v-if="album.releaseDate">
+                    · {{ formatDate(album.releaseDate) }}
+                  </template>
+                </small>
+                <p v-if="album.description">{{ album.description }}</p>
+              </div>
+              <div class="item-actions">
+                <button type="button" @click="startAlbumEdit(album)">编辑</button>
+                <button type="button" class="danger-text" @click="deleteAlbum(album)">删除</button>
+              </div>
+            </article>
+            <p v-if="!filteredAlbums.length" class="empty-state">
+              {{ albumSearch.trim() ? '未找到匹配的专辑' : '暂无专辑，先在上方创建一张专辑。' }}
+            </p>
+          </div>
+          <div v-if="albumTotalPages > 1" class="metadata-pager">
+            <button
+              type="button"
+              :disabled="albumPage <= 1"
+              @click="previousAlbumPage"
+            >
+              上一页
+            </button>
+            <span>{{ albumPage }} / {{ albumTotalPages }}</span>
+            <button
+              type="button"
+              :disabled="albumPage >= albumTotalPages"
+              @click="nextAlbumPage"
+            >
+              下一页
+            </button>
+          </div>
         </div>
       </div>
     </section>
@@ -1484,6 +1656,50 @@ onMounted(async () => {
 .toast-leave-to {
   opacity: 0;
   transform: translateY(-8px);
+}
+
+.metadata-list-column {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.metadata-search {
+  flex: 0 0 auto;
+}
+
+.metadata-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.metadata-pager button {
+  border: 1px solid rgba(112, 72, 94, 0.16);
+  border-radius: 10px;
+  padding: 7px 14px;
+  background: rgba(255, 240, 246, 0.9);
+  color: #6c3d55;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.metadata-pager button:hover:not(:disabled) {
+  border-color: #ed78a5;
+}
+
+.metadata-pager button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.metadata-pager span {
+  color: var(--text-secondary, #6b7280);
+  font-size: 13px;
+  font-weight: 800;
 }
 
 @media (max-width: 900px) {
