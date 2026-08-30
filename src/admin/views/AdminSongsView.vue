@@ -81,6 +81,33 @@ const summaryItems = computed(() => {
   ]
 })
 
+function formatBytes(bytes) {
+  if (!Number.isFinite(bytes) || bytes < 0) return '-'
+  const units = ['B', 'KB', 'MB', 'GB', 'TB']
+  let value = bytes
+  let unit = 0
+  while (value >= 1024 && unit < units.length - 1) {
+    value /= 1024
+    unit += 1
+  }
+  const digits = value >= 100 || unit === 0 ? 0 : 1
+  return `${value.toFixed(digits)} ${units[unit]}`
+}
+
+const storageInfo = computed(() => {
+  const storage = statsStore.stats?.storage
+  if (!storage || !storage.totalBytes) return null
+  const percent = Math.min(
+    100,
+    Math.round((storage.usedBytes / storage.totalBytes) * 100)
+  )
+  return {
+    percent,
+    usedLabel: formatBytes(storage.usedBytes),
+    totalLabel: formatBytes(storage.totalBytes)
+  }
+})
+
 const CATEGORY_TYPE_LABELS = {
   GENRE: '类型',
   MOOD: '心情',
@@ -744,6 +771,29 @@ onMounted(async () => {
       </div>
     </section>
 
+    <section v-if="storageInfo" class="glass-panel storage-panel" aria-label="存储空间">
+      <div class="storage-top">
+        <span class="storage-title">存储空间</span>
+        <span class="storage-percent">{{ storageInfo.percent }}%</span>
+      </div>
+      <div
+        class="storage-bar"
+        role="progressbar"
+        :aria-valuenow="storageInfo.percent"
+        aria-valuemin="0"
+        aria-valuemax="100"
+      >
+        <div
+          class="storage-bar-fill"
+          :style="{ width: `${storageInfo.percent}%` }"
+        ></div>
+      </div>
+      <div class="storage-bottom">
+        <span>已用 {{ storageInfo.usedLabel }}</span>
+        <span>总共 {{ storageInfo.totalLabel }}</span>
+      </div>
+    </section>
+
     <div class="workspace-tabs" role="tablist" aria-label="后台功能分区">
       <button
         type="button"
@@ -1327,6 +1377,60 @@ onMounted(async () => {
   font-weight: 800;
   color: var(--text-secondary, #6b7280);
   letter-spacing: 1px;
+}
+
+.storage-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 22px;
+  padding: 16px 18px;
+}
+
+.storage-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.storage-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-secondary, #6b7280);
+  letter-spacing: 1px;
+}
+
+.storage-percent {
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--brand-strong, #e94e77);
+}
+
+.storage-bar {
+  height: 12px;
+  border-radius: 999px;
+  background: rgba(25, 25, 25, 0.08);
+  overflow: hidden;
+}
+
+.storage-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    var(--brand, #ff699d),
+    var(--brand-strong, #e94e77)
+  );
+  transition: width 0.3s ease;
+}
+
+.storage-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary, #6b7280);
 }
 
 .workspace-tabs {
