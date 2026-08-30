@@ -12,10 +12,10 @@
 
 用户前台和管理后台共用同一个 API 与数据库，分布在同一仓库的两个分支：
 
-| 分支 | 内容 | 本地目录 |
-|------|------|----------|
-| `vue-rewrite` | 用户音乐前台 | `E:\Web\new music website` |
-| `admin-dashboard` | 管理后台 | `E:\Web\admin-dashboard` |
+| 分支 | 内容 |
+|------|------|
+| `vue-rewrite` | 用户音乐前台 |
+| `admin-dashboard` | 管理后台 |
 
 ## 核心功能
 
@@ -24,6 +24,7 @@
 - **API**：统一鉴权（JWT Access + Refresh Token）、业务逻辑、文件上传和音频流式播放。
 - **PostgreSQL**：保存用户、歌曲、歌单、收藏、播放历史等结构化数据。
 - **音频**：本地文件由 FFmpeg 统一转成约 128 kbps MP3，也支持可信远程 URL。
+- **歌词**：歌曲歌词展示页面待开发。
 
 ## 技术栈
 
@@ -81,7 +82,7 @@ npm run docker:seed
 └── 补全音乐网站功能项目计划.md  项目计划文档
 ```
 
-管理后台不在此目录，位于同级 worktree `E:\Web\admin-dashboard`。
+管理后台在 `admin-dashboard` 分支维护，不在此目录。
 
 ## 开源说明
 
