@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { createReadStream } from 'node:fs';
-import { mkdir, readFile, rm, stat } from 'node:fs/promises';
+import { mkdir, readFile, rm, stat, statfs } from 'node:fs/promises';
 import { extname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { spawn } from 'node:child_process';
 import {
@@ -82,6 +82,21 @@ export class MediaStorageService implements OnModuleInit {
 
   getTemporaryRoot() {
     return this.tempRoot;
+  }
+
+  async getDiskUsage() {
+    try {
+      const info = await statfs(this.mediaRoot);
+      const totalBytes = info.bsize * info.blocks;
+      const availableBytes = info.bsize * info.bavail;
+      return {
+        totalBytes,
+        usedBytes: totalBytes - availableBytes,
+        availableBytes,
+      };
+    } catch {
+      return null;
+    }
   }
 
   async processAudio(file: Express.Multer.File): Promise<ProcessedAsset> {

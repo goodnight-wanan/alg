@@ -107,6 +107,8 @@ export class AdminCatalogService {
       this.prisma.song.aggregate({ _sum: { playCount: true } }),
     ]);
 
+    const storage = await this.mediaStorage.getDiskUsage();
+
     return {
       songs: {
         total: totalSongs,
@@ -118,6 +120,7 @@ export class AdminCatalogService {
       albums,
       categories,
       totalPlays: playAggregate._sum.playCount ?? 0,
+      storage,
     };
   }
 
