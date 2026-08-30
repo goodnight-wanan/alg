@@ -1,9 +1,0 @@
-node_modules
-dist
-coverage
-src/generated
-uploads
-.env
-*.log
-*.tsbuildinfo
-README.md
