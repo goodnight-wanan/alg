@@ -114,15 +114,6 @@ function typePrefix(type) {
   return String(type || '').toLowerCase()
 }
 
-function normalizeCategorySlug(slug, group) {
-  const prefix = typePrefix(group)
-  if (!prefix) return slug.trim()
-  const base = slug
-    .trim()
-    .replace(/^(genre|mood|era|region|chart|feature)-/, '')
-  return base ? `${prefix}-${base}` : prefix
-}
-
 const categoryGroups = computed(() =>
   CATEGORY_GROUPS.map((group) => ({
     ...group,
@@ -189,10 +180,18 @@ const editingCategoryGroupLabel = computed(
   () => CATEGORY_TYPE_LABELS[editingCategoryGroup.value] || '未分组'
 )
 
+const categorySlugPrefix = computed(() => {
+  const group = editingCategoryGroup.value || activeCategoryGroup.value
+  const prefix = typePrefix(group)
+  return prefix ? `${prefix}-` : ''
+})
+
 const categorySlugPreview = computed(() => {
   const group = editingCategoryGroup.value || activeCategoryGroup.value
-  const slug = categoryForm.slug.trim()
-  return slug ? normalizeCategorySlug(slug, group) : ''
+  const prefix = typePrefix(group)
+  const suffix = categoryForm.slug.trim()
+  if (!prefix) return suffix
+  return suffix ? `${prefix}-${suffix}` : ''
 })
 
 const regionOptions = computed(() =>
@@ -284,6 +283,11 @@ function resetArtistForm() {
   if (avatarInput) avatarInput.value = ''
 }
 
+function clearArtistForm() {
+  editingArtistId.value = ''
+  resetArtistForm()
+}
+
 function setArtistAvatar(event) {
   const file = event.target.files?.[0] || null
   artistForm.avatar = file
@@ -343,13 +347,37 @@ async function deleteArtist(artist) {
 }
 
 function selectCategoryGroup(group) {
-  if (editingCategoryId.value) cancelCategoryEdit()
+  editingCategoryId.value = ''
+  editingCategoryGroup.value = ''
   activeCategoryGroup.value = group
   categoryPage.value = 1
+  resetCategoryForm()
+}
+
+function defaultCategoryDescription(group) {
+  const prefix = typePrefix(group)
+  return prefix ? `${prefix} 分类` : ''
+}
+
+function stripGroupPrefix(slug) {
+  return String(slug || '')
+    .trim()
+    .replace(/^(genre|mood|era|region|chart|feature)-/, '')
 }
 
 function resetCategoryForm() {
-  Object.assign(categoryForm, { name: '', slug: '', description: '' })
+  const group = editingCategoryGroup.value || activeCategoryGroup.value
+  Object.assign(categoryForm, {
+    name: '',
+    slug: '',
+    description: defaultCategoryDescription(group)
+  })
+}
+
+function clearCategoryForm() {
+  editingCategoryId.value = ''
+  editingCategoryGroup.value = ''
+  resetCategoryForm()
 }
 
 async function submitCategory() {
@@ -358,7 +386,7 @@ async function submitCategory() {
   await runSave(async () => {
     const payload = {
       name: categoryForm.name,
-      slug: normalizeCategorySlug(categoryForm.slug, group),
+      slug: categorySlugPreview.value,
       type: group,
       description: categoryForm.description.trim()
     }
@@ -381,7 +409,7 @@ function startCategoryEdit(category) {
   editingCategoryGroup.value = categoryGroup(category)
   Object.assign(categoryForm, {
     name: category.name,
-    slug: category.slug,
+    slug: stripGroupPrefix(category.slug),
     description: category.description || ''
   })
 }
@@ -425,6 +453,11 @@ function resetAlbumForm() {
   clearAlbumCoverPreview()
   const coverInput = document.querySelector('#album-cover-file')
   if (coverInput) coverInput.value = ''
+}
+
+function clearAlbumForm() {
+  editingAlbumId.value = ''
+  resetAlbumForm()
 }
 
 function setAlbumCover(event) {
@@ -681,6 +714,7 @@ watch([filteredArtists, filteredAlbums, activeGroupCategories], () => {
 })
 
 onMounted(async () => {
+  resetCategoryForm()
   void statsStore.refresh()
   try {
     await Promise.all([loadReferenceData(), loadSongs()])
@@ -820,6 +854,9 @@ onMounted(async () => {
             <button class="secondary-button" :disabled="saving">
               {{ editingArtistId ? '保存修改' : '保存歌手' }}
             </button>
+            <button type="button" class="text-button" @click="clearArtistForm">
+              清除
+            </button>
             <button
               v-if="editingArtistId"
               type="button"
@@ -910,15 +947,24 @@ onMounted(async () => {
             </h3>
             <div class="form-row">
               <input v-model.trim="categoryForm.name" placeholder="标签名称，如 摇滚" required />
-              <input v-model.trim="categoryForm.slug" placeholder="英文别名，如 rock" required />
+              <div class="slug-input">
+                <span class="slug-input-prefix">{{ categorySlugPrefix }}</span>
+                <input v-model.trim="categoryForm.slug" placeholder="别名后缀，如 rock" required />
+              </div>
             </div>
             <p v-if="categorySlugPreview" class="slug-preview">
               将保存为 <code>{{ categorySlugPreview }}</code>
             </p>
-            <input v-model.trim="categoryForm.description" placeholder="描述（可选）" />
+            <input
+              v-model.trim="categoryForm.description"
+              placeholder="描述（自动填充，可修改）"
+            />
             <div class="form-actions">
               <button class="secondary-button" :disabled="saving">
                 {{ editingCategoryId ? '保存修改' : '保存标签' }}
+              </button>
+              <button type="button" class="text-button" @click="clearCategoryForm">
+                清除
               </button>
               <button
                 v-if="editingCategoryId"
@@ -999,6 +1045,9 @@ onMounted(async () => {
           <div class="form-actions">
             <button class="secondary-button" :disabled="saving">
               {{ editingAlbumId ? '保存修改' : '保存专辑' }}
+            </button>
+            <button type="button" class="text-button" @click="clearAlbumForm">
+              清除
             </button>
             <button
               v-if="editingAlbumId"
@@ -1591,6 +1640,40 @@ onMounted(async () => {
   border-radius: 6px;
   background: rgba(255, 105, 157, 0.12);
   color: var(--brand-strong, #e94e77);
+}
+
+.slug-input {
+  display: flex;
+  align-items: center;
+  border: 1px solid rgba(112, 72, 94, 0.16);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.slug-input:focus-within {
+  border-color: #ed78a5;
+  box-shadow: 0 0 0 3px rgba(237, 120, 165, 0.15);
+}
+
+.slug-input-prefix {
+  padding: 0 4px 0 13px;
+  color: #c13f78;
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.slug-input input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 11px 13px 11px 2px;
+  box-shadow: none;
+}
+
+.slug-input input:focus {
+  border-color: transparent;
+  box-shadow: none;
 }
 
 .album-cover-field {
