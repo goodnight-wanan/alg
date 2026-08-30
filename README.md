@@ -51,6 +51,23 @@ npm run dev
 
 默认地址 http://localhost:5174，默认 API 地址 http://localhost:3000/api。可通过 `.env` 的 `VITE_API_BASE_URL` 覆盖。
 
+## 数据库连接信息
+
+本地开发时可以用 DBX 等可视化工具连接 PostgreSQL 查看数据。连接参数如下：
+
+| 项目 | 值 |
+|------|-----|
+| 类型 | PostgreSQL |
+| 主机 | localhost |
+| 端口 | 5432 |
+| 用户名 | music_admin |
+| 密码 | music_dev_password |
+| 数据库 | music_site |
+
+> 以上为本地开发默认参数，仅用于本机排查；部署到服务器时必须通过环境变量替换为生产密码。
+
+数据库结构以 `server/prisma/schema.prisma` 和 migrations 为准，建表、改表、加索引请提交 Prisma migration，不要用可视化工具直接改表结构。
+
 ## 管理员账号
 
 管理后台没有注册入口，管理员按以下步骤产生：
