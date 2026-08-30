@@ -62,13 +62,23 @@ npm run docker:seed
 ## 目录结构
 
 ```text
-├── src/                  用户前台（Vue）
-├── server/               NestJS API
-│   ├── prisma/           数据库结构（schema + migration）
-│   ├── src/              后端源码
-│   └── scripts/          Seed 与管理脚本
-├── compose.yaml          API、PostgreSQL、持久化卷编排
-└── 补全音乐网站功能项目计划.md
+├── src/                      用户前台（Vue 3）
+│   ├── api/                  后端接口封装（client 请求实例 / auth 认证 / catalog 曲库 / me 个人中心）
+│   ├── components/           通用组件（PlayerBar 全局播放器、AppHeader 顶栏、Icon 图标等）
+│   ├── router/               路由配置
+│   ├── stores/               Pinia 状态（catalog 曲库 / player 播放器 / user 用户）
+│   ├── styles/               全局样式
+│   ├── utils/                工具函数（本地存储、通知、搜索历史等）
+│   ├── views/                页面（首页/歌单/排行榜/歌手/新碟/搜索/登录注册/个人中心等 10+ 页面）
+│   ├── App.vue               根组件
+│   └── main.js               应用入口
+├── server/                   NestJS API
+│   ├── prisma/               数据库结构（schema.prisma 数据模型 + migrations 迁移）
+│   ├── src/                  后端源码（auth 认证 / catalog 曲库 / me 个人中心 / users 用户 / database Prisma 连接）
+│   ├── scripts/              脚本（seed-catalog 生成演示曲库 / promote-admin 提升管理员）
+│   └── test/                 e2e 测试
+├── compose.yaml              Docker 编排（PostgreSQL + API + 持久化卷）
+└── 补全音乐网站功能项目计划.md  项目计划文档
 ```
 
 管理后台不在此目录，位于同级 worktree `E:\Web\admin-dashboard`。
