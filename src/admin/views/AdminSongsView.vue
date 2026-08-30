@@ -35,7 +35,7 @@ const artistSearch = ref('')
 const albumSearch = ref('')
 
 const artistForm = reactive({ name: '', region: '', biography: '', avatar: null })
-const categoryForm = reactive({ name: '', slug: '', description: '' })
+const categoryForm = reactive({ name: '', slug: '' })
 const albumForm = reactive({
   title: '',
   artistId: '',
@@ -192,6 +192,11 @@ const categorySlugPreview = computed(() => {
   const suffix = categoryForm.slug.trim()
   if (!prefix) return suffix
   return suffix ? `${prefix}-${suffix}` : ''
+})
+
+const categoryDescriptionPreview = computed(() => {
+  const group = editingCategoryGroup.value || activeCategoryGroup.value
+  return defaultCategoryDescription(group)
 })
 
 const regionOptions = computed(() =>
@@ -366,12 +371,7 @@ function stripGroupPrefix(slug) {
 }
 
 function resetCategoryForm() {
-  const group = editingCategoryGroup.value || activeCategoryGroup.value
-  Object.assign(categoryForm, {
-    name: '',
-    slug: '',
-    description: defaultCategoryDescription(group)
-  })
+  Object.assign(categoryForm, { name: '', slug: '' })
 }
 
 function clearCategoryForm() {
@@ -388,7 +388,7 @@ async function submitCategory() {
       name: categoryForm.name,
       slug: categorySlugPreview.value,
       type: group,
-      description: categoryForm.description.trim()
+      description: defaultCategoryDescription(group)
     }
     const path = isEditing
       ? `/admin/categories/${editingCategoryId.value}`
@@ -409,8 +409,7 @@ function startCategoryEdit(category) {
   editingCategoryGroup.value = categoryGroup(category)
   Object.assign(categoryForm, {
     name: category.name,
-    slug: stripGroupPrefix(category.slug),
-    description: category.description || ''
+    slug: stripGroupPrefix(category.slug)
   })
 }
 
@@ -955,10 +954,9 @@ onMounted(async () => {
             <p v-if="categorySlugPreview" class="slug-preview">
               将保存为 <code>{{ categorySlugPreview }}</code>
             </p>
-            <input
-              v-model.trim="categoryForm.description"
-              placeholder="描述（自动填充，可修改）"
-            />
+            <p class="description-preview">
+              描述：<span>{{ categoryDescriptionPreview }}</span>
+            </p>
             <div class="form-actions">
               <button class="secondary-button" :disabled="saving">
                 {{ editingCategoryId ? '保存修改' : '保存标签' }}
@@ -1636,6 +1634,19 @@ onMounted(async () => {
 }
 
 .slug-preview code {
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(255, 105, 157, 0.12);
+  color: var(--brand-strong, #e94e77);
+}
+
+.description-preview {
+  margin: 0 0 10px;
+  color: var(--text-muted, #9ca3af);
+  font-size: 12px;
+}
+
+.description-preview span {
   padding: 2px 6px;
   border-radius: 6px;
   background: rgba(255, 105, 157, 0.12);
