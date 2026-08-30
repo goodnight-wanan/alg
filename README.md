@@ -1,101 +1,45 @@
 # 悦音音乐管理后台
 
-这是悦音音乐项目的独立管理后台分支，分支名为 `admin-dashboard`，工作目录为 `E:\Web\admin-dashboard`。
+悦音音乐项目的独立管理后台，分支 `admin-dashboard`，本地目录 `E:\Web\admin-dashboard`。用户前台与共享 NestJS API 在同仓库的 `vue-rewrite` 分支维护，本分支只负责管理员界面。
 
-用户音乐网站与共享 NestJS API 在同一 GitHub 仓库的 `vue-rewrite` 分支中维护；本分支只负责管理员界面，不在用户前台目录中创建 `admin/` 子项目。
+## 核心功能
 
-## 已实现
+- 管理员登录与角色校验，Access Token 自动携带、Refresh Token 自动轮换。
+- 歌曲管理：本地上传（FFmpeg 转 MP3）、远程 URL 录入、编辑、试听、上下架、删除与批量操作。
+- 歌手、专辑、分类管理：分类按「类型/心情/年代/地区/榜单/特色」分组，歌曲标签用可勾选芯片。
+- 数据汇总卡片、操作弹窗提示，响应式粉色毛玻璃界面。
 
-- 管理员账号登录与角色校验。
-- Access Token 自动携带与 Refresh Token 自动轮换。
-- 歌手管理：地区、简介和头像，支持创建、编辑与删除。
-- 分类管理：按「类型/心情/年代/地区/榜单/特色」分组查看与增删改查，别名自动补分组前缀。
-- 专辑管理：创建、编辑与删除，封面可上传或替换。
-- 本地音频与封面上传。
-- 可信远程音频录入。
-- 歌曲标签使用按分组展示的可勾选芯片。
-- 歌曲搜索、状态筛选、编辑、试听、上下架、删除和批量处理。
-- 页面按「歌手/分类/专辑」「上传/录入歌曲」「歌曲列表」三个顶层 tab 分区，顶部展示数据汇总卡片。
-- 操作结果使用自动消失的弹窗提示。
-- 响应式粉色毛玻璃界面。
+## 启动（本地开发）
 
-## 启动
-
-先在 `vue-rewrite` 分支对应目录启动 API：
+先启动 API 和数据库（在 `vue-rewrite` 目录执行）：
 
 ```bash
 npm run docker:up
 ```
 
-然后在本目录启动管理后台：
+再启动管理后台：
 
 ```bash
 npm install
 npm run dev
 ```
 
-默认地址为 `http://localhost:5174`，默认 API 地址为 `http://localhost:3000/api`。
-
-如需覆盖 API 地址，复制 `.env.example` 为 `.env` 并修改：
-
-```text
-VITE_API_BASE_URL=http://localhost:3000/api
-```
+默认地址 http://localhost:5174，默认 API 地址 http://localhost:3000/api。可通过 `.env` 的 `VITE_API_BASE_URL` 覆盖。
 
 ## 管理员账号
 
-本地开发环境预设了一个管理员账号，可直接登录本后台：
+管理后台没有注册入口，管理员按以下步骤产生：
 
-| 用户名 | 密码 | 邮箱 | 角色 |
-|--------|------|------|------|
-| `admin` | `123456` | `admin@example.com` | ADMIN |
-
-> 该账号仅用于本地开发测试，密码为弱密码，切勿用于生产环境。
-> 账号是手动写入本地数据库的，新 clone 的环境不会自动创建。
-
-如需自行创建管理员（例如新 clone 仓库、没有预设账号时），按下面步骤操作。
-
-**第 1 步：启动服务**
-
-先在 `vue-rewrite` 分支对应目录启动 API 和数据库：
-
-```bash
-npm run docker:up
-```
-
-**第 2 步：注册一个普通账号**
-
-打开用户音乐前台 `http://localhost:5173`，点击注册，填写用户名、邮箱和密码完成注册。
-
-> 管理后台只有登录入口、没有注册入口，所以必须先在用户前台注册。
-
-**第 3 步：把账号提升为管理员**
-
-打开终端，进入 `vue-rewrite` 分支的 `server/` 目录，执行下面的命令（把 `你的用户名` 换成第 2 步注册的用户名；用注册邮箱也可以）：
+1. 在用户前台 http://localhost:5173 注册一个普通账号。
+2. 进入 `vue-rewrite` 的 `server/` 目录，执行提升命令：
 
 ```bash
 npm run admin:promote -- 你的用户名
 ```
 
-例如注册的用户名是 `zhangsan`，就执行：
+3. 看到 `Promoted xxx to ADMIN.` 即成功，用该账号登录管理后台。
 
-```bash
-npm run admin:promote -- zhangsan
-```
-
-**第 4 步：确认成功**
-
-看到下面这样的提示，就说明提升成功了：
-
-```text
-Promoted zhangsan (zhangsan@example.com) to ADMIN.
-```
-
-如果看到 `User not found: xxx`，说明第 3 步填写的用户名/邮箱和第 2 步注册的不一致，检查后重试。
-
-**第 5 步：登录本后台**
-
-回到管理后台 `http://localhost:5174`，用第 2 步注册的账号和密码登录即可。
+> 新 clone 的环境不会自动创建管理员账号，需按上述步骤创建。生产环境同样用此方式创建，务必使用强密码。
 
 ## 生产构建
 
@@ -104,4 +48,4 @@ npm run lint
 npm run build
 ```
 
-部署时必须将 `VITE_API_BASE_URL` 指向实际 API，并在 API 的 `CORS_ORIGIN` 中加入后台域名。
+部署时设置 `VITE_API_BASE_URL` 指向实际 API，并在 API 的 `CORS_ORIGIN` 中加入后台域名。
