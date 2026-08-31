@@ -356,6 +356,11 @@ async function seed() {
     categoryBySlug.set(record.slug, record);
   }
 
+  const categoryByTypeAndName = new Map();
+  for (const record of categoryBySlug.values()) {
+    categoryByTypeAndName.set(`${record.type}:${record.name}`, record);
+  }
+
   const artistByPublicId = new Map();
   for (const artist of artists) {
     const record = await prisma.artist.upsert({
@@ -423,16 +428,24 @@ async function seed() {
 
   for (const [index, playlist] of playlists.entries()) {
     const cover = await ensureCover(playlist.publicId, playlist.colorA, playlist.colorB, index + 41);
+    const playlistCategoryIds = [
+      playlist.genre && categoryByTypeAndName.get(`GENRE:${playlist.genre}`),
+      playlist.mood && categoryByTypeAndName.get(`MOOD:${playlist.mood}`),
+      playlist.era && categoryByTypeAndName.get(`ERA:${playlist.era}`),
+    ].filter(Boolean).map((category) => category.id);
+    const playlistCategoryCreate = playlistCategoryIds.map((categoryId) => ({ categoryId }));
     const record = await prisma.playlist.upsert({
       where: { publicId: playlist.publicId },
       update: {
         title: playlist.title, description: playlist.description, coverAssetId: cover.id,
         genre: playlist.genre, mood: playlist.mood, era: playlist.era, isPublished: true,
+        categories: { deleteMany: {}, create: playlistCategoryCreate },
       },
       create: {
         publicId: playlist.publicId, title: playlist.title, description: playlist.description,
         coverAssetId: cover.id, genre: playlist.genre, mood: playlist.mood,
         era: playlist.era, isPublished: true,
+        categories: { create: playlistCategoryCreate },
       },
     });
     await prisma.playlistSong.deleteMany({ where: { playlistId: record.id } });
