@@ -7,6 +7,7 @@ import { useCatalogStore } from './stores/catalog'
 import { useUserStore } from './stores/user'
 import { showNotice, useNotice } from './utils/notice'
 import { AUTH_EXPIRED_EVENT } from './api/client'
+import Lenis from 'lenis'
 
 const route = useRoute()
 const router = useRouter()
@@ -23,13 +24,18 @@ const showPlayer = computed(() => !['login', 'register'].includes(route.name))
 const showHeader = computed(() => !['login', 'register'].includes(route.name))
 const needsCatalog = computed(() => !['login', 'register', 'profile'].includes(route.name))
 const showBackTop = ref(false)
+let lenis = null
 
 function handleScroll() {
   showBackTop.value = window.scrollY > 420
 }
 
 function scrollToTop() {
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+  if (lenis) {
+    lenis.scrollTo(0)
+  } else {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 }
 
 function handleStorage(event) {
@@ -55,6 +61,7 @@ function handleAuthExpired() {
 }
 
 onMounted(() => {
+  lenis = new Lenis({ autoRaf: true })
   void userStore.initialize()
   void catalogStore.loadCatalog()
   window.addEventListener('scroll', handleScroll, { passive: true })
@@ -65,6 +72,8 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  lenis?.destroy()
+  lenis = null
   window.removeEventListener('scroll', handleScroll)
   window.removeEventListener('storage', handleStorage)
   window.removeEventListener('message', handleAuthMessage)
