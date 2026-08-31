@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import PlayerBar from './components/PlayerBar.vue'
 import AppHeader from './components/AppHeader.vue'
@@ -23,7 +23,7 @@ const noticeIcon = computed(() => {
 })
 const showPlayer = computed(() => !['login', 'register'].includes(route.name))
 const showHeader = computed(() => !['login', 'register'].includes(route.name))
-const showFooter = computed(() => !['login', 'register'].includes(route.name))
+const showFooter = computed(() => !['login', 'register', 'mine', 'profile'].includes(route.name))
 const needsCatalog = computed(() => !['login', 'register', 'profile'].includes(route.name))
 const showBackTop = ref(false)
 let lenis = null
@@ -31,6 +31,15 @@ let lenis = null
 function handleScroll() {
   showBackTop.value = window.scrollY > 420
 }
+
+watch(
+  () => route.path,
+  () => {
+    nextTick(() => {
+      lenis?.scrollTo(0, { immediate: true })
+    })
+  }
+)
 
 function scrollToTop() {
   if (lenis) {

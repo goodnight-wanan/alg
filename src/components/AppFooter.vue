@@ -29,8 +29,8 @@ import { showNotice } from '../utils/notice'
 
 <style scoped>
 .app-footer {
-  margin-top: 48px;
-  padding-bottom: calc(var(--player-height) + 24px);
+  margin-top: 24px;
+  padding-bottom: calc(var(--player-height) + 14px);
   border-top: 1px solid rgba(255, 255, 255, 0.6);
   background: rgb(255 214 214 / 82%);
   backdrop-filter: blur(14px);
@@ -40,7 +40,7 @@ import { showNotice } from '../utils/notice'
 .app-footer-inner {
   width: min(1320px, calc(100% - 48px));
   margin: 0 auto;
-  padding: 28px 0 20px;
+  padding: 16px 0 12px;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -109,7 +109,7 @@ import { showNotice } from '../utils/notice'
 .app-footer-bottom {
   width: min(1320px, calc(100% - 48px));
   margin: 0 auto;
-  padding: 14px 0 4px;
+  padding: 10px 0 2px;
   border-top: 1px solid rgba(25, 25, 25, 0.08);
 }
 
