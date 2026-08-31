@@ -20,24 +20,6 @@ const newestAlbumIds = computed(() =>
 function isNewRelease(album) {
   return newestAlbumIds.value.includes(album.id)
 }
-const newAlbumSongs = computed(() => {
-  const seen = new Set()
-  return newAlbums.value
-    .flatMap((album) => album.songs)
-    .filter((song) => {
-      if (seen.has(song.id)) return false
-      seen.add(song.id)
-      return true
-    })
-})
-const isPlayingList = computed(
-  () => playerStore.isListActive(newAlbumSongs.value) && playerStore.isPlaying
-)
-
-function playAll() {
-  playerStore.playAll(newAlbumSongs.value)
-}
-
 function playAlbum(album) {
   playerStore.playAll(album.songs)
 }
@@ -67,10 +49,6 @@ function albumMeta(album) {
         <p class="album-hero-desc">
           发现最新上架的 {{ newAlbums.length }} 张音乐专辑，第一时间听见新鲜好声音。
         </p>
-        <button type="button" class="album-hero-play" @click="playAll">
-          <Icon :name="isPlayingList ? 'pause' : 'play'" :size="18" />
-          {{ isPlayingList ? '暂停' : '播放全部' }}
-        </button>
       </div>
       <div class="album-hero-mark" aria-hidden="true">
         <Icon name="music-note" :size="72" />
@@ -163,25 +141,6 @@ function albumMeta(album) {
   color: rgba(255, 255, 255, 0.9);
   font-size: 15px;
   line-height: 1.7;
-}
-
-.album-hero-play {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-width: 132px;
-  padding: 12px 26px;
-  border-radius: 999px;
-  background: #fff;
-  color: var(--brand-strong);
-  font-weight: 800;
-  white-space: nowrap;
-  box-shadow: 0 10px 22px rgba(93, 54, 70, 0.22);
-}
-
-.album-hero-play:hover {
-  background: #fff0f5;
 }
 
 .album-hero-mark {
