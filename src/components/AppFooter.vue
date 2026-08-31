@@ -10,7 +10,7 @@ import { showNotice } from '../utils/notice'
           <span class="app-footer-logo-mark"><Icon name="music-note" :size="18" /></span>
           <span class="app-footer-logo-text">悦音音乐</span>
         </RouterLink>
-        <p class="app-footer-desc">个人学习与开源展示的全栈音乐平台 · 仅供熟人分享交流</p>
+        <p class="app-footer-desc">个人学习与开源展示的全栈音乐平台</p>
       </div>
 
       <nav class="app-footer-links" aria-label="页脚链接">
