@@ -55,6 +55,7 @@ function selectArtist(artist) {
 
 function closeDetail() {
   selectedArtist.value = null
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 function playAll() {
