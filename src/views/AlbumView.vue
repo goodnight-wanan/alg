@@ -1,8 +1,10 @@
 <script setup>
 import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { albums } from '../data/catalogData'
 import { usePlayerStore } from '../stores/player'
 
+const router = useRouter()
 const playerStore = usePlayerStore()
 
 const newAlbums = computed(() => albums.filter((album) => album.songs.length))
@@ -26,6 +28,10 @@ function playAll() {
 
 function playAlbum(album) {
   playerStore.playAll(album.songs)
+}
+
+function goAlbum(album) {
+  router.push({ name: 'album-detail', params: { id: album.id } })
 }
 
 function isAlbumPlaying(album) {
@@ -68,7 +74,7 @@ function albumMeta(album) {
 
     <div v-if="newAlbums.length" class="album-grid">
       <article v-for="album in newAlbums" :key="album.id" class="album-card">
-        <div class="album-cover" @click="playAlbum(album)">
+        <div class="album-cover" @click="goAlbum(album)">
           <img :src="album.cover" :alt="album.title" loading="lazy" decoding="async" />
           <span class="album-badge">新碟</span>
           <button
@@ -84,9 +90,9 @@ function albumMeta(album) {
           class="album-title"
           role="button"
           tabindex="0"
-          :aria-label="`播放新碟 ${album.title}`"
-          @click="playAlbum(album)"
-          @keydown.enter.space.prevent="playAlbum(album)"
+          :aria-label="`查看专辑 ${album.title}`"
+          @click="goAlbum(album)"
+          @keydown.enter.space.prevent="goAlbum(album)"
         >
           {{ album.title }}
         </h3>

@@ -180,3 +180,7 @@ export function getArtists() {
 export function getAlbums() {
   return albums
 }
+
+export function getAlbumById(id) {
+  return albums.find((album) => album.id === id)
+}

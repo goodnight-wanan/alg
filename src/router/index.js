@@ -27,6 +27,12 @@ const routes = [
     meta: { title: '新碟' }
   },
   {
+    path: '/album/:id',
+    name: 'album-detail',
+    component: () => import('../views/AlbumDetailView.vue'),
+    meta: { title: '专辑详情' }
+  },
+  {
     path: '/artist',
     name: 'artist',
     component: () => import('../views/ArtistView.vue'),
