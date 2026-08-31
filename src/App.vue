@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import PlayerBar from './components/PlayerBar.vue'
 import AppHeader from './components/AppHeader.vue'
+import AppFooter from './components/AppFooter.vue'
 import { useCatalogStore } from './stores/catalog'
 import { useUserStore } from './stores/user'
 import { showNotice, useNotice } from './utils/notice'
@@ -22,6 +23,7 @@ const noticeIcon = computed(() => {
 })
 const showPlayer = computed(() => !['login', 'register'].includes(route.name))
 const showHeader = computed(() => !['login', 'register'].includes(route.name))
+const showFooter = computed(() => !['login', 'register'].includes(route.name))
 const needsCatalog = computed(() => !['login', 'register', 'profile'].includes(route.name))
 const showBackTop = ref(false)
 let lenis = null
@@ -114,6 +116,7 @@ onBeforeUnmount(() => {
       <button type="button" @click="catalogStore.retry">重新检查</button>
     </main>
     <RouterView v-else />
+    <AppFooter v-if="showFooter" />
     <PlayerBar v-if="showPlayer" />
 
     <Transition name="notice">

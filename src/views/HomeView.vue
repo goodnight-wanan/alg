@@ -3,7 +3,6 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { homePlaylistTabs, playlists, songs } from '../data/catalogData'
 import { usePlayerStore } from '../stores/player'
-import { showNotice } from '../utils/notice'
 import '../styles/style.css'
 
 const router = useRouter()
@@ -507,38 +506,6 @@ onUnmounted(() => {
           </div>
         </div>
       </Transition>
-    </div>
-
-    <div class="footer">
-      <div class="footer-moreMeg">
-        <a
-          class="ft-download"
-          href="#"
-          @click.prevent="showNotice('下载客户端为演示功能，暂未开放')"
-        >
-          <div class="footer-download">
-            <p title="下载客户端">下载客户端</p>
-          </div>
-        </a>
-        <p>相关信息：</p>
-        <p>北华大学计算机科学技术学院 @1977-2099</p>
-        <p>软件工程北华前端开发小组 · Vue 3 重构版</p>
-        <p>违法和不良信息举报电话：6666-88888</p>
-        <p>举报邮箱：xxx@qg.com</p>
-        <p class="footer-links">
-          <span>音乐网站</span>
-          <span class="footer-sep" aria-hidden="true">|</span>
-          <a href="#" @click.prevent="showNotice('服务条款为演示内容，暂未开放')">服务条款</a>
-          <span class="footer-sep" aria-hidden="true">|</span>
-          <a href="#" @click.prevent="showNotice('隐私政策为演示内容，暂未开放')">隐私政策</a>
-          <span class="footer-sep" aria-hidden="true">|</span>
-          <a href="#" @click.prevent="showNotice('版权投诉指引为演示内容，暂未开放')"
-            >版权投诉指引</a
-          >
-          <span class="footer-sep" aria-hidden="true">|</span>
-          <a href="#" @click.prevent="showNotice('意见反馈为演示功能，暂未开放')">意见反馈</a>
-        </p>
-      </div>
     </div>
   </div>
 </template>

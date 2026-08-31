@@ -680,8 +680,7 @@ button:not(:disabled),
   body .cont1,
   body .cont2,
   body .cont3,
-  body .cont4,
-  body .footer {
+  body .cont4 {
     width: 100%;
   }
 
