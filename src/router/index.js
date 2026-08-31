@@ -6,7 +6,7 @@ const routes = [
     path: '/',
     name: 'home',
     component: () => import('../views/HomeView.vue'),
-    meta: { title: '悦音音乐 - 发现好音乐' }
+    meta: { title: '发现好音乐' }
   },
   {
     path: '/category',
@@ -102,7 +102,7 @@ router.beforeEach(async (to) => {
     return { name: 'login', query: { redirect: to.fullPath } }
   }
 
-  document.title = to.meta.title || '悦音音乐'
+  document.title = to.meta.title ? `悦音音乐 - ${to.meta.title}` : '悦音音乐'
   return true
 })
 
