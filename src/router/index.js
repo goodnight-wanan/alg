@@ -24,7 +24,7 @@ const routes = [
     path: '/album',
     name: 'album',
     component: () => import('../views/AlbumView.vue'),
-    meta: { title: '新碟' }
+    meta: { title: '专辑' }
   },
   {
     path: '/album/:id',

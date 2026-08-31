@@ -37,7 +37,7 @@ const categories = [
   ['chart', '飙升榜', 'chart-rising'],
   ['chart', '热歌榜', 'chart-hot'],
   ['chart', '新歌榜', 'chart-new'],
-  ['feature', '新碟', 'feature-new'],
+  ['feature', '新歌', 'feature-new'],
 ].map(([group, name, slug]) => ({ group, name, slug }));
 
 const artists = [

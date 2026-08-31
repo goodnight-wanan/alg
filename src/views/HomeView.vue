@@ -365,10 +365,6 @@ onUnmounted(() => {
           {{ tab.label }}
         </div>
       </div>
-      <RouterLink to="/album">
-        <div class="cont-more cont3-more">更多 &gt;&gt;</div>
-      </RouterLink>
-
       <Transition name="section-fade" mode="out-in">
         <div :key="`${activeNewRegion}-${songPage}`" class="cont3-songs">
           <div v-for="song in visibleNewSongs" :key="song.id" class="cont3-song">

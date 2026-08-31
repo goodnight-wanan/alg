@@ -164,6 +164,7 @@ export class CatalogService {
       publicId: album.publicId,
       title: album.title,
       releaseDate: album.releaseDate,
+      createdAt: album.createdAt,
       description: album.description,
       coverUrl: album.coverAsset ? `/api/assets/${album.coverAsset.id}` : null,
       artist: {

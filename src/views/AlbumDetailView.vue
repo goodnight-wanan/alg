@@ -37,7 +37,7 @@ function goBack() {
 
 <template>
   <div v-if="album" class="album-detail-page functional-page">
-    <button type="button" class="album-detail-back" @click="goBack">← 返回新碟列表</button>
+    <button type="button" class="album-detail-back" @click="goBack">← 返回专辑列表</button>
 
     <div class="album-detail-hero">
       <div class="album-detail-cover">

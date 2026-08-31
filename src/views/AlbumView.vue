@@ -8,6 +8,18 @@ const router = useRouter()
 const playerStore = usePlayerStore()
 
 const newAlbums = computed(() => albums.filter((album) => album.songs.length))
+
+const newestAlbumIds = computed(() =>
+  [...albums]
+    .filter((album) => album.createdAt)
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 3)
+    .map((album) => album.id)
+)
+
+function isNewRelease(album) {
+  return newestAlbumIds.value.includes(album.id)
+}
 const newAlbumSongs = computed(() => {
   const seen = new Set()
   return newAlbums.value
@@ -51,9 +63,9 @@ function albumMeta(album) {
     <section class="album-hero">
       <div class="album-hero-copy">
         <span class="album-hero-tag">每周上新</span>
-        <h1 class="album-hero-title">新碟首发</h1>
+        <h1 class="album-hero-title">专辑</h1>
         <p class="album-hero-desc">
-          本周精选 {{ newAlbums.length }} 张全新唱片，第一时间听见新鲜好声音。
+          发现最新上架的 {{ newAlbums.length }} 张音乐专辑，第一时间听见新鲜好声音。
         </p>
         <button type="button" class="album-hero-play" @click="playAll">
           <Icon :name="isPlayingList ? 'pause' : 'play'" :size="18" />
@@ -67,8 +79,8 @@ function albumMeta(album) {
 
     <div class="album-head">
       <div>
-        <h2 class="album-section-title">全部新碟</h2>
-        <p class="album-section-meta">共 {{ newAlbums.length }} 张新碟</p>
+        <h2 class="album-section-title">全部专辑</h2>
+        <p class="album-section-meta">共 {{ newAlbums.length }} 张专辑</p>
       </div>
     </div>
 
@@ -76,7 +88,7 @@ function albumMeta(album) {
       <article v-for="album in newAlbums" :key="album.id" class="album-card">
         <div class="album-cover" @click="goAlbum(album)">
           <img :src="album.cover" :alt="album.title" loading="lazy" decoding="async" />
-          <span class="album-badge">新碟</span>
+          <span v-if="isNewRelease(album)" class="album-badge">新碟</span>
           <button
             type="button"
             class="album-play"
@@ -102,7 +114,7 @@ function albumMeta(album) {
         </div>
       </article>
     </div>
-    <div v-else class="functional-empty">暂时没有新碟上架</div>
+    <div v-else class="functional-empty">暂时没有专辑上架</div>
   </div>
 </template>
 

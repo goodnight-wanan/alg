@@ -297,7 +297,7 @@ onUnmounted(() => {
         class="app-header-menu-item"
         :class="{ 'is-active': isAlbum }"
         :aria-current="isAlbum ? 'page' : undefined"
-        >新碟</RouterLink
+        >专辑</RouterLink
       >
       <RouterLink
         to="/rank"

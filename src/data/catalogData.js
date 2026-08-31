@@ -148,6 +148,7 @@ export function hydrateCatalog(bundle) {
     artistPublicId: album.artist?.publicId || '',
     cover: resolveApiResourceUrl(album.coverUrl) || fallbackCover,
     releaseDate: album.releaseDate,
+    createdAt: album.createdAt,
     description: album.description,
     songs: normalizedSongs.filter((song) => song.albumPublicId === album.publicId)
   }))
