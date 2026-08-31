@@ -40,6 +40,11 @@ const isFavorite = computed(() =>
 
 const isPlayingList = computed(() => playerStore.isListActive(songs.value) && playerStore.isPlaying)
 
+function goBack() {
+  if (window.history.length > 1) router.back()
+  else router.push({ name: 'category' })
+}
+
 function playAll() {
   if (!songs.value.length) return
   playerStore.playSong(songs.value[0], songs.value)
@@ -91,6 +96,8 @@ async function renamePlaylist() {
 
 <template>
   <div v-if="playlist" class="playlist-page functional-page">
+    <button type="button" class="playlist-back" @click="goBack">← 返回歌单列表</button>
+
     <div class="playlist-hero">
       <div class="playlist-cover">
         <img :src="playlist.cover" :alt="playlist.title" loading="lazy" decoding="async" />
@@ -171,6 +178,20 @@ async function renamePlaylist() {
 </template>
 
 <style scoped>
+.playlist-back {
+  margin-bottom: 18px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: rgba(25, 25, 25, 0.06);
+  color: var(--text-secondary);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.playlist-back:hover {
+  color: var(--brand-strong);
+}
+
 .playlist-hero {
   display: flex;
   align-items: center;

@@ -5,13 +5,15 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma, SongSourceType, SongStatus } from '@prisma/client';
+import { CategoryType, Prisma, SongSourceType, SongStatus } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service.js';
-import { presentSong } from './catalog.presenter.js';
+import { presentPlaylist, presentSong } from './catalog.presenter.js';
 import {
+  playlistRelations,
   songRelations,
   UploadedAlbumFiles,
   UploadedArtistFiles,
+  UploadedPlaylistFiles,
   UploadedSongFiles,
 } from './catalog.types.js';
 import {
@@ -20,8 +22,10 @@ import {
   CreateAlbumDto,
   CreateArtistDto,
   CreateCategoryDto,
+  CreatePlaylistDto,
   CreateRemoteSongDto,
   UpdateAlbumDto,
+  UpdatePlaylistDto,
   UpdateSongDto,
   UpdateSongStatusDto,
   UploadSongDto,
@@ -390,6 +394,169 @@ export class AdminCatalogService {
     return { deleted: true };
   }
 
+  async listPlaylists() {
+    const playlists = await this.prisma.playlist.findMany({
+      include: playlistRelations,
+      orderBy: [{ createdAt: 'desc' }, { title: 'asc' }],
+    });
+    return playlists.map((playlist) => presentPlaylist(playlist));
+  }
+
+  async createPlaylist(dto: CreatePlaylistDto, files: UploadedPlaylistFiles = {}) {
+    const categoryIds = dto.categoryIds ?? [];
+    const songIds = dto.songIds ?? [];
+    await this.assertCategoriesExist(categoryIds);
+    await this.assertSongsExist(songIds);
+    const categoryFields = await this.resolvePlaylistCategoryFields(categoryIds);
+
+    const coverFile = files.cover?.[0];
+    let processedCover: ProcessedAsset | undefined;
+
+    try {
+      if (coverFile) {
+        processedCover = await this.mediaStorage.processCover(coverFile);
+      }
+
+      return await this.prisma.$transaction(async (transaction) => {
+        const coverAsset = processedCover
+          ? await transaction.fileAsset.create({ data: processedCover.data })
+          : undefined;
+
+        return transaction.playlist.create({
+          data: {
+            publicId: dto.publicId ?? this.publicId('playlist'),
+            title: dto.title,
+            description: dto.description,
+            genre: categoryFields.genre,
+            mood: categoryFields.mood,
+            era: categoryFields.era,
+            isPublished: dto.isPublished ?? false,
+            coverAssetId: coverAsset?.id,
+            categories: { create: this.playlistCategoriesData(categoryIds) },
+            songs: { create: this.playlistSongsData(songIds) },
+          },
+          include: playlistRelations,
+        });
+      });
+    } catch (error) {
+      if (processedCover) {
+        await this.mediaStorage.removeAssets([
+          { storagePath: processedCover.data.storagePath },
+        ]);
+      }
+      this.handlePrismaError(error, '歌单公开 ID 已存在');
+    }
+  }
+
+  async updatePlaylist(
+    id: string,
+    dto: UpdatePlaylistDto,
+    files: UploadedPlaylistFiles = {},
+  ) {
+    const existing = await this.prisma.playlist.findUnique({
+      where: { id },
+      select: { id: true, coverAsset: true },
+    });
+    if (!existing) {
+      throw new NotFoundException({
+        code: 'PLAYLIST_NOT_FOUND',
+        message: '歌单不存在',
+      });
+    }
+
+    const categoryIds = dto.categoryIds;
+    const songIds = dto.songIds;
+    if (categoryIds !== undefined) {
+      await this.assertCategoriesExist(categoryIds);
+    }
+    if (songIds !== undefined) {
+      await this.assertSongsExist(songIds);
+    }
+    const categoryFields =
+      categoryIds !== undefined
+        ? await this.resolvePlaylistCategoryFields(categoryIds)
+        : undefined;
+
+    const coverFile = files.cover?.[0];
+    const processedCover = coverFile
+      ? await this.mediaStorage.processCover(coverFile)
+      : undefined;
+
+    try {
+      const playlist = await this.prisma.$transaction(async (transaction) => {
+        const coverAsset = processedCover
+          ? await transaction.fileAsset.create({ data: processedCover.data })
+          : undefined;
+
+        return transaction.playlist.update({
+          where: { id },
+          data: {
+            title: dto.title,
+            description: dto.description,
+            genre: categoryFields?.genre,
+            mood: categoryFields?.mood,
+            era: categoryFields?.era,
+            isPublished: dto.isPublished,
+            coverAssetId: coverAsset?.id,
+            categories:
+              categoryIds === undefined
+                ? undefined
+                : {
+                    deleteMany: {},
+                    create: this.playlistCategoriesData(categoryIds),
+                  },
+            songs:
+              songIds === undefined
+                ? undefined
+                : {
+                    deleteMany: {},
+                    create: this.playlistSongsData(songIds),
+                  },
+          },
+          include: playlistRelations,
+        });
+      });
+
+      if (existing.coverAsset && existing.coverAsset.id !== playlist.coverAssetId) {
+        await this.removeFileAsset(existing.coverAsset);
+      }
+      return playlist;
+    } catch (error) {
+      if (processedCover) {
+        await this.mediaStorage.removeAssets([
+          { storagePath: processedCover.data.storagePath },
+        ]);
+      }
+      throw error;
+    }
+  }
+
+  async deletePlaylist(id: string) {
+    const playlist = await this.prisma.playlist.findUnique({
+      where: { id },
+      select: { id: true, coverAsset: true },
+    });
+    if (!playlist) {
+      throw new NotFoundException({
+        code: 'PLAYLIST_NOT_FOUND',
+        message: '歌单不存在',
+      });
+    }
+
+    await this.prisma.$transaction(async (transaction) => {
+      await transaction.playlist.delete({ where: { id } });
+      if (playlist.coverAsset) {
+        await transaction.fileAsset.delete({
+          where: { id: playlist.coverAsset.id },
+        });
+      }
+    });
+    if (playlist.coverAsset) {
+      await this.mediaStorage.removeAssets([playlist.coverAsset]);
+    }
+    return { deleted: true };
+  }
+
   async createCategory(dto: CreateCategoryDto) {
     try {
       return await this.prisma.category.create({ data: dto });
@@ -690,6 +857,60 @@ export class AdminCatalogService {
         message: '所选歌手不存在',
       });
     }
+  }
+
+  private async assertCategoriesExist(categoryIds: string[]) {
+    if (!categoryIds.length) return;
+    const count = await this.prisma.category.count({
+      where: { id: { in: categoryIds } },
+    });
+    if (count !== categoryIds.length) {
+      throw new BadRequestException({
+        code: 'CATEGORY_NOT_FOUND',
+        message: '一个或多个歌单分类不存在',
+      });
+    }
+  }
+
+  private async assertSongsExist(songIds: string[]) {
+    if (!songIds.length) return;
+    const count = await this.prisma.song.count({
+      where: { id: { in: songIds } },
+    });
+    if (count !== songIds.length) {
+      throw new BadRequestException({
+        code: 'SONG_NOT_FOUND',
+        message: '一个或多个歌曲不存在',
+      });
+    }
+  }
+
+  private async resolvePlaylistCategoryFields(categoryIds: string[]) {
+    if (!categoryIds.length) {
+      return { genre: null, mood: null, era: null };
+    }
+    const categories = await this.prisma.category.findMany({
+      where: { id: { in: categoryIds } },
+      select: { id: true, name: true, type: true },
+    });
+    const pick = (type: CategoryType) =>
+      categories.find((category) => category.type === type)?.name ?? null;
+    return {
+      genre: pick(CategoryType.GENRE),
+      mood: pick(CategoryType.MOOD),
+      era: pick(CategoryType.ERA),
+    };
+  }
+
+  private playlistCategoriesData(categoryIds: string[]) {
+    return categoryIds.map((categoryId) => ({ categoryId }));
+  }
+
+  private playlistSongsData(songIds: string[]) {
+    return songIds.map((songId, index) => ({
+      songId,
+      position: index + 1,
+    }));
   }
 
   private async removeFileAsset(asset: { id: string; storagePath: string }) {

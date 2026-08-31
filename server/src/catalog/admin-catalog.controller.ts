@@ -21,6 +21,7 @@ import { AdminCatalogService } from './admin-catalog.service.js';
 import type {
   UploadedAlbumFiles,
   UploadedArtistFiles,
+  UploadedPlaylistFiles,
   UploadedSongFiles,
 } from './catalog.types.js';
 import {
@@ -30,6 +31,7 @@ import {
   CreateAlbumDto,
   CreateArtistDto,
   CreateCategoryDto,
+  CreatePlaylistDto,
   CreateRemoteSongDto,
   UpdateSongDto,
   UpdateSongStatusDto,
@@ -37,6 +39,7 @@ import {
   UpdateAlbumDto,
   UpdateArtistDto,
   UpdateCategoryDto,
+  UpdatePlaylistDto,
 } from './dto/catalog.dto.js';
 import { UploadCleanupInterceptor } from './interceptors/upload-cleanup.interceptor.js';
 
@@ -134,6 +137,41 @@ export class AdminCatalogController {
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
   ) {
     return this.adminCatalogService.deleteCategory(id);
+  }
+
+  @Get('playlists')
+  listPlaylists() {
+    return this.adminCatalogService.listPlaylists();
+  }
+
+  @Post('playlists')
+  @UseInterceptors(
+    FileFieldsInterceptor([{ name: 'cover', maxCount: 1 }]),
+    UploadCleanupInterceptor,
+  )
+  createPlaylist(
+    @Body() dto: CreatePlaylistDto,
+    @UploadedFiles() files: UploadedPlaylistFiles,
+  ) {
+    return this.adminCatalogService.createPlaylist(dto, files ?? {});
+  }
+
+  @Patch('playlists/:id')
+  @UseInterceptors(
+    FileFieldsInterceptor([{ name: 'cover', maxCount: 1 }]),
+    UploadCleanupInterceptor,
+  )
+  updatePlaylist(
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @Body() dto: UpdatePlaylistDto,
+    @UploadedFiles() files: UploadedPlaylistFiles,
+  ) {
+    return this.adminCatalogService.updatePlaylist(id, dto, files ?? {});
+  }
+
+  @Delete('playlists/:id')
+  deletePlaylist(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
+    return this.adminCatalogService.deletePlaylist(id);
   }
 
   @Post('songs')

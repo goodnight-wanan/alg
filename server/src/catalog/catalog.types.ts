@@ -22,6 +22,9 @@ export type SongWithRelations = Prisma.SongGetPayload<{
 
 export const playlistRelations = {
   coverAsset: true,
+  categories: {
+    include: { category: true },
+  },
   songs: {
     include: { song: { include: songRelations } },
     orderBy: { position: 'asc' as const },
@@ -42,5 +45,9 @@ export interface UploadedArtistFiles {
 }
 
 export interface UploadedAlbumFiles {
+  cover?: Express.Multer.File[];
+}
+
+export interface UploadedPlaylistFiles {
   cover?: Express.Multer.File[];
 }

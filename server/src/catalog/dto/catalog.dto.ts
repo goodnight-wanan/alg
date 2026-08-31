@@ -4,6 +4,7 @@ import {
   ArrayNotEmpty,
   ArrayUnique,
   IsArray,
+  IsBoolean,
   IsDateString,
   IsEnum,
   IsInt,
@@ -46,6 +47,22 @@ function stringArray(value: unknown) {
     }
   }
   return trimmed.split(',').map((item) => item.trim());
+}
+
+function booleanValue(value: unknown) {
+  if (value === undefined || value === null || value === '') {
+    return undefined;
+  }
+  if (typeof value === 'boolean') {
+    return value;
+  }
+  if (value === 'true' || value === '1') {
+    return true;
+  }
+  if (value === 'false' || value === '0') {
+    return false;
+  }
+  return value;
 }
 
 export class PaginationQueryDto {
@@ -225,6 +242,83 @@ export class UpdateCategoryDto {
   @MaxLength(255, { message: '分类描述不能超过 255 个字符' })
   @IsOptional()
   description?: string;
+}
+
+export class CreatePlaylistDto {
+  @Transform(({ value }) => optionalTrim(value))
+  @Matches(/^[a-zA-Z0-9_-]+$/, {
+    message: '公开 ID 只能包含字母、数字、下划线和连字符',
+  })
+  @Length(3, 64, { message: '公开 ID 长度必须为 3 到 64 个字符' })
+  @IsOptional()
+  publicId?: string;
+
+  @Transform(({ value }) => trim(value))
+  @IsString({ message: '歌单名称必须是字符串' })
+  @Length(1, 160, { message: '歌单名称长度必须为 1 到 160 个字符' })
+  title: string;
+
+  @Transform(({ value }) => optionalTrim(value))
+  @IsString({ message: '歌单简介必须是字符串' })
+  @MaxLength(5000, { message: '歌单简介不能超过 5000 个字符' })
+  @IsOptional()
+  description?: string;
+
+  @Transform(({ value }) => stringArray(value))
+  @IsArray({ message: '分类 ID 必须是数组' })
+  @ArrayMaxSize(20, { message: '每个歌单最多关联 20 个分类' })
+  @ArrayUnique({ message: '分类 ID 不能重复' })
+  @IsUUID('4', { each: true, message: '分类 ID 无效' })
+  @IsOptional()
+  categoryIds?: string[];
+
+  @Transform(({ value }) => stringArray(value))
+  @IsArray({ message: '歌曲 ID 必须是数组' })
+  @ArrayMaxSize(500, { message: '每个歌单最多 500 首歌曲' })
+  @ArrayUnique({ message: '歌曲 ID 不能重复' })
+  @IsUUID('4', { each: true, message: '歌曲 ID 无效' })
+  @IsOptional()
+  songIds?: string[];
+
+  @Transform(({ value }) => booleanValue(value))
+  @IsBoolean({ message: '发布状态必须是布尔值' })
+  @IsOptional()
+  isPublished?: boolean;
+}
+
+export class UpdatePlaylistDto {
+  @Transform(({ value }) => optionalTrim(value))
+  @IsString({ message: '歌单名称必须是字符串' })
+  @Length(1, 160, { message: '歌单名称长度必须为 1 到 160 个字符' })
+  @IsOptional()
+  title?: string;
+
+  @Transform(({ value }) => trim(value))
+  @IsString({ message: '歌单简介必须是字符串' })
+  @MaxLength(5000, { message: '歌单简介不能超过 5000 个字符' })
+  @IsOptional()
+  description?: string;
+
+  @Transform(({ value }) => stringArray(value))
+  @IsArray({ message: '分类 ID 必须是数组' })
+  @ArrayMaxSize(20, { message: '每个歌单最多关联 20 个分类' })
+  @ArrayUnique({ message: '分类 ID 不能重复' })
+  @IsUUID('4', { each: true, message: '分类 ID 无效' })
+  @IsOptional()
+  categoryIds?: string[];
+
+  @Transform(({ value }) => stringArray(value))
+  @IsArray({ message: '歌曲 ID 必须是数组' })
+  @ArrayMaxSize(500, { message: '每个歌单最多 500 首歌曲' })
+  @ArrayUnique({ message: '歌曲 ID 不能重复' })
+  @IsUUID('4', { each: true, message: '歌曲 ID 无效' })
+  @IsOptional()
+  songIds?: string[];
+
+  @Transform(({ value }) => booleanValue(value))
+  @IsBoolean({ message: '发布状态必须是布尔值' })
+  @IsOptional()
+  isPublished?: boolean;
 }
 
 class SongMetadataDto {

@@ -68,9 +68,16 @@ export function presentPlaylist(playlist: PlaylistWithSongs) {
     genre: playlist.genre,
     mood: playlist.mood,
     era: playlist.era,
+    isPublished: playlist.isPublished,
     coverUrl: playlist.coverAsset
       ? `/api/assets/${playlist.coverAsset.id}`
       : null,
+    categories: playlist.categories.map(({ category }) => ({
+      id: category.id,
+      name: category.name,
+      slug: category.slug,
+      type: category.type,
+    })),
     songCount: playlist.songs.length,
     songs: playlist.songs.map(({ song }) => presentSong(song)),
     createdAt: playlist.createdAt,

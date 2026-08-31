@@ -129,6 +129,7 @@ model Category {
   createdAt   DateTime       @default(now()) @map("created_at")
   updatedAt   DateTime       @updatedAt @map("updated_at")
   songs       SongCategory[]
+  playlists   PlaylistCategory[]
 
   @@map("categories")
 }
@@ -182,6 +183,7 @@ model Playlist {
   coverAsset   FileAsset?         @relation("PlaylistCover", fields: [coverAssetId], references: [id], onDelete: SetNull)
   owner        User?              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   songs        PlaylistSong[]
+  categories   PlaylistCategory[]
   favoritedBy  FavoritePlaylist[]
 
   @@index([ownerId, createdAt])
@@ -255,6 +257,18 @@ model SongCategory {
   @@id([songId, categoryId])
   @@index([categoryId])
   @@map("song_categories")
+}
+
+model PlaylistCategory {
+  playlistId String   @map("playlist_id") @db.Uuid
+  categoryId String   @map("category_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at")
+  playlist   Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([playlistId, categoryId])
+  @@index([categoryId])
+  @@map("playlist_categories")
 }
 
 model FileAsset {
