@@ -114,6 +114,27 @@ h3 {
   gap: 14px;
   font-weight: 700;
 }
+.admin-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.admin-nav a {
+  padding: 8px 16px;
+  border-radius: 999px;
+  color: #6c3d55;
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: none;
+}
+.admin-nav a:hover {
+  background: rgba(255, 105, 157, 0.1);
+  color: #c13f78;
+}
+.admin-nav a.active {
+  background: linear-gradient(135deg, #ff6d9f, #9a74ef);
+  color: #fff;
+}
 .login-page {
   display: grid;
   min-height: 100vh;

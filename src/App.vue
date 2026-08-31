@@ -19,6 +19,10 @@ async function logout() {
         <h1>悦音音乐管理后台</h1>
       </div>
       <div class="header-actions">
+        <nav class="admin-nav" aria-label="后台导航">
+          <RouterLink to="/" exact-active-class="active">曲库管理</RouterLink>
+          <RouterLink to="/users" active-class="active">用户管理</RouterLink>
+        </nav>
         <span>{{ auth.session.user.username }}</span>
         <button class="secondary-button" type="button" @click="logout">退出</button>
       </div>

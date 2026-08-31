@@ -26,6 +26,12 @@ const router = createRouter({
       component: () => import('../admin/views/AdminSongsView.vue'),
       meta: { title: '曲库管理', requiresAdmin: true }
     },
+    {
+      path: '/users',
+      name: 'users',
+      component: () => import('../admin/views/AdminUsersView.vue'),
+      meta: { title: '用户管理', requiresAdmin: true }
+    },
     { path: '/:pathMatch(.*)*', redirect: '/' }
   ]
 })

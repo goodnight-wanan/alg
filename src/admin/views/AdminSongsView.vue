@@ -10,6 +10,7 @@ const statsStore = useAdminStatsStore()
 const songs = ref([])
 const artists = ref([])
 const albums = ref([])
+const playlists = ref([])
 const categories = ref([])
 const selectedIds = ref([])
 const loading = ref(false)
@@ -25,14 +26,22 @@ const metadataTab = ref('artists')
 const editingArtistId = ref('')
 const editingCategoryId = ref('')
 const editingAlbumId = ref('')
+const editingPlaylistId = ref('')
 const activeCategoryGroup = ref('GENRE')
 const editingCategoryGroup = ref('')
 const METADATA_PAGE_SIZE = 5
 const artistPage = ref(1)
 const categoryPage = ref(1)
 const albumPage = ref(1)
+const playlistPage = ref(1)
 const artistSearch = ref('')
 const albumSearch = ref('')
+const playlistSearch = ref('')
+const playlistSongSearch = ref('')
+const playlistSongLibrary = ref([])
+const playlistSongLoading = ref(false)
+const playlistSelectedSongs = reactive({})
+const playlistCoverPreview = ref('')
 
 const artistForm = reactive({ name: '', region: '', biography: '', avatar: null })
 const categoryForm = reactive({ name: '', slug: '' })
@@ -41,6 +50,14 @@ const albumForm = reactive({
   artistId: '',
   releaseDate: '',
   description: '',
+  cover: null
+})
+const playlistForm = reactive({
+  title: '',
+  description: '',
+  categoryIds: [],
+  songIds: [],
+  isPublished: false,
   cover: null
 })
 const remoteForm = reactive({
@@ -172,12 +189,26 @@ const filteredAlbums = computed(() => {
   )
 })
 
+const filteredPlaylists = computed(() => {
+  const keyword = playlistSearch.value.trim().toLowerCase()
+  if (!keyword) return playlists.value
+  return playlists.value.filter((playlist) =>
+    [playlist.title, playlist.genre, playlist.mood].some((value) =>
+      String(value || '').toLowerCase().includes(keyword)
+    )
+  )
+})
+
 const artistTotalPages = computed(() =>
   Math.max(1, Math.ceil(filteredArtists.value.length / METADATA_PAGE_SIZE))
 )
 
 const albumTotalPages = computed(() =>
   Math.max(1, Math.ceil(filteredAlbums.value.length / METADATA_PAGE_SIZE))
+)
+
+const playlistTotalPages = computed(() =>
+  Math.max(1, Math.ceil(filteredPlaylists.value.length / METADATA_PAGE_SIZE))
 )
 
 const categoryTotalPages = computed(() =>
@@ -193,6 +224,15 @@ const pagedAlbums = computed(() => {
   const start = (albumPage.value - 1) * METADATA_PAGE_SIZE
   return filteredAlbums.value.slice(start, start + METADATA_PAGE_SIZE)
 })
+
+const pagedPlaylists = computed(() => {
+  const start = (playlistPage.value - 1) * METADATA_PAGE_SIZE
+  return filteredPlaylists.value.slice(start, start + METADATA_PAGE_SIZE)
+})
+
+const selectedPlaylistSongs = computed(() =>
+  playlistForm.songIds.map((id) => playlistSelectedSongs[id]).filter(Boolean)
+)
 
 const pagedGroupCategories = computed(() => {
   const start = (categoryPage.value - 1) * METADATA_PAGE_SIZE
@@ -264,14 +304,16 @@ function pushToast(message, type) {
 }
 
 async function loadReferenceData() {
-  const [artistData, albumData, categoryData] = await Promise.all([
+  const [artistData, albumData, categoryData, playlistData] = await Promise.all([
     auth.request('/artists'),
     auth.request('/albums'),
-    auth.request('/categories')
+    auth.request('/categories'),
+    auth.request('/admin/playlists')
   ])
   artists.value = artistData
   albums.value = albumData
   categories.value = categoryData
+  playlists.value = playlistData
 }
 
 async function loadSongs() {
@@ -548,6 +590,150 @@ async function deleteAlbum(album) {
   })
 }
 
+function clearPlaylistCoverPreview() {
+  if (playlistCoverPreview.value) URL.revokeObjectURL(playlistCoverPreview.value)
+  playlistCoverPreview.value = ''
+}
+
+function resetPlaylistForm() {
+  Object.assign(playlistForm, {
+    title: '',
+    description: '',
+    categoryIds: [],
+    songIds: [],
+    isPublished: false,
+    cover: null
+  })
+  for (const key of Object.keys(playlistSelectedSongs)) {
+    delete playlistSelectedSongs[key]
+  }
+  clearPlaylistCoverPreview()
+  const coverInput = document.querySelector('#playlist-cover-file')
+  if (coverInput) coverInput.value = ''
+}
+
+function clearPlaylistForm() {
+  editingPlaylistId.value = ''
+  resetPlaylistForm()
+}
+
+function setPlaylistCover(event) {
+  const file = event.target.files?.[0] || null
+  playlistForm.cover = file
+  if (playlistCoverPreview.value) URL.revokeObjectURL(playlistCoverPreview.value)
+  playlistCoverPreview.value = file ? URL.createObjectURL(file) : ''
+}
+
+async function submitPlaylist() {
+  const isEditing = Boolean(editingPlaylistId.value)
+  await runSave(async () => {
+    const formData = new FormData()
+    formData.set('title', playlistForm.title)
+    if (playlistForm.description.trim() || isEditing) {
+      formData.set('description', playlistForm.description.trim())
+    }
+    formData.set('categoryIds', JSON.stringify(playlistForm.categoryIds))
+    formData.set('songIds', JSON.stringify(playlistForm.songIds))
+    formData.set('isPublished', String(playlistForm.isPublished))
+    if (playlistForm.cover) formData.set('cover', playlistForm.cover)
+
+    const path = isEditing
+      ? `/admin/playlists/${editingPlaylistId.value}`
+      : '/admin/playlists'
+    await auth.request(path, {
+      method: isEditing ? 'PATCH' : 'POST',
+      body: formData
+    })
+    editingPlaylistId.value = ''
+    resetPlaylistForm()
+    await loadReferenceData()
+    showNotice(isEditing ? '歌单已更新' : '歌单创建成功')
+  })
+}
+
+function startPlaylistEdit(playlist) {
+  editingPlaylistId.value = playlist.id
+  Object.assign(playlistForm, {
+    title: playlist.title,
+    description: playlist.description || '',
+    categoryIds: (playlist.categories || []).map((category) => category.id),
+    songIds: (playlist.songs || []).map((song) => song.id),
+    isPublished: Boolean(playlist.isPublished),
+    cover: null
+  })
+  for (const key of Object.keys(playlistSelectedSongs)) {
+    delete playlistSelectedSongs[key]
+  }
+  for (const song of playlist.songs || []) {
+    playlistSelectedSongs[song.id] = song
+  }
+  clearPlaylistCoverPreview()
+  const coverInput = document.querySelector('#playlist-cover-file')
+  if (coverInput) coverInput.value = ''
+}
+
+function cancelPlaylistEdit() {
+  editingPlaylistId.value = ''
+  resetPlaylistForm()
+}
+
+async function deletePlaylist(playlist) {
+  if (!window.confirm(`确定删除歌单「${playlist.title}」吗？`)) return
+  await runSave(async () => {
+    await auth.request(`/admin/playlists/${playlist.id}`, { method: 'DELETE' })
+    if (editingPlaylistId.value === playlist.id) cancelPlaylistEdit()
+    await loadReferenceData()
+    showNotice('歌单已删除')
+  })
+}
+
+function previousPlaylistPage() {
+  if (playlistPage.value <= 1) return
+  playlistPage.value -= 1
+}
+
+function nextPlaylistPage() {
+  if (playlistPage.value >= playlistTotalPages.value) return
+  playlistPage.value += 1
+}
+
+function isPlaylistSongSelected(song) {
+  return playlistForm.songIds.includes(song.id)
+}
+
+function togglePlaylistSong(song) {
+  const index = playlistForm.songIds.indexOf(song.id)
+  if (index >= 0) {
+    playlistForm.songIds.splice(index, 1)
+    delete playlistSelectedSongs[song.id]
+  } else {
+    playlistForm.songIds.push(song.id)
+    playlistSelectedSongs[song.id] = song
+  }
+}
+
+function removePlaylistSong(songId) {
+  const index = playlistForm.songIds.indexOf(songId)
+  if (index >= 0) playlistForm.songIds.splice(index, 1)
+  delete playlistSelectedSongs[songId]
+}
+
+async function searchPlaylistSongs() {
+  playlistSongLoading.value = true
+  try {
+    const params = new URLSearchParams({ page: '1', pageSize: '50' })
+    if (playlistSongSearch.value.trim()) {
+      params.set('search', playlistSongSearch.value.trim())
+    }
+    const result = await auth.request(`/admin/songs?${params}`)
+    playlistSongLibrary.value = result.items
+  } catch (requestError) {
+    showError(requestError)
+  } finally {
+    playlistSongLoading.value = false
+  }
+}
+
 async function createRemoteSong() {
   await runSave(async () => {
     const payload = {
@@ -728,15 +914,17 @@ function previewUrl(song) {
   return song.status === 'PUBLISHED' ? `${apiOrigin}${song.audioUrl}` : null
 }
 
-watch([artistSearch, albumSearch], () => {
+watch([artistSearch, albumSearch, playlistSearch], () => {
   artistPage.value = 1
   albumPage.value = 1
+  playlistPage.value = 1
 })
 
-watch([filteredArtists, filteredAlbums, activeGroupCategories], () => {
+watch([filteredArtists, filteredAlbums, activeGroupCategories, filteredPlaylists], () => {
   if (artistPage.value > artistTotalPages.value) artistPage.value = artistTotalPages.value
   if (albumPage.value > albumTotalPages.value) albumPage.value = albumTotalPages.value
   if (categoryPage.value > categoryTotalPages.value) categoryPage.value = categoryTotalPages.value
+  if (playlistPage.value > playlistTotalPages.value) playlistPage.value = playlistTotalPages.value
 })
 
 onMounted(async () => {
@@ -744,6 +932,7 @@ onMounted(async () => {
   void statsStore.refresh()
   try {
     await Promise.all([loadReferenceData(), loadSongs()])
+    void searchPlaylistSongs()
   } catch (requestError) {
     showError(requestError)
   }
@@ -864,6 +1053,15 @@ onMounted(async () => {
           @click="metadataTab = 'albums'"
         >
           专辑
+        </button>
+        <button
+          type="button"
+          role="tab"
+          :aria-selected="metadataTab === 'playlists'"
+          :class="{ active: metadataTab === 'playlists' }"
+          @click="metadataTab = 'playlists'"
+        >
+          歌单
         </button>
       </div>
 
@@ -1159,6 +1357,159 @@ onMounted(async () => {
             >
               下一页
             </button>
+          </div>
+        </div>
+      </div>
+
+      <div v-show="metadataTab === 'playlists'" class="metadata-pane playlist-pane" role="tabpanel">
+        <form class="compact-form playlist-form" @submit.prevent="submitPlaylist">
+          <h3>{{ editingPlaylistId ? '编辑歌单' : '新建歌单' }}</h3>
+          <input v-model.trim="playlistForm.title" placeholder="歌单名称" required />
+          <input v-model.trim="playlistForm.description" placeholder="描述（可选）" />
+          <div class="album-cover-field">
+            <img
+              v-if="playlistCoverPreview"
+              class="album-cover-preview"
+              :src="playlistCoverPreview"
+              alt="歌单封面预览"
+            />
+            <label
+              >封面（可选）<input
+                id="playlist-cover-file"
+                type="file"
+                accept="image/*"
+                @change="setPlaylistCover"
+            /></label>
+          </div>
+          <CategoryTagPicker v-model="playlistForm.categoryIds" :categories="categories" />
+          <label class="publish-check"
+            ><input v-model="playlistForm.isPublished" type="checkbox" /> 立即发布到前台</label
+          >
+
+          <div class="playlist-selected">
+            <div class="playlist-selected-head">
+              <span>已选歌曲 · {{ selectedPlaylistSongs.length }} 首</span>
+            </div>
+            <div v-if="selectedPlaylistSongs.length" class="playlist-selected-list">
+              <div
+                v-for="(song, index) in selectedPlaylistSongs"
+                :key="song.id"
+                class="playlist-selected-item"
+              >
+                <span class="playlist-selected-index">{{ index + 1 }}</span>
+                <span class="playlist-selected-title">{{ song.title }}</span>
+                <small>{{ song.artist?.name }}</small>
+                <button type="button" @click="removePlaylistSong(song.id)">移除</button>
+              </div>
+            </div>
+            <p v-else class="playlist-selected-empty">暂无歌曲，从右侧歌曲库勾选添加。</p>
+          </div>
+
+          <div class="form-actions">
+            <button class="secondary-button" :disabled="saving">
+              {{ editingPlaylistId ? '保存修改' : '保存歌单' }}
+            </button>
+            <button type="button" class="text-button" @click="clearPlaylistForm">清除</button>
+            <button
+              v-if="editingPlaylistId"
+              type="button"
+              class="text-button"
+              @click="cancelPlaylistEdit"
+            >
+              取消
+            </button>
+          </div>
+        </form>
+
+        <div class="metadata-list-column">
+          <input
+            v-model.trim="playlistSearch"
+            class="metadata-search"
+            type="search"
+            placeholder="搜索歌单名称或风格"
+          />
+          <div class="metadata-list" aria-label="歌单列表">
+            <article
+              v-for="playlist in pagedPlaylists"
+              :key="playlist.id"
+              class="metadata-item"
+            >
+              <img
+                v-if="assetUrl(playlist.coverUrl)"
+                class="metadata-thumb"
+                :src="assetUrl(playlist.coverUrl)"
+                :alt="playlist.title"
+              />
+              <span v-else class="metadata-thumb placeholder">歌单</span>
+              <div class="metadata-item-main">
+                <strong>{{ playlist.title }}</strong>
+                <small>
+                  {{ playlist.genre || '未分类' }} · {{ playlist.songCount }} 首 ·
+                  {{ playlist.isPublished ? '已发布' : '未发布' }}
+                </small>
+                <p v-if="playlist.description">{{ playlist.description }}</p>
+              </div>
+              <div class="item-actions">
+                <button type="button" @click="startPlaylistEdit(playlist)">编辑</button>
+                <button type="button" class="danger-text" @click="deletePlaylist(playlist)">
+                  删除
+                </button>
+              </div>
+            </article>
+            <p v-if="!filteredPlaylists.length" class="empty-state">
+              {{ playlistSearch.trim() ? '未找到匹配的歌单' : '暂无歌单，先在上方创建一张歌单。' }}
+            </p>
+          </div>
+          <div v-if="playlistTotalPages > 1" class="metadata-pager">
+            <button
+              type="button"
+              :disabled="playlistPage <= 1"
+              @click="previousPlaylistPage"
+            >
+              上一页
+            </button>
+            <span>{{ playlistPage }} / {{ playlistTotalPages }}</span>
+            <button
+              type="button"
+              :disabled="playlistPage >= playlistTotalPages"
+              @click="nextPlaylistPage"
+            >
+              下一页
+            </button>
+          </div>
+
+          <div class="playlist-song-picker">
+            <div class="playlist-song-picker-head">
+              <strong>添加歌曲</strong>
+              <div class="playlist-song-search">
+                <input
+                  v-model.trim="playlistSongSearch"
+                  placeholder="搜索歌曲"
+                  @keyup.enter="searchPlaylistSongs"
+                />
+                <button type="button" @click="searchPlaylistSongs">搜索</button>
+              </div>
+            </div>
+            <div v-if="playlistSongLoading" class="empty-state">加载中…</div>
+            <div v-else class="playlist-song-picker-list">
+              <label
+                v-for="song in playlistSongLibrary"
+                :key="song.id"
+                class="playlist-song-pick-item"
+                :class="{ active: isPlaylistSongSelected(song) }"
+              >
+                <input
+                  type="checkbox"
+                  :checked="isPlaylistSongSelected(song)"
+                  @change="togglePlaylistSong(song)"
+                />
+                <span>{{ song.title }}</span>
+                <small>{{ song.artist?.name }}</small>
+              </label>
+              <p v-if="!playlistSongLibrary.length" class="empty-state">
+                暂无歌曲，请先上传歌曲。
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -1898,6 +2249,200 @@ onMounted(async () => {
   color: var(--text-secondary, #6b7280);
   font-size: 13px;
   font-weight: 800;
+}
+
+.metadata-pane > .compact-form.playlist-form {
+  height: auto;
+  max-height: 720px;
+  overflow-y: auto;
+  align-content: start;
+}
+
+.publish-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary, #6b7280);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.publish-check input[type='checkbox'],
+.playlist-song-pick-item input[type='checkbox'] {
+  width: auto;
+  flex: 0 0 auto;
+  accent-color: #ff699d;
+}
+
+.playlist-selected {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid rgba(112, 72, 94, 0.16);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.playlist-selected-head {
+  color: var(--text-secondary, #6b7280);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.playlist-selected-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 180px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.playlist-selected-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+}
+
+.playlist-selected-index {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(255, 105, 157, 0.15);
+  color: var(--brand-strong, #e94e77);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.playlist-selected-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.playlist-selected-item small {
+  flex: 0 0 auto;
+  color: var(--text-muted, #9ca3af);
+  font-size: 12px;
+}
+
+.playlist-selected-item button {
+  flex: 0 0 auto;
+  padding: 2px 6px;
+  border: none;
+  background: transparent;
+  color: var(--brand-strong, #e94e77);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.playlist-selected-empty {
+  margin: 0;
+  padding: 10px 0;
+  color: var(--text-muted, #9ca3af);
+  font-size: 12px;
+  text-align: center;
+}
+
+.playlist-song-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(112, 72, 94, 0.16);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.playlist-song-picker-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.playlist-song-picker-head strong {
+  flex: 0 0 auto;
+  font-size: 13px;
+}
+
+.playlist-song-search {
+  display: flex;
+  flex: 1 1 auto;
+  gap: 6px;
+  min-width: 0;
+}
+
+.playlist-song-search input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 8px 11px;
+  font-size: 13px;
+}
+
+.playlist-song-search button {
+  flex: 0 0 auto;
+  border: 1px solid rgba(112, 72, 94, 0.16);
+  border-radius: 10px;
+  padding: 8px 14px;
+  background: rgba(255, 240, 246, 0.9);
+  color: #6c3d55;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.playlist-song-picker-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.playlist-song-pick-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.playlist-song-pick-item:hover {
+  background: rgba(255, 105, 157, 0.08);
+}
+
+.playlist-song-pick-item.active {
+  background: rgba(255, 105, 157, 0.14);
+}
+
+.playlist-song-pick-item span {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.playlist-song-pick-item small {
+  flex: 0 0 auto;
+  color: var(--text-muted, #9ca3af);
+  font-size: 12px;
 }
 
 @media (max-width: 900px) {
