@@ -40,6 +40,8 @@ const playlistSearch = ref('')
 const playlistSongSearch = ref('')
 const playlistSongLibrary = ref([])
 const playlistSongLoading = ref(false)
+const playlistSongPage = ref(1)
+const playlistSongTotalPages = ref(1)
 const playlistSelectedSongs = reactive({})
 const playlistCoverPreview = ref('')
 
@@ -721,17 +723,38 @@ function removePlaylistSong(songId) {
 async function searchPlaylistSongs() {
   playlistSongLoading.value = true
   try {
-    const params = new URLSearchParams({ page: '1', pageSize: '50' })
+    const params = new URLSearchParams({
+      page: String(playlistSongPage.value),
+      pageSize: String(METADATA_PAGE_SIZE)
+    })
     if (playlistSongSearch.value.trim()) {
       params.set('search', playlistSongSearch.value.trim())
     }
     const result = await auth.request(`/admin/songs?${params}`)
     playlistSongLibrary.value = result.items
+    playlistSongTotalPages.value = Math.max(1, result.pagination?.totalPages || 1)
   } catch (requestError) {
     showError(requestError)
   } finally {
     playlistSongLoading.value = false
   }
+}
+
+function applyPlaylistSongSearch() {
+  playlistSongPage.value = 1
+  void searchPlaylistSongs()
+}
+
+function previousPlaylistSongPage() {
+  if (playlistSongPage.value <= 1) return
+  playlistSongPage.value -= 1
+  void searchPlaylistSongs()
+}
+
+function nextPlaylistSongPage() {
+  if (playlistSongPage.value >= playlistSongTotalPages.value) return
+  playlistSongPage.value += 1
+  void searchPlaylistSongs()
 }
 
 async function createRemoteSong() {
@@ -996,6 +1019,15 @@ onMounted(async () => {
       <button
         type="button"
         role="tab"
+        :aria-selected="workspaceTab === 'playlists'"
+        :class="{ active: workspaceTab === 'playlists' }"
+        @click="workspaceTab = 'playlists'"
+      >
+        歌单
+      </button>
+      <button
+        type="button"
+        role="tab"
         :aria-selected="workspaceTab === 'editor'"
         :class="{ active: workspaceTab === 'editor' }"
         @click="workspaceTab = 'editor'"
@@ -1053,15 +1085,6 @@ onMounted(async () => {
           @click="metadataTab = 'albums'"
         >
           专辑
-        </button>
-        <button
-          type="button"
-          role="tab"
-          :aria-selected="metadataTab === 'playlists'"
-          :class="{ active: metadataTab === 'playlists' }"
-          @click="metadataTab = 'playlists'"
-        >
-          歌单
         </button>
       </div>
 
@@ -1361,7 +1384,13 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div v-show="metadataTab === 'playlists'" class="metadata-pane playlist-pane" role="tabpanel">
+    </section>
+
+    <section
+      v-show="workspaceTab === 'playlists'"
+      class="glass-panel metadata-panel playlist-workspace"
+    >
+      <div class="playlist-workspace-grid">
         <form class="compact-form playlist-form" @submit.prevent="submitPlaylist">
           <h3>{{ editingPlaylistId ? '编辑歌单' : '新建歌单' }}</h3>
           <input v-model.trim="playlistForm.title" placeholder="歌单名称" required />
@@ -1477,39 +1506,56 @@ onMounted(async () => {
               下一页
             </button>
           </div>
+        </div>
 
-          <div class="playlist-song-picker">
-            <div class="playlist-song-picker-head">
-              <strong>添加歌曲</strong>
-              <div class="playlist-song-search">
-                <input
-                  v-model.trim="playlistSongSearch"
-                  placeholder="搜索歌曲"
-                  @keyup.enter="searchPlaylistSongs"
-                />
-                <button type="button" @click="searchPlaylistSongs">搜索</button>
-              </div>
+        <div class="playlist-song-picker">
+          <div class="playlist-song-picker-head">
+            <strong>添加歌曲</strong>
+            <div class="playlist-song-search">
+              <input
+                v-model.trim="playlistSongSearch"
+                placeholder="搜索歌曲"
+                @keyup.enter="applyPlaylistSongSearch"
+              />
+              <button type="button" @click="applyPlaylistSongSearch">搜索</button>
             </div>
-            <div v-if="playlistSongLoading" class="empty-state">加载中…</div>
-            <div v-else class="playlist-song-picker-list">
-              <label
-                v-for="song in playlistSongLibrary"
-                :key="song.id"
-                class="playlist-song-pick-item"
-                :class="{ active: isPlaylistSongSelected(song) }"
-              >
-                <input
-                  type="checkbox"
-                  :checked="isPlaylistSongSelected(song)"
-                  @change="togglePlaylistSong(song)"
-                />
-                <span>{{ song.title }}</span>
-                <small>{{ song.artist?.name }}</small>
-              </label>
-              <p v-if="!playlistSongLibrary.length" class="empty-state">
-                暂无歌曲，请先上传歌曲。
-              </p>
-            </div>
+          </div>
+          <div v-if="playlistSongLoading" class="empty-state">加载中…</div>
+          <div v-else class="playlist-song-picker-list">
+            <label
+              v-for="song in playlistSongLibrary"
+              :key="song.id"
+              class="playlist-song-pick-item"
+              :class="{ active: isPlaylistSongSelected(song) }"
+            >
+              <input
+                type="checkbox"
+                :checked="isPlaylistSongSelected(song)"
+                @change="togglePlaylistSong(song)"
+              />
+              <span>{{ song.title }}</span>
+              <small>{{ song.artist?.name }}</small>
+            </label>
+            <p v-if="!playlistSongLibrary.length" class="empty-state">
+              暂无歌曲，请先上传歌曲。
+            </p>
+          </div>
+          <div class="metadata-pager">
+            <button
+              type="button"
+              :disabled="playlistSongPage <= 1"
+              @click="previousPlaylistSongPage"
+            >
+              上一页
+            </button>
+            <span>{{ playlistSongPage }} / {{ playlistSongTotalPages }}</span>
+            <button
+              type="button"
+              :disabled="playlistSongPage >= playlistSongTotalPages"
+              @click="nextPlaylistSongPage"
+            >
+              下一页
+            </button>
           </div>
         </div>
       </div>
@@ -1862,7 +1908,7 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  max-height: 520px;
+  height: 520px;
   overflow: auto;
   padding-right: 4px;
 }
@@ -2044,7 +2090,7 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  max-height: 460px;
+  height: 460px;
   overflow: auto;
   padding-right: 4px;
 }
@@ -2251,9 +2297,15 @@ onMounted(async () => {
   font-weight: 800;
 }
 
-.metadata-pane > .compact-form.playlist-form {
-  height: auto;
-  max-height: 720px;
+.playlist-workspace-grid {
+  display: grid;
+  grid-template-columns: minmax(300px, 360px) minmax(0, 1fr) minmax(300px, 360px);
+  gap: 18px;
+  align-items: start;
+}
+
+.playlist-workspace .playlist-form {
+  height: 620px;
   overflow-y: auto;
   align-content: start;
 }
@@ -2408,7 +2460,7 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  max-height: 220px;
+  height: 220px;
   overflow-y: auto;
   padding-right: 2px;
 }
@@ -2452,6 +2504,14 @@ onMounted(async () => {
 
   .category-pane-body {
     grid-template-columns: 1fr;
+  }
+
+  .playlist-workspace-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .playlist-workspace .playlist-form {
+    height: auto;
   }
 
   .metadata-pane > .compact-form,
