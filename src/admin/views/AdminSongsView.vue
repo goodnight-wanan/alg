@@ -653,12 +653,30 @@ async function submitPlaylist() {
   })
 }
 
+function resolvePlaylistCategoryIds(playlist) {
+  const ids = (playlist.categories || []).map((category) => category.id)
+  if (ids.length) return ids
+
+  const findId = (name, type) => {
+    if (!name) return undefined
+    return categories.value.find(
+      (category) => category.name === name && category.type === type
+    )?.id
+  }
+
+  return [
+    findId(playlist.genre, 'GENRE'),
+    findId(playlist.mood, 'MOOD'),
+    findId(playlist.era, 'ERA')
+  ].filter(Boolean)
+}
+
 function startPlaylistEdit(playlist) {
   editingPlaylistId.value = playlist.id
   Object.assign(playlistForm, {
     title: playlist.title,
     description: playlist.description || '',
-    categoryIds: (playlist.categories || []).map((category) => category.id),
+    categoryIds: resolvePlaylistCategoryIds(playlist),
     songIds: (playlist.songs || []).map((song) => song.id),
     isPublished: Boolean(playlist.isPublished),
     cover: null
