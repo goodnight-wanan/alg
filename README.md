@@ -81,7 +81,7 @@ npm run docker:seed
 │   ├── scripts/              脚本（seed-catalog 生成演示曲库 / promote-admin 提升管理员）
 │   └── test/                 e2e 测试
 ├── compose.yaml              Docker 编排（PostgreSQL + API + 持久化卷）
-└── 补全音乐网站功能项目计划.md  项目计划文档
+└── 项目升级计划书.md  项目计划文档
 ```
 
 管理后台在 `admin-dashboard` 分支维护，不在此目录。
