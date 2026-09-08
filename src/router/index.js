@@ -12,7 +12,7 @@ function hasAdminSession() {
 }
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory('/admin'),
   routes: [
     {
       path: '/login',
