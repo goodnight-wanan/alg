@@ -52,6 +52,7 @@ function normalizeSong(song) {
     albumPublicId: song.album?.publicId || '',
     cover: resolveApiResourceUrl(song.coverUrl) || fallbackCover,
     audio: resolveApiResourceUrl(song.audioUrl),
+    lyric: song.lyric || '',
     duration: formatDuration(durationSeconds),
     durationSeconds,
     genre: categoryValue(song, 'genre'),

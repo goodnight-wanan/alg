@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
 import {
   BadRequestException,
   ConflictException,
@@ -652,6 +653,10 @@ export class AdminCatalogService {
         ? await this.mediaStorage.processCover(coverFile)
         : undefined;
       if (cover) processedAssets.push(cover);
+      const lyricFile = files.lyric?.[0];
+      const lyricText = lyricFile
+        ? await readFile(lyricFile.path, 'utf8')
+        : undefined;
 
       const song = await this.prisma.$transaction(async (transaction) => {
         const audioAsset = await transaction.fileAsset.create({
@@ -672,6 +677,7 @@ export class AdminCatalogService {
             coverAssetId: coverAsset?.id,
             durationSeconds: audio.durationSeconds,
             bitrateKbps: audio.bitrateKbps,
+            lyricText,
             status: dto.status ?? SongStatus.DRAFT,
             publishedAt:
               dto.status === SongStatus.PUBLISHED ? new Date() : undefined,

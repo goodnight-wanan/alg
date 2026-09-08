@@ -184,6 +184,7 @@ export class AdminCatalogController {
     FileFieldsInterceptor([
       { name: 'audio', maxCount: 1 },
       { name: 'cover', maxCount: 1 },
+      { name: 'lyric', maxCount: 1 },
     ]),
     UploadCleanupInterceptor,
   )

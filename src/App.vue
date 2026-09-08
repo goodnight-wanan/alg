@@ -1,5 +1,5 @@
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import PlayerBar from './components/PlayerBar.vue'
 import AppHeader from './components/AppHeader.vue'
@@ -27,6 +27,14 @@ const showFooter = computed(() => !['login', 'register', 'mine', 'profile'].incl
 const needsCatalog = computed(() => !['login', 'register', 'profile'].includes(route.name))
 const showBackTop = ref(false)
 let lenis = null
+
+provide('lockScroll', (locked) => {
+  if (locked) {
+    lenis?.stop()
+  } else {
+    lenis?.start()
+  }
+})
 
 function handleScroll() {
   showBackTop.value = window.scrollY > 420

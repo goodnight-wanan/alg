@@ -20,6 +20,7 @@ export function presentSong(
     status: song.status,
     durationSeconds: song.durationSeconds,
     bitrateKbps: song.bitrateKbps,
+    lyric: song.lyricText,
     playCount: song.playCount,
     publishedAt: song.publishedAt,
     createdAt: song.createdAt,

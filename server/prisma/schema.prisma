@@ -146,6 +146,7 @@ model Song {
   coverAssetId    String?        @map("cover_asset_id") @db.Uuid
   durationSeconds Int?           @map("duration_seconds")
   bitrateKbps     Int?           @map("bitrate_kbps")
+  lyricText       String?        @map("lyric_text") @db.Text
   status          SongStatus     @default(DRAFT)
   publishedAt     DateTime?      @map("published_at")
   playCount       Int            @default(0) @map("play_count")

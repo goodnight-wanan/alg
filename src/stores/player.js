@@ -13,6 +13,9 @@ function formatTime(seconds) {
 
 export const usePlayerStore = defineStore('player', () => {
   const audio = new Audio()
+  let audioContext = null
+  let analyser = null
+  let rafId = null
   const isBuffering = ref(false)
   const queue = ref([])
   const currentIndex = ref(-1)
@@ -44,11 +47,57 @@ export const usePlayerStore = defineStore('player', () => {
     }
   })
 
+  function ensureAudioGraph() {
+    if (analyser) return analyser
+    try {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext
+      if (!AudioContextClass) return null
+      audioContext = new AudioContextClass()
+      const source = audioContext.createMediaElementSource(audio)
+      analyser = audioContext.createAnalyser()
+      analyser.fftSize = 256
+      source.connect(analyser)
+      analyser.connect(audioContext.destination)
+    } catch (error) {
+      console.warn('音频可视化初始化失败', error)
+      analyser = null
+    }
+    return analyser
+  }
+
+  function getFrequencyData() {
+    const activeAnalyser = analyser || ensureAudioGraph()
+    if (!activeAnalyser) return null
+    const data = new Uint8Array(activeAnalyser.frequencyBinCount)
+    activeAnalyser.getByteFrequencyData(data)
+    return data
+  }
+
   function syncVolume() {
     audio.volume = isMuted.value ? 0 : volume.value
   }
 
+  function tickCurrentTime() {
+    currentTime.value = audio.currentTime
+    rafId = audio.paused ? null : requestAnimationFrame(tickCurrentTime)
+  }
+
+  function startTicking() {
+    if (rafId) return
+    rafId = requestAnimationFrame(tickCurrentTime)
+  }
+
+  function stopTicking() {
+    if (rafId) {
+      cancelAnimationFrame(rafId)
+      rafId = null
+    }
+  }
+
   function play() {
+    if (ensureAudioGraph() && audioContext?.state === 'suspended') {
+      audioContext.resume().catch(() => undefined)
+    }
     audio.play().catch((error) => {
       console.warn('播放失败', error)
       isPlaying.value = false
@@ -185,6 +234,11 @@ export const usePlayerStore = defineStore('player', () => {
     audio.currentTime = Math.min(Math.max(audio.currentTime + seconds, 0), duration.value)
   }
 
+  function seekTo(seconds) {
+    if (!duration.value) return
+    audio.currentTime = Math.min(Math.max(seconds, 0), duration.value)
+  }
+
   function setVolume(value) {
     volume.value = Math.min(Math.max(value, 0), 1)
     syncVolume()
@@ -241,9 +295,11 @@ export const usePlayerStore = defineStore('player', () => {
   audio.addEventListener('play', () => {
     isPlaying.value = true
     isBuffering.value = false
+    startTicking()
   })
   audio.addEventListener('pause', () => {
     isPlaying.value = false
+    stopTicking()
   })
   audio.addEventListener('waiting', () => {
     isBuffering.value = true
@@ -299,6 +355,8 @@ export const usePlayerStore = defineStore('player', () => {
     playAt,
     seekRatio,
     seekBy,
+    seekTo,
+    getFrequencyData,
     setVolume,
     adjustVolume,
     toggleMute,

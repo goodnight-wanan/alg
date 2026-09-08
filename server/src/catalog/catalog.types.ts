@@ -38,6 +38,7 @@ export type PlaylistWithSongs = Prisma.PlaylistGetPayload<{
 export interface UploadedSongFiles {
   audio?: Express.Multer.File[];
   cover?: Express.Multer.File[];
+  lyric?: Express.Multer.File[];
 }
 
 export interface UploadedArtistFiles {

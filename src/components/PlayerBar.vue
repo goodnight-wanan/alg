@@ -3,10 +3,12 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { usePlayerStore } from '../stores/player'
 import { useUserStore } from '../stores/user'
 import { showNotice } from '../utils/notice'
+import PlayerPanel from './PlayerPanel.vue'
 
 const playerStore = usePlayerStore()
 const userStore = useUserStore()
 const showQueue = ref(false)
+const showPanel = ref(false)
 const playerHovered = ref(false)
 const volumePercent = computed(() => Math.round(playerStore.volume * 100))
 
@@ -100,13 +102,23 @@ onUnmounted(() => {
   <footer class="vue-player" @mouseenter="playerHovered = true" @mouseleave="playerHovered = false">
     <div class="vue-player-inner">
       <div class="vue-player-now">
-        <div class="vue-player-cover">
+        <div
+          class="vue-player-cover"
+          :class="{ clickable: playerStore.currentSong }"
+          role="button"
+          :tabindex="playerStore.currentSong ? 0 : undefined"
+          :aria-label="playerStore.currentSong ? (showPanel ? '收起歌词' : '展开歌词') : undefined"
+          @click="playerStore.currentSong && (showPanel = !showPanel)"
+        >
           <img
             v-if="playerStore.currentSong"
             :src="playerStore.currentSong.cover"
             :alt="playerStore.currentSong.title"
           />
           <Icon v-else name="music-note" :size="28" />
+          <span v-if="playerStore.currentSong" class="vue-player-cover-hint" aria-hidden="true">
+            <Icon :name="showPanel ? 'chevron-down' : 'chevron-up'" :size="18" />
+          </span>
         </div>
         <div class="vue-player-meta" aria-live="polite">
           <strong>{{ playerStore.currentSong?.title || '暂无播放' }}</strong>
@@ -192,6 +204,7 @@ onUnmounted(() => {
             step="0.001"
             :value="playerStore.progress"
             :disabled="!playerStore.currentSong"
+            :style="{ '--progress': playerStore.progress * 100 + '%' }"
             aria-label="播放进度"
             :aria-valuetext="`${playerStore.currentTimeText} / ${playerStore.durationText}`"
             @input="onSeek"
@@ -216,6 +229,7 @@ onUnmounted(() => {
           max="1"
           step="0.01"
           :value="playerStore.volume"
+          :style="{ '--progress': playerStore.volume * 100 + '%' }"
           aria-label="音量"
           :aria-valuetext="`${volumePercent}%`"
           @input="onVolume"
@@ -270,4 +284,8 @@ onUnmounted(() => {
       </div>
     </Transition>
   </footer>
+
+  <Transition name="panel">
+    <PlayerPanel v-if="showPanel" @close="showPanel = false" />
+  </Transition>
 </template>
