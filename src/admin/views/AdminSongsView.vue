@@ -77,7 +77,8 @@ const uploadForm = reactive({
   categoryIds: [],
   status: 'DRAFT',
   audio: null,
-  cover: null
+  cover: null,
+  lyric: null
 })
 
 const artistAvatarPreview = ref('')
@@ -814,6 +815,7 @@ async function uploadSong() {
     if (uploadForm.albumId) formData.set('albumId', uploadForm.albumId)
     formData.set('audio', uploadForm.audio)
     if (uploadForm.cover) formData.set('cover', uploadForm.cover)
+    if (uploadForm.lyric) formData.set('lyric', uploadForm.lyric)
     await auth.request('/admin/songs/upload', { method: 'POST', body: formData })
     Object.assign(uploadForm, {
       title: '',
@@ -822,12 +824,15 @@ async function uploadSong() {
       categoryIds: [],
       status: 'DRAFT',
       audio: null,
-      cover: null
+      cover: null,
+      lyric: null
     })
     const audioInput = document.querySelector('#audio-file')
     const coverInput = document.querySelector('#cover-file')
+    const lyricInput = document.querySelector('#lyric-file')
     if (audioInput) audioInput.value = ''
     if (coverInput) coverInput.value = ''
+    if (lyricInput) lyricInput.value = ''
     await loadSongs()
     showNotice('本地歌曲上传并转码成功')
   })
@@ -949,6 +954,10 @@ function setAudioFile(event) {
 
 function setCoverFile(event) {
   uploadForm.cover = event.target.files?.[0] || null
+}
+
+function setLyricFile(event) {
+  uploadForm.lyric = event.target.files?.[0] || null
 }
 
 function previewUrl(song) {
@@ -1621,6 +1630,13 @@ onMounted(async () => {
           /></label>
           <label
             >封面<input id="cover-file" type="file" accept="image/*" @change="setCoverFile"
+          /></label>
+          <label
+            >歌词(.lrc)<input
+              id="lyric-file"
+              type="file"
+              accept=".lrc,text/plain"
+              @change="setLyricFile"
           /></label>
         </div>
         <select v-model="uploadForm.status">
