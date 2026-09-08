@@ -103,7 +103,7 @@ function drawSpectrum() {
     const barCount = 128
     const gap = 2
     const barWidth = (width - gap * (barCount - 1)) / barCount
-    const maxHeight = height * 0.8
+    const maxHeight = height * 0.5
 
     const gradient = ctx.createLinearGradient(0, height, 0, 0)
     gradient.addColorStop(0, '#ffc9db')
