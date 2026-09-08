@@ -4,6 +4,7 @@ import { API_BASE_URL } from '../api'
 import { useAdminAuthStore } from '../auth'
 import { useAdminStatsStore } from '../stats'
 import CategoryTagPicker from '../components/CategoryTagPicker.vue'
+import ArtistSearchSelect from '../components/ArtistSearchSelect.vue'
 
 const auth = useAdminAuthStore()
 const statsStore = useAdminStatsStore()
@@ -80,6 +81,16 @@ const uploadForm = reactive({
   cover: null,
   lyric: null
 })
+const editingSongId = ref('')
+const songEditForm = reactive({
+  title: '',
+  artistId: '',
+  albumId: '',
+  categoryIds: [],
+  cover: null,
+  lyric: null
+})
+const editCoverPreview = ref('')
 
 const artistAvatarPreview = ref('')
 const albumCoverPreview = ref('')
@@ -838,14 +849,58 @@ async function uploadSong() {
   })
 }
 
-async function editSong(song) {
-  const title = window.prompt('修改歌曲名称', song.title)?.trim()
-  if (!title || title === song.title) return
+function clearEditCoverPreview() {
+  if (editCoverPreview.value) URL.revokeObjectURL(editCoverPreview.value)
+  editCoverPreview.value = ''
+}
+
+function startEditSong(song) {
+  editingSongId.value = song.id
+  Object.assign(songEditForm, {
+    title: song.title,
+    artistId: song.artist.id,
+    albumId: song.album?.id || '',
+    categoryIds: (song.categories || []).map((category) => category.id),
+    cover: null,
+    lyric: null
+  })
+  clearEditCoverPreview()
+  const coverInput = document.querySelector('#edit-cover-file')
+  if (coverInput) coverInput.value = ''
+  const lyricInput = document.querySelector('#edit-lyric-file')
+  if (lyricInput) lyricInput.value = ''
+}
+
+function cancelEditSong() {
+  editingSongId.value = ''
+  clearEditCoverPreview()
+}
+
+function setEditCover(event) {
+  const file = event.target.files?.[0] || null
+  songEditForm.cover = file
+  if (editCoverPreview.value) URL.revokeObjectURL(editCoverPreview.value)
+  editCoverPreview.value = file ? URL.createObjectURL(file) : ''
+}
+
+function setEditLyric(event) {
+  songEditForm.lyric = event.target.files?.[0] || null
+}
+
+async function submitEditSong() {
   await runSave(async () => {
-    await auth.request(`/admin/songs/${song.id}`, {
+    const formData = new FormData()
+    formData.set('title', songEditForm.title)
+    formData.set('artistId', songEditForm.artistId)
+    formData.set('albumId', songEditForm.albumId)
+    formData.set('categoryIds', JSON.stringify(songEditForm.categoryIds))
+    if (songEditForm.cover) formData.set('cover', songEditForm.cover)
+    if (songEditForm.lyric) formData.set('lyric', songEditForm.lyric)
+    await auth.request(`/admin/songs/${editingSongId.value}`, {
       method: 'PATCH',
-      body: JSON.stringify({ title })
+      body: formData
     })
+    cancelEditSong()
     await loadSongs()
     showNotice('歌曲信息已更新')
   })
@@ -1599,12 +1654,7 @@ onMounted(async () => {
         </div>
         <input v-model.trim="uploadForm.title" placeholder="歌曲名称" required />
         <div class="form-row">
-          <select v-model="uploadForm.artistId" required>
-            <option value="">选择歌手</option>
-            <option v-for="artist in artists" :key="artist.id" :value="artist.id">
-              {{ artist.name }}
-            </option>
-          </select>
+          <ArtistSearchSelect v-model="uploadForm.artistId" :artists="artists" />
           <select v-model="uploadForm.albumId">
             <option value="">无专辑</option>
             <option
@@ -1656,12 +1706,7 @@ onMounted(async () => {
         </div>
         <input v-model.trim="remoteForm.title" placeholder="歌曲名称" required />
         <div class="form-row">
-          <select v-model="remoteForm.artistId" required>
-            <option value="">选择歌手</option>
-            <option v-for="artist in artists" :key="artist.id" :value="artist.id">
-              {{ artist.name }}
-            </option>
-          </select>
+          <ArtistSearchSelect v-model="remoteForm.artistId" :artists="artists" />
           <select v-model="remoteForm.albumId">
             <option value="">无专辑</option>
             <option
@@ -1750,7 +1795,7 @@ onMounted(async () => {
                 ><small v-else>上架后可试听</small>
               </td>
               <td class="row-actions">
-                <button type="button" @click="editSong(song)">编辑</button>
+                <button type="button" @click="startEditSong(song)">编辑</button>
                 <button
                   v-if="song.status !== 'PUBLISHED'"
                   type="button"
@@ -1774,6 +1819,69 @@ onMounted(async () => {
         ><button :disabled="page >= totalPages" @click="nextPage">下一页</button>
       </div>
     </section>
+
+    <Transition name="modal">
+      <div
+        v-if="editingSongId"
+        class="modal-backdrop"
+        @click.self="cancelEditSong"
+      >
+        <div class="modal-card" role="dialog" aria-modal="true" aria-label="编辑歌曲">
+          <div class="modal-head">
+            <h3>编辑歌曲</h3>
+            <button type="button" class="modal-close" @click="cancelEditSong">×</button>
+          </div>
+          <form class="modal-form" @submit.prevent="submitEditSong">
+            <input v-model.trim="songEditForm.title" placeholder="歌曲名称" required />
+            <select v-model="songEditForm.artistId" required>
+              <option value="">选择歌手</option>
+              <option v-for="artist in artists" :key="artist.id" :value="artist.id">
+                {{ artist.name }}
+              </option>
+            </select>
+            <select v-model="songEditForm.albumId">
+              <option value="">无专辑</option>
+              <option
+                v-for="album in albums.filter(
+                  (item) => !songEditForm.artistId || item.artist.id === songEditForm.artistId
+                )"
+                :key="album.id"
+                :value="album.id"
+              >
+                {{ album.title }}
+              </option>
+            </select>
+            <CategoryTagPicker v-model="songEditForm.categoryIds" :categories="categories" />
+            <div class="album-cover-field">
+              <img
+                v-if="editCoverPreview"
+                class="album-cover-preview"
+                :src="editCoverPreview"
+                alt="封面预览"
+              />
+              <label
+                >封面（可选替换）<input
+                  id="edit-cover-file"
+                  type="file"
+                  accept="image/*"
+                  @change="setEditCover"
+              /></label>
+            </div>
+            <label class="edit-lyric-field"
+              >歌词 .lrc（可选替换）<input
+                id="edit-lyric-file"
+                type="file"
+                accept=".lrc,text/plain"
+                @change="setEditLyric"
+            /></label>
+            <div class="form-actions">
+              <button class="primary-button" :disabled="saving">保存修改</button>
+              <button type="button" class="text-button" @click="cancelEditSong">取消</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </Transition>
   </main>
 </template>
 
@@ -2552,5 +2660,92 @@ onMounted(async () => {
   .category-pane-body > .compact-form {
     height: auto;
   }
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(40, 25, 35, 0.45);
+  backdrop-filter: blur(4px);
+}
+
+.modal-card {
+  width: min(480px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 20px 22px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+}
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.modal-head h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.modal-close {
+  border: none;
+  background: transparent;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--text-secondary, #6b7280);
+  cursor: pointer;
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal-form input,
+.modal-form select {
+  width: 100%;
+}
+
+.edit-lyric-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary, #6b7280);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.edit-lyric-field input[type='file'] {
+  max-width: 180px;
+  font-size: 12px;
+}
+
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.modal-enter-active .modal-card,
+.modal-leave-active .modal-card {
+  transition: transform 0.2s ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+
+.modal-enter-from .modal-card,
+.modal-leave-to .modal-card {
+  transform: translateY(12px);
 }
 </style>
