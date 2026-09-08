@@ -8,9 +8,13 @@ const playerStore = usePlayerStore()
 const lockScroll = inject('lockScroll', () => {})
 const canvasRef = ref(null)
 const lineRefs = ref([])
+const lyricScrollRef = ref(null)
 const manualScroll = ref(false)
+const charProgress = ref(0)
 let manualScrollTimer = null
 let animationFrame = null
+let lyricFrame = null
+let scrollFrame = null
 
 function parseLyric(lyricText) {
   if (!lyricText) return []
@@ -42,22 +46,28 @@ const currentLineIndex = computed(() => {
   return index
 })
 
-const currentLineProgress = computed(() => {
+function tickCharProgress() {
   const index = currentLineIndex.value
   const lines = lyricLines.value
-  if (index < 0 || !lines.length) return 0
-  const start = lines[index].time
-  const end = lines[index + 1]?.time ?? start + 4
-  const span = end - start
-  if (span <= 0) return 0
-  return Math.min(1, Math.max(0, (playerStore.currentTime - start) / span))
-})
+  if (index >= 0 && index < lines.length) {
+    const start = lines[index].time
+    const end = lines[index + 1]?.time ?? start + 4
+    const span = end - start
+    charProgress.value =
+      span > 0
+        ? Math.min(1, Math.max(0, (playerStore.currentTime - start) / span))
+        : 0
+  } else {
+    charProgress.value = 0
+  }
+  lyricFrame = requestAnimationFrame(tickCharProgress)
+}
 
 const activeChars = computed(() => {
   const line = lyricLines.value[currentLineIndex.value]
   if (!line) return []
   const chars = Array.from(line.text)
-  const progress = currentLineProgress.value
+  const progress = charProgress.value
   return chars.map((char, i) => {
     const p = Math.min(1, Math.max(0, progress * chars.length - i))
     const r = Math.round(0x5a + (0xe9 - 0x5a) * p)
@@ -68,7 +78,33 @@ const activeChars = computed(() => {
 })
 
 function scrollToLine(index) {
-  lineRefs.value[index]?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+  const container = lyricScrollRef.value
+  const line = lineRefs.value[index]
+  if (!container || !line) return
+
+  const containerRect = container.getBoundingClientRect()
+  const lineRect = line.getBoundingClientRect()
+  const target =
+    container.scrollTop +
+    (lineRect.top - containerRect.top) -
+    (container.clientHeight - lineRect.height) / 2
+
+  const start = container.scrollTop
+  const change = target - start
+  if (Math.abs(change) < 1) return
+
+  const duration = 600
+  const startTime = performance.now()
+  if (scrollFrame) cancelAnimationFrame(scrollFrame)
+
+  const step = (now) => {
+    const elapsed = now - startTime
+    const t = Math.min(1, elapsed / duration)
+    const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2
+    container.scrollTop = start + change * eased
+    if (t < 1) scrollFrame = requestAnimationFrame(step)
+  }
+  scrollFrame = requestAnimationFrame(step)
 }
 
 watch(currentLineIndex, (index) => {
@@ -90,7 +126,7 @@ function onLineClick(line) {
   manualScroll.value = false
 }
 
-function drawWaveform() {
+function drawBars() {
   const canvas = canvasRef.value
   if (!canvas) return
   const ctx = canvas.getContext('2d')
@@ -98,47 +134,48 @@ function drawWaveform() {
   const height = canvas.height
   ctx.clearRect(0, 0, width, height)
 
-  const data = playerStore.getTimeDomainData()
-  if (data) {
-    const mid = height / 2
-    const amplitude = height * 0.46
-    const step = width / (data.length - 1)
+  const data = playerStore.getFrequencyData()
+  const barCount = 96
+  const gap = 2
+  const barWidth = (width - gap * (barCount - 1)) / barCount
+  const maxHeight = height * 0.75
+  const time = performance.now() / 1000
 
-    const fill = ctx.createLinearGradient(0, 0, 0, height)
-    fill.addColorStop(0, 'rgba(246, 144, 176, 0.8)')
-    fill.addColorStop(0.5, 'rgba(255, 201, 219, 0.95)')
-    fill.addColorStop(1, 'rgba(246, 144, 176, 0.8)')
+  const gradient = ctx.createLinearGradient(0, height, 0, 0)
+  gradient.addColorStop(0, '#ffc9db')
+  gradient.addColorStop(1, '#f690b0')
+  ctx.fillStyle = gradient
 
-    ctx.beginPath()
-    for (let i = 0; i < data.length; i++) {
-      const x = i * step
-      const y = mid + ((data[i] - 128) / 128) * amplitude
-      if (i === 0) ctx.moveTo(x, y)
-      else ctx.lineTo(x, y)
+  for (let i = 0; i < barCount; i++) {
+    const t = i / (barCount - 1)
+    // 波浪：随时间流动的正弦波，让柱子呈波浪状起伏
+    const wave = 0.5 + 0.5 * Math.sin(t * Math.PI * 6 - time * 5)
+    // 频谱调制：让柱子随音乐跳动，0.35 基底保证无声时也有波浪
+    let boost = 1
+    if (data) {
+      const bin = Math.round(t * (data.length - 1))
+      boost = 0.35 + 0.65 * Math.pow(data[bin] / 255, 0.5)
     }
-    for (let i = data.length - 1; i >= 0; i--) {
-      const x = i * step
-      const y = mid - ((data[i] - 128) / 128) * amplitude
-      ctx.lineTo(x, y)
-    }
-    ctx.closePath()
-    ctx.fillStyle = fill
-    ctx.fill()
+    const h = Math.max(3, wave * boost * maxHeight)
+    ctx.fillRect(i * (barWidth + gap), height - h, barWidth, h)
   }
 
-  animationFrame = requestAnimationFrame(drawWaveform)
+  animationFrame = requestAnimationFrame(drawBars)
 }
 
 onMounted(() => {
   document.body.classList.add('modal-open')
   lockScroll(true)
-  drawWaveform()
+  drawBars()
+  tickCharProgress()
 })
 
 onUnmounted(() => {
   lockScroll(false)
   document.body.classList.remove('modal-open')
   if (animationFrame) cancelAnimationFrame(animationFrame)
+  if (lyricFrame) cancelAnimationFrame(lyricFrame)
+  if (scrollFrame) cancelAnimationFrame(scrollFrame)
   window.clearTimeout(manualScrollTimer)
 })
 </script>
@@ -174,7 +211,7 @@ onUnmounted(() => {
             <strong>{{ playerStore.currentSong?.title || '暂无播放' }}</strong>
             <span>{{ playerStore.currentSong?.artist || '' }}</span>
           </div>
-          <div class="lyric-scroll" @scroll="onLyricScroll">
+          <div ref="lyricScrollRef" class="lyric-scroll" @scroll="onLyricScroll">
             <ul v-if="lyricLines.length">
               <li
                 v-for="(line, index) in lyricLines"
