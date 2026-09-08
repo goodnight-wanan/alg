@@ -30,18 +30,7 @@ function parseLyric(lyricText) {
   return lines
 }
 
-// TODO: 临时示例歌词，用于确认歌词字号效果，确认后删除
-const SAMPLE_LYRIC = `[00:00.00]窗外的雨停了
-[00:04.00]风把云都吹散了
-[00:08.00]你说过要陪我看遍每一个日落
-[00:13.00]可如今只剩下我一个人在旧街口徘徊
-[00:19.00]当所有的星光都沉默在夜色里我依然会记得那天你说过的每一句温柔话语和每一个拥抱的温度
-[00:27.00]时间它从不回头
-[00:31.00]回忆却赖着不走
-[00:35.00]我们曾以为的天长地久
-[00:40.00]最后都变成了一句保重`
-
-const lyricLines = computed(() => parseLyric(playerStore.currentSong?.lyric || SAMPLE_LYRIC))
+const lyricLines = computed(() => parseLyric(playerStore.currentSong?.lyric))
 
 const currentLineIndex = computed(() => {
   const time = playerStore.currentTime
