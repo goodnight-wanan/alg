@@ -90,7 +90,7 @@ function onLineClick(line) {
   manualScroll.value = false
 }
 
-function drawSpectrum() {
+function drawWaveform() {
   const canvas = canvasRef.value
   if (!canvas) return
   const ctx = canvas.getContext('2d')
@@ -98,39 +98,41 @@ function drawSpectrum() {
   const height = canvas.height
   ctx.clearRect(0, 0, width, height)
 
-  const data = playerStore.getFrequencyData()
+  const data = playerStore.getTimeDomainData()
   if (data) {
-    const barCount = 128
-    const gap = 2
-    const barWidth = (width - gap * (barCount - 1)) / barCount
-    const maxHeight = height * 0.5
+    const mid = height / 2
+    const amplitude = height * 0.46
+    const step = width / (data.length - 1)
 
-    const gradient = ctx.createLinearGradient(0, height, 0, 0)
-    gradient.addColorStop(0, '#ffc9db')
-    gradient.addColorStop(1, '#f690b0')
-    ctx.fillStyle = gradient
+    const fill = ctx.createLinearGradient(0, 0, 0, height)
+    fill.addColorStop(0, 'rgba(246, 144, 176, 0.8)')
+    fill.addColorStop(0.5, 'rgba(255, 201, 219, 0.95)')
+    fill.addColorStop(1, 'rgba(246, 144, 176, 0.8)')
 
-    const center = (barCount - 1) / 2
-
-    for (let i = 0; i < barCount; i++) {
-      const dist = Math.abs(i - center) / center
-      // 线性铺开频率，避免低频能量全堆在中间几根柱子上
-      const bin = Math.round(dist * (data.length - 1))
-      // 0.45 次幂压缩，把低频(≈255)和高频(≈0)的巨大差距压平，让两边也有起伏
-      const raw = data[bin] / 255
-      const value = Math.pow(raw, 0.45) * 255
-      const barHeight = Math.max(3, (value / 255) * maxHeight)
-      ctx.fillRect(i * (barWidth + gap), height - barHeight, barWidth, barHeight)
+    ctx.beginPath()
+    for (let i = 0; i < data.length; i++) {
+      const x = i * step
+      const y = mid + ((data[i] - 128) / 128) * amplitude
+      if (i === 0) ctx.moveTo(x, y)
+      else ctx.lineTo(x, y)
     }
+    for (let i = data.length - 1; i >= 0; i--) {
+      const x = i * step
+      const y = mid - ((data[i] - 128) / 128) * amplitude
+      ctx.lineTo(x, y)
+    }
+    ctx.closePath()
+    ctx.fillStyle = fill
+    ctx.fill()
   }
 
-  animationFrame = requestAnimationFrame(drawSpectrum)
+  animationFrame = requestAnimationFrame(drawWaveform)
 }
 
 onMounted(() => {
   document.body.classList.add('modal-open')
   lockScroll(true)
-  drawSpectrum()
+  drawWaveform()
 })
 
 onUnmounted(() => {
@@ -435,7 +437,7 @@ onUnmounted(() => {
 }
 
 .lyric-panel-spectrum {
-  flex: 0 0 30%;
+  flex: 0 0 25%;
   min-height: 0;
   display: flex;
   align-items: stretch;

@@ -73,6 +73,14 @@ export const usePlayerStore = defineStore('player', () => {
     return data
   }
 
+  function getTimeDomainData() {
+    const activeAnalyser = analyser || ensureAudioGraph()
+    if (!activeAnalyser) return null
+    const data = new Uint8Array(activeAnalyser.fftSize)
+    activeAnalyser.getByteTimeDomainData(data)
+    return data
+  }
+
   function syncVolume() {
     audio.volume = isMuted.value ? 0 : volume.value
   }
@@ -357,6 +365,7 @@ export const usePlayerStore = defineStore('player', () => {
     seekBy,
     seekTo,
     getFrequencyData,
+    getTimeDomainData,
     setVolume,
     adjustVolume,
     toggleMute,
