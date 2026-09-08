@@ -146,17 +146,31 @@ function drawBars() {
   gradient.addColorStop(1, '#f690b0')
   ctx.fillStyle = gradient
 
+  const half = (barCount - 1) / 2
+  const binCount = data ? data.length : 0
+
   for (let i = 0; i < barCount; i++) {
-    const t = i / (barCount - 1)
-    // 波浪：随时间流动的正弦波，让柱子呈波浪状起伏
-    const wave = 0.5 + 0.5 * Math.sin(t * Math.PI * 6 - time * 5)
-    // 频谱调制：让柱子随音乐跳动，0.35 基底保证无声时也有波浪
+    // 对称分布：中间 0，两侧 1，低频居中、高频向两边延绵铺开
+    const dist = Math.abs(i - half) / half
+    // 对数频率映射：让高频（两侧）也能充分采样，避免低频独占中间
+    const bin = Math.round(Math.pow(dist, 0.6) * (binCount - 1))
+
     let boost = 1
     if (data) {
-      const bin = Math.round(t * (data.length - 1))
-      boost = 0.35 + 0.65 * Math.pow(data[bin] / 255, 0.5)
+      // 强压缩 + 基底，压平高低频能量差，让山峰延绵
+      boost = 0.4 + 0.6 * Math.pow(data[bin] / 255, 0.45)
     }
-    const h = Math.max(3, wave * boost * maxHeight)
+
+    // 中间轻微削峰：削弱低频主导，视觉上更平均
+    const centerDamp = 0.82 + 0.18 * dist
+
+    // 延绵山峰：两层正弦波叠加，形成群山连绵的流动起伏
+    const wave =
+      0.5 +
+      0.26 * Math.sin(dist * Math.PI * 5 - time * 3) +
+      0.24 * Math.sin(dist * Math.PI * 9 + time * 2)
+
+    const h = Math.max(3, wave * boost * centerDamp * maxHeight)
     ctx.fillRect(i * (barWidth + gap), height - h, barWidth, h)
   }
 
