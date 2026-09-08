@@ -39,6 +39,28 @@ import {
 } from './media-storage.service.js';
 import { RemoteAudioPolicyService } from './remote-audio-policy.service.js';
 
+function decodeLyric(buffer: Buffer): string {
+  if (
+    buffer.length >= 3 &&
+    buffer[0] === 0xef &&
+    buffer[1] === 0xbb &&
+    buffer[2] === 0xbf
+  ) {
+    return buffer.subarray(3).toString('utf8');
+  }
+  if (buffer.length >= 2 && buffer[0] === 0xff && buffer[1] === 0xfe) {
+    return buffer.subarray(2).toString('utf16le');
+  }
+  if (buffer.length >= 2 && buffer[0] === 0xfe && buffer[1] === 0xff) {
+    return buffer.subarray(2).swap16().toString('utf16le');
+  }
+  try {
+    return new TextDecoder('utf-8', { fatal: true }).decode(buffer);
+  } catch {
+    return new TextDecoder('gbk').decode(buffer);
+  }
+}
+
 @Injectable()
 export class AdminCatalogService {
   constructor(
@@ -655,7 +677,7 @@ export class AdminCatalogService {
       if (cover) processedAssets.push(cover);
       const lyricFile = files.lyric?.[0];
       const lyricText = lyricFile
-        ? await readFile(lyricFile.path, 'utf8')
+        ? decodeLyric(await readFile(lyricFile.path))
         : undefined;
 
       const song = await this.prisma.$transaction(async (transaction) => {
