@@ -214,11 +214,19 @@ export class AdminCatalogController {
   }
 
   @Patch('songs/:id')
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'cover', maxCount: 1 },
+      { name: 'lyric', maxCount: 1 },
+    ]),
+    UploadCleanupInterceptor,
+  )
   updateSong(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @Body() dto: UpdateSongDto,
+    @UploadedFiles() files: UploadedSongFiles,
   ) {
-    return this.adminCatalogService.updateSong(id, dto);
+    return this.adminCatalogService.updateSong(id, dto, files ?? {});
   }
 
   @Delete('songs/:id')

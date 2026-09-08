@@ -396,10 +396,10 @@ export class UpdateSongDto {
   @IsOptional()
   artistId?: string;
 
-  @Transform(({ value }) => optionalTrim(value))
+  @Transform(({ value }) => (value === '' ? null : optionalTrim(value)))
   @IsUUID('4', { message: '专辑 ID 无效' })
   @IsOptional()
-  albumId?: string;
+  albumId?: string | null;
 
   @Transform(({ value }) => stringArray(value))
   @IsArray({ message: '分类 ID 必须是数组' })

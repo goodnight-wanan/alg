@@ -720,10 +720,17 @@ export class AdminCatalogService {
     }
   }
 
-  async updateSong(id: string, dto: UpdateSongDto) {
+  async updateSong(
+    id: string,
+    dto: UpdateSongDto,
+    files: UploadedSongFiles = {},
+  ) {
     const existing = await this.getAdminSong(id);
     const artistId = dto.artistId ?? existing.artistId;
-    const albumId = dto.albumId ?? existing.albumId ?? undefined;
+    const albumId =
+      dto.albumId === undefined
+        ? existing.albumId ?? undefined
+        : dto.albumId || undefined;
     await this.assertReferences(artistId, albumId, dto.categoryIds);
 
     if (dto.remoteUrl) {
@@ -736,24 +743,55 @@ export class AdminCatalogService {
       this.remoteAudioPolicy.assertAllowed(dto.remoteUrl);
     }
 
-    const song = await this.prisma.song.update({
-      where: { id },
-      data: {
-        title: dto.title,
-        artistId: dto.artistId,
-        albumId: dto.albumId,
-        remoteUrl: dto.remoteUrl,
-        categories:
-          dto.categoryIds === undefined
-            ? undefined
-            : {
-                deleteMany: {},
-                ...this.categoryCreate(dto.categoryIds),
-              },
-      },
-      include: songRelations,
-    });
-    return presentSong(song, true);
+    const coverFile = files.cover?.[0];
+    const processedCover = coverFile
+      ? await this.mediaStorage.processCover(coverFile)
+      : undefined;
+    const lyricFile = files.lyric?.[0];
+    const lyricText = lyricFile
+      ? decodeLyric(await readFile(lyricFile.path))
+      : undefined;
+
+    try {
+      const song = await this.prisma.$transaction(async (transaction) => {
+        const coverAsset = processedCover
+          ? await transaction.fileAsset.create({ data: processedCover.data })
+          : undefined;
+
+        return transaction.song.update({
+          where: { id },
+          data: {
+            title: dto.title,
+            artistId: dto.artistId,
+            albumId:
+              dto.albumId === undefined ? undefined : dto.albumId || null,
+            remoteUrl: dto.remoteUrl,
+            coverAssetId: coverAsset?.id,
+            lyricText,
+            categories:
+              dto.categoryIds === undefined
+                ? undefined
+                : {
+                    deleteMany: {},
+                    ...this.categoryCreate(dto.categoryIds),
+                  },
+          },
+          include: songRelations,
+        });
+      });
+
+      if (existing.coverAsset && existing.coverAsset.id !== song.coverAssetId) {
+        await this.removeFileAsset(existing.coverAsset);
+      }
+      return presentSong(song, true);
+    } catch (error) {
+      if (processedCover) {
+        await this.mediaStorage.removeAssets([
+          { storagePath: processedCover.data.storagePath },
+        ]);
+      }
+      throw error;
+    }
   }
 
   async updateSongStatus(id: string, dto: UpdateSongStatusDto) {
