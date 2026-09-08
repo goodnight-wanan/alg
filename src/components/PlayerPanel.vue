@@ -93,7 +93,7 @@ function scrollToLine(index) {
   const change = target - start
   if (Math.abs(change) < 1) return
 
-  const duration = 600
+  const duration = 250
   const startTime = performance.now()
   if (scrollFrame) cancelAnimationFrame(scrollFrame)
 
@@ -118,7 +118,7 @@ function onLyricScroll() {
   manualScrollTimer = window.setTimeout(() => {
     manualScroll.value = false
     if (currentLineIndex.value >= 0) scrollToLine(currentLineIndex.value)
-  }, 3000)
+  }, 1200)
 }
 
 function onLineClick(line) {
