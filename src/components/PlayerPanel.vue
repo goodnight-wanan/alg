@@ -101,15 +101,25 @@ function drawSpectrum() {
   const data = playerStore.getFrequencyData()
   if (data) {
     const barCount = 128
-    const gap = 1
+    const gap = 2
     const barWidth = (width - gap * (barCount - 1)) / barCount
+    const maxHeight = height * 0.8
+
     const gradient = ctx.createLinearGradient(0, height, 0, 0)
     gradient.addColorStop(0, '#ffc9db')
     gradient.addColorStop(1, '#f690b0')
     ctx.fillStyle = gradient
+
+    const center = (barCount - 1) / 2
+
     for (let i = 0; i < barCount; i++) {
-      const sample = data[Math.floor((i * data.length) / barCount)]
-      const barHeight = Math.max(2, (sample / 255) * height)
+      const dist = Math.abs(i - center) / center
+      // 线性铺开频率，避免低频能量全堆在中间几根柱子上
+      const bin = Math.round(dist * (data.length - 1))
+      // 0.45 次幂压缩，把低频(≈255)和高频(≈0)的巨大差距压平，让两边也有起伏
+      const raw = data[bin] / 255
+      const value = Math.pow(raw, 0.45) * 255
+      const barHeight = Math.max(3, (value / 255) * maxHeight)
       ctx.fillRect(i * (barWidth + gap), height - barHeight, barWidth, barHeight)
     }
   }
