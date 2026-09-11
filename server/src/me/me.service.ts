@@ -178,7 +178,7 @@ export class MeService {
   async listFavoritePlaylists(userId: string, query: MePaginationQueryDto) {
     const where: Prisma.FavoritePlaylistWhereInput = {
       userId,
-      playlist: { isPublished: true, ownerId: null },
+      playlist: { isPublished: true },
     };
     const skip = (query.page - 1) * query.pageSize;
     const [favorites, total] = await this.prisma.$transaction([
@@ -400,7 +400,7 @@ export class MeService {
 
   private async findPublishedPlaylist(publicId: string) {
     const playlist = await this.prisma.playlist.findFirst({
-      where: { publicId, isPublished: true, ownerId: null },
+      where: { publicId, isPublished: true },
       select: { id: true },
     });
     if (!playlist) throw this.playlistNotFound();

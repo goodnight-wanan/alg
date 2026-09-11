@@ -219,6 +219,45 @@ describe('User library (e2e)', () => {
       .expect(200);
   });
 
+  it('favorites a published playlist that still has an owner', async () => {
+    const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    const register = await request(app.getHttpServer())
+      .post('/api/auth/register')
+      .send({
+        username: `publish_owner_${suffix}`.slice(0, 32),
+        email: `publish-owner-${suffix}@example.com`,
+        password: 'music-password-123',
+      })
+      .expect(201);
+    created.userIds.push(register.body.user.id);
+    const auth = { Authorization: `Bearer ${register.body.accessToken}` };
+
+    const userPlaylist = await request(app.getHttpServer())
+      .post('/api/me/playlists')
+      .set(auth)
+      .send({ title: `Publishable ${suffix}`.slice(0, 30) })
+      .expect(201);
+
+    // Simulate the admin publishing this user-owned playlist: ownerId stays set.
+    await prisma.playlist.update({
+      where: { id: userPlaylist.body.id },
+      data: { isPublished: true },
+    });
+
+    await request(app.getHttpServer())
+      .post(`/api/me/favorite-playlists/${userPlaylist.body.publicId}`)
+      .set(auth)
+      .expect(201);
+
+    await request(app.getHttpServer())
+      .get('/api/me/favorite-playlists')
+      .set(auth)
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body.items[0].publicId).toBe(userPlaylist.body.publicId);
+      });
+  });
+
   afterAll(async () => {
     if (created.userIds.length) {
       await prisma.user.deleteMany({ where: { id: { in: created.userIds } } });
